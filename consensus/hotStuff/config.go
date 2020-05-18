@@ -37,13 +37,14 @@ package hotStuff
 import (
     "SealABC/crypto/hashes"
     "SealABC/crypto/signers"
+    "SealABC/crypto/signers/signerCommon"
     "SealABC/network"
     "time"
 )
 
 type Config struct {
     //signer and members
-    SelfSigner signers.ISigner
+    SelfSigner signerCommon.ISigner
 
     //member list
     Members []Member

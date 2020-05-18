@@ -17,31 +17,26 @@
 
 package signers
 
-type KeyPair struct{
-    PrivateKey  interface{}
-    PublicKey   interface{}
-}
+import (
+    "SealABC/crypto/signers/ed25519"
+    "SealABC/crypto/signers/signerCommon"
+)
 
-type ISigner interface {
-    Name() string
-    Sign(data []byte) (signature []byte)
-    Verify(data []byte, signature []byte) (passed bool)
-    RawKeyPair() (kp KeyPair)
-    KeyPairData() (keyData []byte)
-
-    PublicKeyString() (key string)
-    PrivateKeyString() (key string)
-
-    PublicKeyBytes() (key [] byte)
-    PrivateKeyBytes() (key []byte)
-
-    PublicKeyCompare(k interface{}) (equal bool)
-}
+var signerGenerators = map[string] ISignerGenerator{}
 
 type ISignerGenerator interface {
-    NewSigner(param interface{}) (signer ISigner, err error)
-    FromKeyPairData(kpData []byte) (kp ISigner, err error)
-    FromRawPrivateKey(key interface{}) (signer ISigner, err error)
-    FromRawPublicKey(key interface{}) (signer ISigner, err error)
-    FromRawKeyPair(kp KeyPair) (signer ISigner, err error)
+    Name() string
+    NewSigner(param interface{}) (signer signerCommon.ISigner, err error)
+    FromKeyPairData(kpData []byte) (kp signerCommon.ISigner, err error)
+    FromRawPrivateKey(key interface{}) (signer signerCommon.ISigner, err error)
+    FromRawPublicKey(key interface{}) (signer signerCommon.ISigner, err error)
+    FromRawKeyPair(kp interface{}) (signer signerCommon.ISigner, err error)
+}
+
+func SignerGeneratorForAlgorithm(sName string) ISignerGenerator  {
+    return signerGenerators[sName]
+}
+
+func Load() {
+    signerGenerators[ed25519.SignerGenerator.Name()] = ed25519.SignerGenerator
 }

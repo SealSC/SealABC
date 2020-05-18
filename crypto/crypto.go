@@ -28,3 +28,8 @@ type Tools struct {
     Cipher          ciphers.ICipher
     SignerGenerator signers.ISignerGenerator
 }
+
+func Load()  {
+    hashes.Load()
+    signers.Load()
+}

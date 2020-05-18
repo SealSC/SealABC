@@ -18,18 +18,18 @@
 package engineStartup
 
 import (
-    "SealABC/network"
-    "SealABC/crypto/signers"
     "SealABC/crypto"
-    "SealABC/log"
-    "SealABC/service/system"
+    "SealABC/crypto/signers/signerCommon"
     "SealABC/engine/engineApi"
+    "SealABC/log"
+    "SealABC/network"
+    "SealABC/service/system"
 )
 
 type Config struct {
     Api         engineApi.Config
     Log         log.Config
-    SelfSigner  signers.ISigner
+    SelfSigner  signerCommon.ISigner
     CryptoTools crypto.Tools
 
     StorageConfig           interface{}

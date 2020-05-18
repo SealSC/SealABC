@@ -19,6 +19,7 @@ package seal
 
 import (
     "SealABC/crypto"
+    "SealABC/crypto/signers"
     "bytes"
     "encoding/hex"
     "errors"
@@ -27,6 +28,7 @@ import (
 type Entity struct {
     Hash            []byte
     Signature       []byte
+    SignerAlgorithm string
     SignerPublicKey []byte
 }
 
@@ -50,6 +52,8 @@ func (e *Entity) Sign(orgData []byte, tools crypto.Tools, privateKey []byte) (er
 
     e.Hash = tools.HashCalculator.Sum(orgData)
     e.Signature = s.Sign(e.Hash)
+
+    e.SignerAlgorithm = tools.SignerGenerator.Name()
     e.SignerPublicKey = s.PublicKeyBytes()
 
     return
@@ -64,7 +68,13 @@ func (e Entity) Verify(orgData []byte, tools crypto.Tools) (passed bool, err err
         return
     }
 
-    signer, err := tools.SignerGenerator.FromRawPublicKey(e.SignerPublicKey)
+    signerGen := signers.SignerGeneratorForAlgorithm(e.SignerAlgorithm)
+    if signerGen == nil {
+        err = errors.New("unsupported signature algorithm:" + e.SignerAlgorithm)
+        return
+    }
+
+    signer, err := signerGen.FromRawPublicKey(e.SignerPublicKey)
     if err != nil {
         err = errors.New("invalid seal's public key")
         return 

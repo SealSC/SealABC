@@ -19,13 +19,13 @@ package chainStructure
 
 import (
     "SealABC/crypto"
-    "SealABC/crypto/signers"
+    "SealABC/crypto/signers/signerCommon"
     "SealABC/service/system/blockchain/chainSQLStorage"
     "SealABC/storage/db/dbInterface/kvDatabase"
 )
 
 type Config struct {
-    Signer      signers.ISigner
+    Signer      signerCommon.ISigner
     CryptoTools crypto.Tools
     NewWhenGenesis  bool
     StorageDriver   kvDatabase.IDriver

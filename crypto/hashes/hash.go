@@ -35,3 +35,7 @@ type IHashCalculator interface {
     HMAC([]byte, []byte) []byte
     OriginalHash() func() hash.Hash
 }
+
+func Load()  {
+    sha3.Load()
+}

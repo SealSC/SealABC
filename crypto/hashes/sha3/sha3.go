@@ -29,7 +29,7 @@ const (
     keccak_512 = "keccak_512"
 )
 
-func init() {
+func Load() {
     commonHash.RegisterHashMethod(sha3_256, sha3.New256)
     commonHash.RegisterHashMethod(sha3_512, sha3.New512)
     commonHash.RegisterHashMethod(keccak_256, sha3.NewLegacyKeccak256)

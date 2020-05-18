@@ -18,7 +18,7 @@
 package ed25519
 
 import (
-    "SealABC/crypto/signers"
+    "SealABC/crypto/signers/signerCommon"
     "bytes"
     "crypto/ed25519"
     "encoding/hex"
@@ -26,13 +26,15 @@ import (
     "errors"
 )
 
+const algorithmName = "ED25519"
+
 type keyPair struct {
     PrivateKey ed25519.PrivateKey
     PublicKey  ed25519.PublicKey
 }
 
 func (k keyPair) Name() string {
-    return "ED25519"
+    return algorithmName
 }
 
 func (k keyPair) Verify(data []byte, signature []byte) (passed bool) {
@@ -57,8 +59,8 @@ func (k keyPair)KeyPairData() (keyData []byte) {
     return
 }
 
-func (k keyPair)RawKeyPair() (kp signers.KeyPair) {
-    return signers.KeyPair{
+func (k keyPair)RawKeyPair() (kp interface{}) {
+    return signerCommon.KeyPair {
         PrivateKey: append([]byte{}, k.PrivateKey...),
         PublicKey:  append([]byte{}, k.PublicKey...),
     }
@@ -95,7 +97,11 @@ func calcPublicKey(priv []byte) (pub []byte) {
 
 type keyGenerator struct {}
 
-func (keyGenerator) NewSigner(_ interface{}) (s signers.ISigner, err error) {
+func (keyGenerator) Name() string {
+    return algorithmName
+}
+
+func (keyGenerator) NewSigner(_ interface{}) (s signerCommon.ISigner, err error) {
     pub, priv, err := ed25519.GenerateKey(nil)
     if err != nil {
         return
@@ -115,7 +121,7 @@ func (keyGenerator) NewSigner(_ interface{}) (s signers.ISigner, err error) {
     return
 }
 
-func (k *keyGenerator) FromRawPrivateKey(key interface{}) (s signers.ISigner, err error) {
+func (k *keyGenerator) FromRawPrivateKey(key interface{}) (s signerCommon.ISigner, err error) {
     keyBytes, ok := key.([]byte)
     if !ok {
         err = errors.New("only support bytes type key")
@@ -137,7 +143,7 @@ func (k *keyGenerator) FromRawPrivateKey(key interface{}) (s signers.ISigner, er
     return
 }
 
-func (k *keyGenerator) FromRawPublicKey(key interface{}) (s signers.ISigner, err error) {
+func (k *keyGenerator) FromRawPublicKey(key interface{}) (s signerCommon.ISigner, err error) {
     keyBytes, ok := key.([]byte)
     if !ok {
         err = errors.New("only support bytes type key")
@@ -154,20 +160,21 @@ func (k *keyGenerator) FromRawPublicKey(key interface{}) (s signers.ISigner, err
     return
 }
 
-func (k *keyGenerator) FromKeyPairData(kpData []byte) (kp signers.ISigner, err error)  {
+func (k *keyGenerator) FromKeyPairData(kpData []byte) (signer signerCommon.ISigner, err error)  {
     newSigner := keyPair{}
     err = json.Unmarshal(kpData, &newSigner)
     if err != nil {
         return
     }
 
-    kp = &newSigner
+    signer = &newSigner
     return
 }
 
-func (k *keyGenerator) FromRawKeyPair(kp signers.KeyPair) (s signers.ISigner, err error) {
+func (k *keyGenerator) FromRawKeyPair(keys interface{}) (s signerCommon.ISigner, err error) {
     newSigner := keyPair{}
 
+    kp := keys.(signerCommon.KeyPair)
     newSigner.PrivateKey = append([]byte{}, kp.PrivateKey.([]byte)...)
     newSigner.PublicKey = append([]byte{}, kp.PublicKey.([]byte)...)
 
@@ -176,3 +183,4 @@ func (k *keyGenerator) FromRawKeyPair(kp signers.KeyPair) (s signers.ISigner, er
 }
 
 var SignerGenerator = &keyGenerator{}
+
