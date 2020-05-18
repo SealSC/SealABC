@@ -19,6 +19,7 @@ package basicAssetsLedger
 
 import (
     "errors"
+    "fmt"
 )
 
 func (l *Ledger) verifyTransfer(tx Transaction) (ret interface{}, err error) {
@@ -37,6 +38,21 @@ func (l *Ledger) verifyTransfer(tx Transaction) (ret interface{}, err error) {
     if totalIn != totalOut {
         err = errors.New("input not equal output")
         return
+    }
+
+    for _, utxo := range unspentList {
+        key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
+        if l.utxoPool[key] {
+            err = errors.New("double spent")
+            break
+        }
+    }
+
+    if err == nil {
+        for _, utxo := range unspentList {
+            key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
+            l.utxoPool[key] = true
+        }
     }
 
     ret = unspentList
