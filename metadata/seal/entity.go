@@ -19,6 +19,7 @@ package seal
 
 import (
     "SealABC/crypto"
+    "SealABC/crypto/hashes"
     "SealABC/crypto/signers"
     "bytes"
     "encoding/hex"
@@ -44,7 +45,7 @@ func (e *Entity) HexSignature() string {
     return hex.EncodeToString(e.Signature)
 }
 
-func (e *Entity) Sign(orgData []byte, tools crypto.Tools, privateKey []byte) (err error) {
+func (e *Entity) Sign(orgData []byte, tools crypto.Tools, privateKey interface{}) (err error) {
     s, err := tools.SignerGenerator.FromRawPrivateKey(privateKey)
     if err != nil {
         return
@@ -53,22 +54,22 @@ func (e *Entity) Sign(orgData []byte, tools crypto.Tools, privateKey []byte) (er
     e.Hash = tools.HashCalculator.Sum(orgData)
     e.Signature = s.Sign(e.Hash)
 
-    e.SignerAlgorithm = tools.SignerGenerator.Name()
+    e.SignerAlgorithm = tools.SignerGenerator.Type()
     e.SignerPublicKey = s.PublicKeyBytes()
 
     return
 }
 
-func (e Entity) Verify(orgData []byte, tools crypto.Tools) (passed bool, err error) {
+func (e Entity) Verify(orgData []byte, hashCalc hashes.IHashCalculator) (passed bool, err error) {
     passed = false
 
-    hash := tools.HashCalculator.Sum(orgData)
+    hash := hashCalc.Sum(orgData)
     if !bytes.Equal(hash, e.Hash) {
         err = errors.New("hash not equal")
         return
     }
 
-    signerGen := signers.SignerGeneratorForAlgorithm(e.SignerAlgorithm)
+    signerGen := signers.SignerGeneratorByAlgorithmType(e.SignerAlgorithm)
     if signerGen == nil {
         err = errors.New("unsupported signature algorithm:" + e.SignerAlgorithm)
         return

@@ -43,7 +43,7 @@ func (m *MemoApplication) VerifyReq(req blockchainRequest.Entity) (passed bool, 
     }
 
     dataBytes, _ := structSerializer.ToMFBytes(memo.MemoData)
-    passed, err = memo.Seal.Verify(dataBytes, m.CryptoTools)
+    passed, err = memo.Seal.Verify(dataBytes, m.CryptoTools.HashCalculator)
 
     return
 }

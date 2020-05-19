@@ -66,6 +66,6 @@ func (t *Transaction) Verify(tools crypto.Tools) (err error) {
         return
     }
 
-    _, err = t.Seal.Verify(txBytes, tools)
+    _, err = t.Seal.Verify(txBytes, tools.HashCalculator)
     return
 }

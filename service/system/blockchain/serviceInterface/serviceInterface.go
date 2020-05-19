@@ -64,7 +64,7 @@ func (b BlockchainService) getNewBlockRequestFromConsensus(data interface{}) (bl
         return
     }
 
-    _, err = srvData.CustomerSeal.Verify(blockBytes, b.chain.Config.CryptoTools)
+    _, err = srvData.CustomerSeal.Verify(blockBytes, b.chain.Config.CryptoTools.HashCalculator)
     if err != nil {
         log.Log.Error("invalid request data signature: ", err.Error())
         return
@@ -157,7 +157,7 @@ func (b *BlockchainService) PreExecute(data interface{}) (result []byte, err err
 
     //pre-executeRequest the request
     for _, req := range blk.Body.Requests {
-        result, err = b.chain.Executor.PreExecute(req)
+        result, err = b.chain.Executor.PreExecute(req, blk.Header)
         //todo: handle the result
     }
 

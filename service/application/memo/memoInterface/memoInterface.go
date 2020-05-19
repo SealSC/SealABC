@@ -22,6 +22,7 @@ import (
     "SealABC/dataStructure/enum"
     "SealABC/log"
     "SealABC/metadata/applicationResult"
+    "SealABC/metadata/block"
     "SealABC/metadata/blockchainRequest"
     "SealABC/service"
     "SealABC/service/application/memo/memoSQLStorage"
@@ -104,14 +105,14 @@ func (m *MemoApplication) Query(req string) (result interface{}, err error) {
     }
 }
 
-func (m *MemoApplication) PreExecute(req blockchainRequest.Entity) (result []byte, err error) {
+func (m *MemoApplication) PreExecute(req blockchainRequest.Entity, _ block.Header) (result []byte, err error) {
     _, _, err = m.VerifyReq(req)
     return
 }
 
 func (m *MemoApplication) Execute(
         req blockchainRequest.Entity,
-        blockHeight uint64,
+        blockHeader block.Header,
         actIndex uint32,
     ) (result applicationResult.Entity, err error) {
 
@@ -143,7 +144,7 @@ func (m *MemoApplication) Execute(
     }
 
     if m.sqlStorage != nil {
-        _ = m.sqlStorage.StoreMemo(blockHeight, time.Now().Unix(), req, memo)
+        _ = m.sqlStorage.StoreMemo(blockHeader.Height, time.Now().Unix(), req, memo)
     }
 
     return

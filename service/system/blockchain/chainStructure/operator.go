@@ -31,7 +31,7 @@ const last_block_key = "last_block_key"
 
 func (b *Blockchain) executeRequest(blk block.Entity) (err error) {
     for idx, req := range blk.Body.Requests {
-        appRet, exeErr := b.Executor.ExecuteRequest(req, blk.Header.Height, uint32(idx))
+        appRet, exeErr := b.Executor.ExecuteRequest(req, blk.Header, uint32(idx))
 
         if exeErr != nil {
             err = exeErr

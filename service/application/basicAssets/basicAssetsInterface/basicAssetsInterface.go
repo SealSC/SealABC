@@ -21,6 +21,7 @@ import (
     "SealABC/dataStructure/enum"
     "SealABC/log"
     "SealABC/metadata/applicationResult"
+    "SealABC/metadata/block"
     "SealABC/metadata/blockchainRequest"
     "SealABC/service"
     "SealABC/service/application/basicAssets/basicAssetsLedger"
@@ -71,7 +72,7 @@ func (b *BasicAssetsApplication) Query(req string) (result interface{}, err erro
     }
 }
 
-func (b *BasicAssetsApplication) PreExecute(req blockchainRequest.Entity) (result []byte, err error) {
+func (b *BasicAssetsApplication) PreExecute(req blockchainRequest.Entity, _ block.Header) (result []byte, err error) {
     tx := basicAssetsLedger.Transaction{}
     err = json.Unmarshal(req.Data, &tx)
     if err != nil {
@@ -124,7 +125,7 @@ func (b *BasicAssetsApplication) storeTransfer(tx basicAssetsLedger.TransactionW
 
 func (b *BasicAssetsApplication) Execute(
         req blockchainRequest.Entity,
-        blockHeight uint64,
+        blockHeader block.Header,
         actIndex uint32,
     ) (result applicationResult.Entity, err error) {
 
@@ -140,7 +141,7 @@ func (b *BasicAssetsApplication) Execute(
     }
 
     reqHash := req.Seal.Hash
-    err =  b.Ledger.SaveTransactionWithBlockInfo(tx, reqHash, blockHeight, actIndex)
+    err =  b.Ledger.SaveTransactionWithBlockInfo(tx, reqHash, blockHeader.Height, actIndex)
     if err != nil {
         return
     }
@@ -153,7 +154,7 @@ func (b *BasicAssetsApplication) Execute(
         }
 
         txWithBlk.BlockInfo.RequestHash = reqHash
-        txWithBlk.BlockInfo.BlockHeight = blockHeight
+        txWithBlk.BlockInfo.BlockHeight = blockHeader.Height
         txWithBlk.BlockInfo.ActionIndex = actIndex
 
         txTypes :=  basicAssetsLedger.TransactionTypes

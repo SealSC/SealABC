@@ -59,13 +59,13 @@ func (a Assets) verify(tools crypto.Tools) (err error) {
     a.Supply = 0
     withoutSupplyBytes, _ := structSerializer.ToMFBytes(a.AssetsData)
 
-    _, err = a.IssuedSeal.Verify(fullBytes, tools)
+    _, err = a.IssuedSeal.Verify(fullBytes, tools.HashCalculator)
     if err != nil {
         err = errors.New("invalid full assets data signature: " + err.Error())
         return
     }
 
-    _, err = a.MetaSeal.Verify(withoutSupplyBytes, tools)
+    _, err = a.MetaSeal.Verify(withoutSupplyBytes, tools.HashCalculator)
     if err != nil {
         err = errors.New("invalid assets without supply data signature: " + err.Error())
         return

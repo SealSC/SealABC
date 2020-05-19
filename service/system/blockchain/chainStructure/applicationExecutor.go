@@ -19,6 +19,7 @@ package chainStructure
 
 import (
     "SealABC/metadata/applicationResult"
+    "SealABC/metadata/block"
     "sync"
     "errors"
     "SealABC/service"
@@ -42,10 +43,10 @@ type IBlockchainExternalApplication interface {
     Query(req string) (result interface{}, err error)
 
     //receive and verify request from a block
-    PreExecute(req blockchainRequest.Entity) (result []byte, err error)
+    PreExecute(req blockchainRequest.Entity, header block.Header) (result []byte, err error)
 
     //receive and execute confirmed block
-    Execute(req blockchainRequest.Entity, blockHeight uint64, actIndex uint32) (result applicationResult.Entity, err error)
+    Execute(req blockchainRequest.Entity, header block.Header, actIndex uint32) (result applicationResult.Entity, err error)
 
     //handle consensus failed
     Cancel(req blockchainRequest.Entity) (err error)
@@ -79,7 +80,7 @@ func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalA
     return
 }
 
-func (a *applicationExecutor)PreExecute(act blockchainRequest.Entity) (result []byte, err error) {
+func (a *applicationExecutor)PreExecute(act blockchainRequest.Entity, header block.Header) (result []byte, err error) {
     a.externalExeLock.RLock()
     defer a.externalExeLock.RUnlock()
 
@@ -88,10 +89,10 @@ func (a *applicationExecutor)PreExecute(act blockchainRequest.Entity) (result []
         return
     }
 
-    return exe.PreExecute(act)
+    return exe.PreExecute(act, header)
 }
 
-func (a *applicationExecutor)ExecuteRequest(req blockchainRequest.Entity, blockHeight uint64, actIndex uint32) (result applicationResult.Entity, err error) {
+func (a *applicationExecutor)ExecuteRequest(req blockchainRequest.Entity, header block.Header, actIndex uint32) (result applicationResult.Entity, err error) {
     a.externalExeLock.RLock()
     defer a.externalExeLock.RUnlock()
 
@@ -100,7 +101,7 @@ func (a *applicationExecutor)ExecuteRequest(req blockchainRequest.Entity, blockH
         return
     }
 
-    return exe.Execute(req, blockHeight, actIndex)
+    return exe.Execute(req, header, actIndex)
 }
 
 func (a *applicationExecutor)GetRequestListToBuildBlock() (reqList []blockchainRequest.Entity) {
@@ -128,10 +129,6 @@ func (a *applicationExecutor)PushRequest(req blockchainRequest.Entity) (result i
         return
     }
 
-    result, err = exe.PreExecute(req)
-    if err != nil {
-        return
-    }
 
     return exe.PushClientRequest(req)
 }

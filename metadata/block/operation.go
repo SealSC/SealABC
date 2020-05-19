@@ -32,7 +32,7 @@ func (e *Entity) Verify(tools crypto.Tools) (passed bool, err error) {
     passed = false
     blockHeaderBytes, _ := structSerializer.ToMFBytes(e.EntityData.Header)
 
-    passed, err = e.Seal.Verify(blockHeaderBytes, tools)
+    passed, err = e.Seal.Verify(blockHeaderBytes, tools.HashCalculator)
     if err != nil {
         return
     }
