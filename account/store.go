@@ -19,15 +19,15 @@ package account
 
 import (
 	"SealABC/crypto/ciphers"
-	"SealABC/crypto/ciphers/aes"
+	"SealABC/crypto/ciphers/cipherCommon"
 	"SealABC/crypto/kdf/pbkdf2"
-	"SealABC/crypto/signers/ed25519"
+	"SealABC/crypto/signers"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 )
 
-func (s SealAccount) Store(filename string, password string) (encrypted Encrypted, err error) {
+func (s SealAccount) Store(filename string, password string, cipher ciphers.ICipher) (encrypted Encrypted, err error) {
 	dataForEnc := accountDataForEncrypt{}
 	dataForEnc.SignerType = s.SingerType
 	dataForEnc.KeyData = s.Signer.KeyPairData()
@@ -39,8 +39,8 @@ func (s SealAccount) Store(filename string, password string) (encrypted Encrypte
 		return
 	}
 
-	encMode := ciphers.CBC
-	encData, err := aes.AESCipher.Encrypt(dataBytes, key, encMode)
+	encMode := cipherCommon.CBC
+	encData, err := cipher.Encrypt(dataBytes, key, encMode)
 	if err != nil {
 		return
 	}
@@ -48,7 +48,7 @@ func (s SealAccount) Store(filename string, password string) (encrypted Encrypte
 	encrypted.Address = s.Address
 	encrypted.Data = encData
 	encrypted.Config = StoreConfig {
-		CipherType:  aes.AESCipher.Name(),
+		CipherType:  cipher.Type(),
 		CipherParam: []byte(encMode),
 		KDFType:     pbkdf2.Generator.Name(),
 		KDFSalt:     keySalt,
@@ -79,10 +79,6 @@ func (s *SealAccount) FromStore(filename string, password string) (sa SealAccoun
 	}
 
 	config := encAccount.Config
-	if aes.AESCipher.Name() != config.CipherType {
-		err = errors.New("not supported cipher type: " + encAccount.Config.CipherType)
-		return
-	}
 
 	if pbkdf2.Generator.Name() != config.KDFType {
 		err = errors.New("not supported kdf type: " + encAccount.Config.KDFType)
@@ -94,7 +90,8 @@ func (s *SealAccount) FromStore(filename string, password string) (sa SealAccoun
 		return
 	}
 
-	saData, err := aes.AESCipher.Decrypt(encAccount.Data, key, string(config.CipherParam))
+	var cipher = ciphers.CipherByAlgorithmType(encAccount.Config.CipherType)
+	saData, err := cipher.Decrypt(encAccount.Data, key, string(config.CipherParam))
 	if err != nil {
 		return
 	}
@@ -106,7 +103,8 @@ func (s *SealAccount) FromStore(filename string, password string) (sa SealAccoun
 		return
 	}
 
-	signer, err := ed25519.SignerGenerator.FromKeyPairData(saForEnc.KeyData)
+	sg := signers.SignerGeneratorByAlgorithmType(s.SingerType)
+	signer, err := sg.FromKeyPairData(saForEnc.KeyData)
 	if err != nil {
 		return
 	}

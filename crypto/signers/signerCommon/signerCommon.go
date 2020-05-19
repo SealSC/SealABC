@@ -6,7 +6,7 @@ type KeyPair struct{
 }
 
 type ISigner interface {
-	Name() string
+	Type() string
 	Sign(data []byte) (signature []byte)
 	Verify(data []byte, signature []byte) (passed bool)
 	RawKeyPair() (kp interface{})

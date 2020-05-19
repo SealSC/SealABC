@@ -18,7 +18,7 @@
 package aes
 
 import (
-    "SealABC/crypto/ciphers"
+    "SealABC/crypto/ciphers/cipherCommon"
     "bytes"
     "crypto/aes"
     "crypto/cipher"
@@ -30,24 +30,24 @@ import (
 type aesCipher struct {}
 
 var encrypterBuilder = map[string] interface{} {
-    ciphers.CBC: cipher.NewCBCEncrypter,
-    ciphers.CFB: cipher.NewCFBEncrypter,
-    ciphers.CTR: cipher.NewCTR,
-    ciphers.OFB: cipher.NewOFB,
+    cipherCommon.CBC: cipher.NewCBCEncrypter,
+    cipherCommon.CFB: cipher.NewCFBEncrypter,
+    cipherCommon.CTR: cipher.NewCTR,
+    cipherCommon.OFB: cipher.NewOFB,
 }
 
 var decrypterBuilder = map[string] interface{} {
-    ciphers.CBC: cipher.NewCBCDecrypter,
-    ciphers.CFB: cipher.NewCFBDecrypter,
-    ciphers.CTR: cipher.NewCTR,
-    ciphers.OFB: cipher.NewOFB,
+    cipherCommon.CBC: cipher.NewCBCDecrypter,
+    cipherCommon.CFB: cipher.NewCFBDecrypter,
+    cipherCommon.CTR: cipher.NewCTR,
+    cipherCommon.OFB: cipher.NewOFB,
 }
 
-func (a aesCipher) Name() string {
+func (a aesCipher) Type() string {
     return "AES"
 }
 
-func (a aesCipher) Encrypt(plaintext []byte, key []byte, encMode interface{}) (encrypted ciphers.EncryptedData, err error) {
+func (a aesCipher) Encrypt(plaintext []byte, key []byte, encMode interface{}) (encrypted cipherCommon.EncryptedData, err error) {
     defer func() {
         if e := recover(); e != nil {
             err = e.(error)
@@ -78,7 +78,7 @@ func (a aesCipher) Encrypt(plaintext []byte, key []byte, encMode interface{}) (e
         return
     }
 
-    if ciphers.CBC == mode {
+    if cipherCommon.CBC == mode {
         builder := encrypterMethod.(func(b cipher.Block, iv []byte) cipher.BlockMode)
         encrypter := builder(block, iv)
         blockSize := block.BlockSize()
@@ -97,7 +97,7 @@ func (a aesCipher) Encrypt(plaintext []byte, key []byte, encMode interface{}) (e
     return
 }
 
-func (a aesCipher) Decrypt(encrypted ciphers.EncryptedData, key []byte, encMode interface{}) (plaintext []byte, err error) {
+func (a aesCipher) Decrypt(encrypted cipherCommon.EncryptedData, key []byte, encMode interface{}) (plaintext []byte, err error) {
     defer func() {
         if e := recover(); e != nil {
             err = e.(error)
@@ -128,7 +128,7 @@ func (a aesCipher) Decrypt(encrypted ciphers.EncryptedData, key []byte, encMode 
     }
 
     plaintext = make([]byte, len(encrypted.CipherText))
-    if ciphers.CBC == mode {
+    if cipherCommon.CBC == mode {
         builder := decryptMethod.(func(b cipher.Block, iv []byte) cipher.BlockMode)
         decrypter := builder(block, iv)
         decrypter.CryptBlocks(plaintext, encrypted.CipherText)
@@ -153,5 +153,4 @@ func PKCS5Trimming(encrypt []byte) []byte {
     return encrypt[:len(encrypt)-int(padding)]
 }
 
-var AESCipher aesCipher
-
+var Cipher aesCipher

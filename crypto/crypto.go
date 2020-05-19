@@ -31,5 +31,4 @@ type Tools struct {
 
 func Load()  {
     hashes.Load()
-    signers.Load()
 }

@@ -18,9 +18,9 @@
 package account
 
 import (
-    "SealABC/crypto/ciphers"
+    "SealABC/crypto/ciphers/cipherCommon"
     "SealABC/crypto/signers"
-    "SealABC/crypto/signers/ed25519"
+    "SealABC/crypto/signers/signerCommon"
 )
 
 const encryptedKeyLen = 32
@@ -38,7 +38,7 @@ type StoreConfig struct {
 
 type Encrypted struct {
     Address string
-    Data    ciphers.EncryptedData
+    Data    cipherCommon.EncryptedData
     Config  StoreConfig
 }
 
@@ -48,32 +48,32 @@ type accountDataForEncrypt struct {
 }
 
 type SealAccount struct {
-    Address     string
-    SingerType  string
-    Signer      signers.ISigner
+    Address    string
+    SingerType string
+    Signer     signerCommon.ISigner
 }
 
-func NewAccount(privateKey []byte) (sa SealAccount, err error) {
-    signer, err := ed25519.SignerGenerator.NewSigner(privateKey)
+func NewAccount(privateKey []byte, sg signers.ISignerGenerator) (sa SealAccount, err error) {
+    signer, err := sg.NewSigner(privateKey)
 
     if err != nil {
         return
     }
 
     sa.Address = signer.PublicKeyString()
-    sa.SingerType = signer.Name()
+    sa.SingerType = signer.Type()
     sa.Signer = signer
     return
 }
 
-func NewAccountForVerify(publicKey []byte) (sa SealAccount, err error) {
-    signer, err := ed25519.SignerGenerator.FromRawPublicKey(publicKey)
+func NewAccountForVerify(publicKey []byte, sg signers.ISignerGenerator) (sa SealAccount, err error) {
+    signer, err := sg.FromRawPublicKey(publicKey)
     if err != nil {
         return
     }
 
     sa.Address = signer.PublicKeyString()
-    sa.SingerType = signer.Name()
+    sa.SingerType = signer.Type()
     sa.Signer = signer
 
     return

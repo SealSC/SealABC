@@ -33,7 +33,7 @@ type keyPair struct {
     PublicKey  ed25519.PublicKey
 }
 
-func (k keyPair) Name() string {
+func (k keyPair) Type() string {
     return algorithmName
 }
 
@@ -97,7 +97,7 @@ func calcPublicKey(priv []byte) (pub []byte) {
 
 type keyGenerator struct {}
 
-func (keyGenerator) Name() string {
+func (keyGenerator) Type() string {
     return algorithmName
 }
 

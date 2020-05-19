@@ -15,24 +15,17 @@
  *
  */
 
-package ciphers
+package cipherCommon
 
-import (
-    "SealABC/crypto/ciphers/aes"
-    "SealABC/crypto/ciphers/cipherCommon"
+
+type EncryptedData struct {
+	CipherText      []byte
+	ExternalData    []byte
+}
+
+const (
+	CBC = "CBC"
+	CFB = "CFB"
+	OFB = "OFB"
+	CTR = "CTR"
 )
-
-var ciphers = map[string] ICipher {
-    aes.Cipher.Type(): aes.Cipher,
-}
-
-type ICipher interface {
-    Type() string
-    Encrypt(plainText []byte, key []byte, param interface{}) (result cipherCommon.EncryptedData, err error)
-    Decrypt(cipherText cipherCommon.EncryptedData, key []byte, param interface{}) (plaintext []byte, err error)
-}
-
-func CipherByAlgorithmType(cType string) ICipher {
-    return ciphers[cType]
-}
-

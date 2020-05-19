@@ -22,10 +22,12 @@ import (
     "SealABC/crypto/signers/signerCommon"
 )
 
-var signerGenerators = map[string] ISignerGenerator{}
+var signerGenerators = map[string] ISignerGenerator{
+    ed25519.SignerGenerator.Type(): ed25519.SignerGenerator,
+}
 
 type ISignerGenerator interface {
-    Name() string
+    Type() string
     NewSigner(param interface{}) (signer signerCommon.ISigner, err error)
     FromKeyPairData(kpData []byte) (kp signerCommon.ISigner, err error)
     FromRawPrivateKey(key interface{}) (signer signerCommon.ISigner, err error)
@@ -33,10 +35,6 @@ type ISignerGenerator interface {
     FromRawKeyPair(kp interface{}) (signer signerCommon.ISigner, err error)
 }
 
-func SignerGeneratorForAlgorithm(sName string) ISignerGenerator  {
-    return signerGenerators[sName]
-}
-
-func Load() {
-    signerGenerators[ed25519.SignerGenerator.Name()] = ed25519.SignerGenerator
+func SignerGeneratorByAlgorithmType(sType string) ISignerGenerator  {
+    return signerGenerators[sType]
 }
