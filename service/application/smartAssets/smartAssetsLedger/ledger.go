@@ -31,15 +31,9 @@ import (
 	"sync"
 )
 
-var StoragePrefixes struct{
-	Assets       enum.Element
-	Transaction  enum.Element
-	ContractData enum.Element
-	Balance      enum.Element
-}
-
 type Ledger struct {
-	txPool        map[string] *blockchainRequest.Entity
+	txPool        [] *blockchainRequest.Entity
+	txHashRecord  map[string] bool
 	txPoolLimit   int
 	clientTxCount map[string] int
 	clientTxLimit int
@@ -111,7 +105,7 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if tx.Type != req.RequestAction {
 		return errors.New("transaction type is not equal to block request action")
 	}
@@ -120,6 +114,8 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 	if !valid {
 		return err
 	}
+
+	//todo: check balance to ensure client has enough base-assets to pay transaction basic fee
 
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
@@ -140,16 +136,57 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 	}
 
 	txHash := string(tx.Seal.Hash)
-	if l.txPool[txHash] != nil {
+	if l.txHashRecord[txHash] {
 		return errors.New("duplicate pending transaction")
 	}
-	
-	l.txPool[txHash] = &req
+
+	l.txPool = append(l.txPool, &req)
 	l.clientTxCount[client] = clientTxCount + 1
 
 	return nil
 }
 
-func PreExecute(txList []Transaction, blockHeader []block.Header) (result map[string] []byte, err error) {
+func (l Ledger) PreExecute(txList []Transaction, blockHeader block.Header) (result []byte, err error) {
+	//only check signature & duplicate
+	txHash := map[string] bool{}
+	for _, tx := range txList {
+		_, err = tx.verify(l.CryptoTools.HashCalculator)
+		if err != nil {
+			break
+		}
+
+		hash := string(tx.Seal.Hash)
+		if _, exists := txHash[hash]; !exists {
+			txHash[hash] = true
+		} else {
+			err = errors.New("duplicate transaction")
+		}
+	}
+
+	return
+}
+
+func (l Ledger) Execute(txList []Transaction, blockHeader block.Header) (result []byte, err error) {
+	return
+}
+
+func (l Ledger) GetTransactionsFromPool() (txList []blockchainRequest.Entity, count uint32) {
+	l.poolLock.Lock()
+	defer l.poolLock.Unlock()
+
+	count = uint32(len(l.txPool))
+	if count == 0 {
+		return
+	}
+
+	for _, i := range l.txPool {
+		tx := Transaction{}
+
+		//will never unmarshal fail because we marshal correctly when it's appending to the pool
+		_ = json.Unmarshal(i.Data, &tx)
+
+
+	}
+
 	return
 }

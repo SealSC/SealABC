@@ -18,16 +18,31 @@
 package smartAssetsLedger
 
 import (
+	"SealABC/common/utility/serializer/structSerializer"
+	"SealABC/dataStructure/enum"
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"encoding/json"
 )
 
-func (l Ledger) buildStorageKey(prefix string, key []byte) []byte {
-	return append([]byte(prefix), key...)
+const commonKeyLength = 32
+
+type prefixEl struct {
+	enum.Element
+}
+
+func (p prefixEl) buildKey(key []byte) []byte {
+	return append([]byte(p.String()), key...)
+}
+
+var StoragePrefixes struct {
+	Assets       prefixEl
+	Transaction  prefixEl
+	ContractData prefixEl
+	Balance      prefixEl
 }
 
 func (l Ledger) getAssetsByHash(hash []byte) (assets *BaseAssets, exists bool, err error) {
-	key := l.buildStorageKey(StoragePrefixes.Assets.String(), hash)
+	key := StoragePrefixes.Assets.buildKey(hash)
 	assetsJson, err := l.Storage.Get(key)
 	if err != nil {
 		return
@@ -48,7 +63,7 @@ func (l Ledger) storeAssets(assets BaseAssets) error {
 		return err
 	}
 
-	key := l.buildStorageKey(StoragePrefixes.Assets.String(), assets.MetaSeal.Hash)
+	key := StoragePrefixes.Assets.buildKey(assets.MetaSeal.Hash)
 
 	err = l.Storage.Put(kvDatabase.KVItem{
 		Key:    key,
@@ -60,7 +75,7 @@ func (l Ledger) storeAssets(assets BaseAssets) error {
 }
 
 func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err error) {
-	key := l.buildStorageKey(StoragePrefixes.Transaction.String(), hash)
+	key := StoragePrefixes.Transaction.buildKey(hash)
 
 	txJson, err := l.Storage.Get(key)
 	if err != nil {
@@ -70,8 +85,25 @@ func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err
 	exists = txJson.Exists
 	if exists {
 		tx = &Transaction{}
-		err = json.Unmarshal(txJson.Data, tx)
+		err = structSerializer.FromMFBytes(txJson.Data, tx)
 	}
 
 	return
+}
+
+//status data must start with 32 byte (commonKeyLength) store key
+func (l Ledger) storeStatus(prefix prefixEl, statusList [][]byte) error {
+	statusCount := len(statusList)
+	var kvList = make([]kvDatabase.KVItem, statusCount, statusCount)
+	for i, status := range statusList {
+		txHash := status[:commonKeyLength]
+		key := prefix.buildKey(txHash)
+		kvList[i] = kvDatabase.KVItem{
+			Key:    key,
+			Data:   status[commonKeyLength:],
+			Exists: true,
+		}
+	}
+	
+	return l.Storage.BatchPut(kvList)
 }

@@ -24,6 +24,11 @@ const (
     elementNameTag = "name"
 )
 
+type IElement interface {
+    Int() int
+    String() string
+    Description() string
+}
 
 type Element struct {
     value       int
@@ -39,7 +44,7 @@ func (t *Element)String() string  {
     return t.name
 }
 
-func (t *Element)Description() string  {
+func (t *Element)Description() string {
     return t.name
 }
 

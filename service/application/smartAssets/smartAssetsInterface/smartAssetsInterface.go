@@ -27,6 +27,7 @@ import (
 	"SealABC/service/system/blockchain/chainStructure"
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"encoding/json"
 )
 
 type SmartAssetsApplication struct {
@@ -47,7 +48,13 @@ func (s *SmartAssetsApplication) Query(req string) (result interface{}, err erro
 }
 
 func (s *SmartAssetsApplication) PreExecute(req blockchainRequest.Entity, header block.Header) (result []byte, err error) {
-	return
+	var txList []smartAssetsLedger.Transaction
+	err = json.Unmarshal(req.Data, txList)
+	if err != nil {
+		return
+	}
+
+	return s.ledger.PreExecute(txList, header)
 }
 
 func (s *SmartAssetsApplication) Execute(
@@ -55,6 +62,7 @@ func (s *SmartAssetsApplication) Execute(
 	header block.Header,
 	actIndex uint32,
 ) (result applicationResult.Entity, err error) {
+
 	return
 }
 
@@ -63,7 +71,7 @@ func (s *SmartAssetsApplication) Cancel(req blockchainRequest.Entity) (err error
 }
 
 func (s *SmartAssetsApplication) RequestsForBlock() (reqList []blockchainRequest.Entity, cnt uint32) {
-	return
+	return s.ledger.GetTransactionsFromPool()
 }
 
 func (s *SmartAssetsApplication) Information() (info service.BasicInformation) {

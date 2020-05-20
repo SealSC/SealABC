@@ -40,10 +40,17 @@ type TransactionData struct {
 	SN    []byte
 }
 
+type TransactionResult struct {
+	Success      bool
+	StatusUpdate [][]byte
+}
+
 type Transaction struct {
 	TransactionData
 	Seal  seal.Entity
 }
+
+type TransactionList []Transaction
 
 func (t Transaction) toMFBytes() []byte {
 	data, _ := structSerializer.ToMFBytes(t)
@@ -56,4 +63,17 @@ func (t Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err e
 	if !passed {
 		return
 	}
+
+	return
 }
+
+func (t Transaction) Execute() (result []byte) {
+	//todo: implement transaction process
+	switch t.Type {
+	case TxType.Transfer.String():
+
+	}
+
+	return
+}
+
