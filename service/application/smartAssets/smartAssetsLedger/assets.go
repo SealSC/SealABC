@@ -17,7 +17,13 @@
 
 package smartAssetsLedger
 
-import "SealABC/metadata/seal"
+import (
+	"SealABC/metadata/seal"
+	"SealABC/storage/db/dbInterface/kvDatabase"
+	"encoding/json"
+	"errors"
+	"math/big"
+)
 
 const baseAssetsPrefix = "base-assets-"
 
@@ -25,6 +31,7 @@ type BaseAssetsData struct {
 	Name        string
 	Symbol      string
 	Supply      string
+	Precision   byte
 	Increasable bool
 	Creator     string
 }
@@ -34,4 +41,66 @@ type BaseAssets struct {
 
 	IssuedSeal seal.Entity
 	MetaSeal   seal.Entity
+}
+
+func (b BaseAssets) getHash() []byte {
+	return b.MetaSeal.Hash
+}
+
+func (l Ledger) balanceOf(address []byte, assetsHash []byte) (balance *big.Int, err error) {
+	_, exists, err := l.getAssetsByHash(assetsHash)
+	if err != nil {
+		return
+	}
+
+	if !exists {
+		err = errors.New("no such assets")
+		return
+	}
+
+	balanceKey := StoragePrefixes.Balance.buildKey(address, assetsHash)
+	bKV, err := l.Storage.Get(balanceKey)
+	if err != nil {
+		return
+	}
+
+	if !bKV.Exists {
+		return big.NewInt(0), nil
+	}
+
+	balance = big.NewInt(0).SetBytes(bKV.Data)
+	return
+}
+
+func (l Ledger) getAssetsByHash(hash []byte) (assets *BaseAssets, exists bool, err error) {
+	key := StoragePrefixes.Assets.buildKey(hash)
+	assetsJson, err := l.Storage.Get(key)
+	if err != nil {
+		return
+	}
+
+	exists = assetsJson.Exists
+	if exists {
+		assets = &BaseAssets{}
+		err = json.Unmarshal(assetsJson.Data, assets)
+	}
+
+	return
+}
+
+func (l Ledger) storeAssets(assets BaseAssets) error {
+	assetsJson, err := json.Marshal(assets)
+	if err != nil {
+		return err
+	}
+
+	key := StoragePrefixes.Assets.buildKey(assets.MetaSeal.Hash)
+
+	err = l.Storage.Put(kvDatabase.KVItem{
+		Key:    key,
+		Data:   assetsJson,
+		Exists: true,
+	})
+
+	return err
 }

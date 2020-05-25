@@ -19,6 +19,7 @@ package levelDB
 
 import (
     "SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/syndtr/goleveldb/leveldb"
 )
 
 func (l *levelDBDriver)Put(kv kvDatabase.KVItem) (err error) {
@@ -28,13 +29,18 @@ func (l *levelDBDriver)Put(kv kvDatabase.KVItem) (err error) {
 
 func (l *levelDBDriver)Get(k []byte) (kv kvDatabase.KVItem, err error) {
     v, err := l.db.Get(k, nil)
-    if err != nil {
+    notFound := err == leveldb.ErrNotFound
+    if err != nil && !notFound {
         return
     }
 
     kv.Key = k
+    kv.Exists = notFound
+    if notFound {
+        return
+    }
+
     kv.Data = v
-    kv.Exists = true
     return
 }
 

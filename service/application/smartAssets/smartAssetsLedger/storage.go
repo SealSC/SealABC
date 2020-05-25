@@ -20,8 +20,6 @@ package smartAssetsLedger
 import (
 	"SealABC/common/utility/serializer/structSerializer"
 	"SealABC/dataStructure/enum"
-	"SealABC/storage/db/dbInterface/kvDatabase"
-	"encoding/json"
 )
 
 const commonKeyLength = 32
@@ -30,48 +28,20 @@ type prefixEl struct {
 	enum.Element
 }
 
-func (p prefixEl) buildKey(key []byte) []byte {
-	return append([]byte(p.String()), key...)
+func (p prefixEl) buildKey(baseKey []byte, extra ...[]byte) []byte {
+	result := append([]byte(p.String()), baseKey...)
+	for _, k := range extra {
+		result = append(result, k...)
+	}
+	return result
 }
 
 var StoragePrefixes struct {
 	Assets       prefixEl
 	Transaction  prefixEl
 	ContractData prefixEl
+	ContractCode prefixEl
 	Balance      prefixEl
-}
-
-func (l Ledger) getAssetsByHash(hash []byte) (assets *BaseAssets, exists bool, err error) {
-	key := StoragePrefixes.Assets.buildKey(hash)
-	assetsJson, err := l.Storage.Get(key)
-	if err != nil {
-		return
-	}
-
-	exists = assetsJson.Exists
-	if exists {
-		assets = &BaseAssets{}
-		err = json.Unmarshal(assetsJson.Data, assets)
-	}
-
-	return
-}
-
-func (l Ledger) storeAssets(assets BaseAssets) error {
-	assetsJson, err := json.Marshal(assets)
-	if err != nil {
-		return err
-	}
-
-	key := StoragePrefixes.Assets.buildKey(assets.MetaSeal.Hash)
-
-	err = l.Storage.Put(kvDatabase.KVItem{
-		Key:    key,
-		Data:   assetsJson,
-		Exists: true,
-	})
-
-	return err
 }
 
 func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err error) {
@@ -89,21 +59,4 @@ func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err
 	}
 
 	return
-}
-
-//status data must start with 32 byte (commonKeyLength) store key
-func (l Ledger) storeStatus(prefix prefixEl, statusList [][]byte) error {
-	statusCount := len(statusList)
-	var kvList = make([]kvDatabase.KVItem, statusCount, statusCount)
-	for i, status := range statusList {
-		txHash := status[:commonKeyLength]
-		key := prefix.buildKey(txHash)
-		kvList[i] = kvDatabase.KVItem{
-			Key:    key,
-			Data:   status[commonKeyLength:],
-			Exists: true,
-		}
-	}
-	
-	return l.Storage.BatchPut(kvList)
 }

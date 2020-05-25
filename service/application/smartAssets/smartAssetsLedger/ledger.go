@@ -28,6 +28,7 @@ import (
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"encoding/json"
 	"errors"
+	"math/big"
 	"sync"
 )
 
@@ -41,9 +42,10 @@ type Ledger struct {
 	operateLock sync.RWMutex
 	poolLock    sync.Mutex
 
-
 	genesisAssets BaseAssets
 	genesisSigner signerCommon.ISigner
+
+	validators map[string] txValidator
 
 	CryptoTools   crypto.Tools
 	Storage       kvDatabase.IDriver
@@ -60,17 +62,17 @@ func (l *Ledger) LoadGenesisAssets(creatorKey interface{}, assets BaseAssetsData
 	assets.Supply = "0"
 
 	if creatorKey == nil {
-		newSigner, err := l.CryptoTools.SignerGenerator.NewSigner(nil)
-		if err != nil {
-			return err
-		}
+		return errors.New("no creator key")
+	}
 
-		creatorKey = newSigner.PrivateKeyBytes()
+	signer, err := l.CryptoTools.SignerGenerator.FromRawPrivateKey(creatorKey)
+	if err != nil {
+		return err
 	}
 
 	metaBytes, _ := structSerializer.ToMFBytes(assets)
 	metaSeal := seal.Entity{}
-	err := metaSeal.Sign(metaBytes, l.CryptoTools, creatorKey)
+	err = metaSeal.Sign(metaBytes, l.CryptoTools, creatorKey)
 	if err != nil {
 		return err
 	}
@@ -93,6 +95,25 @@ func (l *Ledger) LoadGenesisAssets(creatorKey interface{}, assets BaseAssetsData
 		}
 
 		err = l.storeAssets(*gAssets)
+		if err != nil {
+			return err
+		}
+
+		balance, valid := big.NewInt(0).SetString(assets.Supply, 10)
+		if !valid {
+			return errors.New("invalid assets supply")
+		}
+
+		if balance.Sign() <= 0 {
+			return errors.New("supply is zero or negative")
+		}
+
+		err = l.Storage.Put(kvDatabase.KVItem{
+			Key:    StoragePrefixes.Balance.buildKey([]byte(signer.PublicKeyString())),
+			Data:   balance.Bytes(),
+			Exists: false,
+		})
+
 		return err
 	}
 
@@ -120,7 +141,7 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
-	client := string(tx.Seal.SignerPublicKey)
+	client := string(tx.DataSeal.SignerPublicKey)
 	clientTxCount := l.clientTxCount[client]
 	if clientTxCount >= l.clientTxLimit {
 		return errors.New("reach transaction count limit")
@@ -130,12 +151,12 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 		return errors.New("reach transaction pool limit")
 	}
 
-	_, exists, _ := l.getTxFromStorage(tx.Seal.Hash)
+	_, exists, _ := l.getTxFromStorage(tx.DataSeal.Hash)
 	if exists {
 		return errors.New("duplicate history transaction")
 	}
 
-	txHash := string(tx.Seal.Hash)
+	txHash := string(tx.DataSeal.Hash)
 	if l.txHashRecord[txHash] {
 		return errors.New("duplicate pending transaction")
 	}
@@ -155,7 +176,7 @@ func (l Ledger) PreExecute(txList []Transaction, blockHeader block.Header) (resu
 			break
 		}
 
-		hash := string(tx.Seal.Hash)
+		hash := string(tx.DataSeal.Hash)
 		if _, exists := txHash[hash]; !exists {
 			txHash[hash] = true
 		} else {
@@ -189,4 +210,26 @@ func (l Ledger) GetTransactionsFromPool() (txList []blockchainRequest.Entity, co
 	}
 
 	return
+}
+
+func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreator signerCommon.ISigner) *Ledger {
+	l := &Ledger{
+		txPool:        [] *blockchainRequest.Entity{},
+		txHashRecord:  map[string] bool{},
+		txPoolLimit:   1000,
+		clientTxCount: map[string] int{},
+		clientTxLimit: 4,
+		operateLock:   sync.RWMutex{},
+		poolLock:      sync.Mutex{},
+		genesisAssets: BaseAssets{},
+		genesisSigner: genesisAssetsCreator,
+		CryptoTools:   tools,
+		Storage:       driver,
+	}
+
+	l.validators = map[string]txValidator{
+		TxType.Transfer.String(): l.verifyTransfer,
+	}
+
+	return l
 }

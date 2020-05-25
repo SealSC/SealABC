@@ -18,7 +18,6 @@
 package smartAssets
 
 import (
-	"SealABC/crypto"
 	"SealABC/log"
 	"SealABC/service/application/smartAssets/smartAssetsInterface"
 	"SealABC/service/application/smartAssets/smartAssetsLedger"
@@ -32,7 +31,7 @@ func Load() {
 	smartAssetsLedger.Load()
 }
 
-func NewSmartAssetsApplication(config *Config, tools crypto.Tools) (app chainStructure.IBlockchainExternalApplication, err error) {
+func NewSmartAssetsApplication(config *Config) (app chainStructure.IBlockchainExternalApplication, err error) {
 	if config == nil {
 		config = DefaultConfig()
 	}
@@ -48,6 +47,6 @@ func NewSmartAssetsApplication(config *Config, tools crypto.Tools) (app chainStr
 		sqlDriver = config.SQLStorage
 	}
 
-	app, err = smartAssetsInterface.NewApplicationInterface(kvDriver, sqlDriver, tools, config.BaseAssets)
+	app, err = smartAssetsInterface.NewApplicationInterface(kvDriver, sqlDriver, config.CryptoTools, config.BaseAssets)
 	return
 }
