@@ -195,6 +195,8 @@ func (b *BasicAssetsApplication) Information() (info service.BasicInformation) {
     return
 }
 
+func (b *BasicAssetsApplication) SetBlockchainService(_ interface{}) {}
+
 func Load()  {
     enum.SimpleBuild(&QueryDBType)
     basicAssetsLedger.Load()

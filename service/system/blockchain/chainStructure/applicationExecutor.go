@@ -20,10 +20,10 @@ package chainStructure
 import (
     "SealABC/metadata/applicationResult"
     "SealABC/metadata/block"
-    "sync"
-    "errors"
-    "SealABC/service"
     "SealABC/metadata/blockchainRequest"
+    "SealABC/service"
+    "errors"
+    "sync"
 )
 
 type applicationExecutor struct {
@@ -56,6 +56,8 @@ type IBlockchainExternalApplication interface {
 
     //external service information
     Information() (info service.BasicInformation)
+
+    SetBlockchainService(bs interface{})
 }
 
 func (a *applicationExecutor)getExternalExecutor(name string) (exe IBlockchainExternalApplication, err error) {
@@ -68,7 +70,7 @@ func (a *applicationExecutor)getExternalExecutor(name string) (exe IBlockchainEx
     return
 }
 
-func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalApplication) (err error)  {
+func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalApplication, bs interface{}) (err error)  {
     a.externalExeLock.Lock()
     defer a.externalExeLock.Unlock()
 
@@ -76,6 +78,7 @@ func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalA
         return
     }
 
+    s.SetBlockchainService(bs)
     a.ExternalExecutors[s.Name()] = s
     return
 }

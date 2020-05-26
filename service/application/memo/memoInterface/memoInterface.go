@@ -179,6 +179,8 @@ func (m *MemoApplication) Information() (info service.BasicInformation) {
     return
 }
 
+func (m *MemoApplication) SetBlockchainService(_ interface{}){}
+
 func Load()  {
     enum.SimpleBuild(&applicationActions)
 }

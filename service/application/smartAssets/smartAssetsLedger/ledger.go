@@ -25,6 +25,7 @@ import (
 	"SealABC/metadata/block"
 	"SealABC/metadata/blockchainRequest"
 	"SealABC/metadata/seal"
+	"SealABC/service/system/blockchain/chainStructure"
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"bytes"
 	"encoding/json"
@@ -49,14 +50,21 @@ type Ledger struct {
 
 	preActuators map[string] txPreActuator
 
+	chain         *chainStructure.Blockchain
 	CryptoTools   crypto.Tools
 	Storage       kvDatabase.IDriver
+
+	storageForEVM contractStorage
 }
 
 func Load() {
 	enum.SimpleBuild(&StoragePrefixes)
 	enum.SimpleBuild(&TxType)
 	enum.BuildErrorEnum(&Errors, 1000)
+}
+
+func (l *Ledger) SetChain(chain *chainStructure.Blockchain)  {
+	l.chain = chain
 }
 
 func (l *Ledger) LoadGenesisAssets(creatorKey interface{}, assets BaseAssetsData) error  {
@@ -331,6 +339,7 @@ func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreat
 		Storage:       driver,
 	}
 
+	l.storageForEVM.basedLedger = l
 	l.preActuators = map[string]txPreActuator{
 		TxType.Transfer.String(): l.preTransfer,
 	}

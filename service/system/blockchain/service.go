@@ -61,7 +61,7 @@ func NewService(cfg Config) service.IService {
 
     //register application executors
     for _, exe := range cfg.ExternalExecutors {
-        _ = chain.Executor.RegisterApplicationExecutor(exe)
+        _ = chain.Executor.RegisterApplicationExecutor(exe, &chain)
         apiServers.HttpJSON.Actions.RegisterApplicationQueryHandler(exe.Name(), exe.Query)
     }
 

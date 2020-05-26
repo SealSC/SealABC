@@ -20,9 +20,9 @@ package smartAssetsLedger
 import (
 	"SealABC/common/utility/serializer/structSerializer"
 	"SealABC/dataStructure/enum"
+	"SealEVM/environment"
+	"SealEVM/evmInt256"
 )
-
-const commonKeyLength = 32
 
 type prefixEl struct {
 	enum.Element
@@ -41,6 +41,7 @@ var StoragePrefixes struct {
 	Transaction  prefixEl
 	ContractData prefixEl
 	ContractCode prefixEl
+	ContractHash prefixEl
 	Balance      prefixEl
 }
 
@@ -59,4 +60,115 @@ func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err
 	}
 
 	return
+}
+
+type contractStorage struct {
+	basedLedger *Ledger
+}
+
+func (c *contractStorage) GetBalance(address *evmInt256.Int) (*evmInt256.Int, error) {
+	balance, err := c.basedLedger.balanceOf(address.Bytes(), c.basedLedger.genesisAssets.getHash())
+
+	var ret *evmInt256.Int
+	if err == nil {
+		ret = evmInt256.FromBigInt(balance)
+	}
+	return ret, err
+}
+
+func (c *contractStorage) CanTransfer(from, to, val *evmInt256.Int) bool {
+	balance, err := c.basedLedger.balanceOf(from.Bytes(), c.basedLedger.genesisAssets.getHash())
+	if err != nil {
+		return false
+	}
+
+	return balance.Cmp(val.Int) >= 0
+}
+
+func (c *contractStorage) GetCode(address *evmInt256.Int) ([]byte, error) {
+	key := StoragePrefixes.ContractCode.buildKey(address.Bytes())
+
+	codeKV, err := c.basedLedger.Storage.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return codeKV.Data, nil
+}
+
+func (c *contractStorage) GetCodeSize(address *evmInt256.Int) (*evmInt256.Int, error) {
+	key := StoragePrefixes.ContractCode.buildKey(address.Bytes())
+
+	codeKV, err := c.basedLedger.Storage.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	if codeKV.Exists {
+		return evmInt256.New(int64(len(codeKV.Data))), nil
+	}
+	return evmInt256.New(0), nil
+}
+
+func (c *contractStorage) GetCodeHash(address *evmInt256.Int) (*evmInt256.Int, error) {
+	key := StoragePrefixes.ContractHash.buildKey(address.Bytes())
+	hashKV, err := c.basedLedger.Storage.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := evmInt256.New(0)
+	//todo: if not exists, in ethereum protocol there's several return situations need to be done in future
+	if hashKV.Exists {
+		ret.SetBytes(hashKV.Data)
+	}
+	return ret, nil
+}
+
+func (c *contractStorage) GetBlockHash(block *evmInt256.Int) (*evmInt256.Int, error) {
+	blk, err := c.basedLedger.chain.GetBlockByHeight(block.Uint64())
+	if err != nil {
+		return nil, err
+	}
+
+	hash := evmInt256.New(0)
+	hash.SetBytes(blk.Seal.Hash)
+	return hash, nil
+}
+
+func (c *contractStorage) CreateAddress(caller *evmInt256.Int, tx environment.Transaction) *evmInt256.Int {
+	//in seal abc smart assets application, we always create fixed contract address.
+	return c.CreateFixedAddress(caller, nil, tx)
+}
+
+func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt256.Int, tx environment.Transaction) *evmInt256.Int {
+	hashCalc := c.basedLedger.CryptoTools.HashCalculator
+
+	baseBytes := caller.Bytes()
+	baseBytes = append(baseBytes, tx.TxHash...)
+
+	if salt != nil {
+		baseBytes = append(baseBytes, salt.Bytes()...)
+	}
+
+	addrBytes := hashCalc.Sum(baseBytes)
+	ret := evmInt256.New(0)
+	ret.SetBytes(addrBytes)
+	return ret
+}
+
+func (c *contractStorage) Load(n *evmInt256.Int, k *evmInt256.Int) (*evmInt256.Int, error) {
+	key := StoragePrefixes.ContractData.buildKey(n.Bytes(), k.Bytes())
+	data, err := c.basedLedger.Storage.Get(key)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ret := evmInt256.New(0)
+	if data.Exists {
+		ret.SetBytes(data.Data)
+	}
+
+	return ret, nil
 }

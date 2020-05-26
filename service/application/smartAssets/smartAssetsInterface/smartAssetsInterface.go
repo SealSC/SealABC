@@ -110,6 +110,14 @@ func (s *SmartAssetsApplication) Information() (info service.BasicInformation) {
 	return
 }
 
+func (s *SmartAssetsApplication) SetBlockchainService(bs interface{}) {
+	chain, ok := bs.(*chainStructure.Blockchain)
+	if !ok {
+		return
+	}
+	s.ledger.SetChain(chain)
+}
+
 func Load()  {}
 
 func NewApplicationInterface(

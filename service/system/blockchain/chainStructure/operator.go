@@ -25,6 +25,7 @@ import (
     "encoding/binary"
     "encoding/hex"
     "encoding/json"
+    "errors"
 )
 
 const lastBlockKey = "lastBlockKey"
@@ -114,6 +115,11 @@ func (b *Blockchain) GetBlockByHeight(height uint64) (blk block.Entity, err erro
         return
     }
 
+    if !kv.Exists {
+        err = errors.New("no such block")
+        return
+    }
+
     err = json.Unmarshal(kv.Data, &blk)
 
     return
@@ -146,9 +152,19 @@ func (b *Blockchain) getBlockFromKVDBByHash(hash []byte) (blk chainTables.BlockL
         return
     }
 
+    if !kvHeight.Exists {
+        err = errors.New("no such block")
+        return
+    }
+
     //get block by height finally
     kvBlock, err := b.Config.StorageDriver.Get(kvHeight.Data)
     if err != nil {
+        return
+    }
+
+    if !kvBlock.Exists {
+        err = errors.New("no such block")
         return
     }
 

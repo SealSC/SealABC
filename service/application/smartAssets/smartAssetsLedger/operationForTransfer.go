@@ -24,13 +24,17 @@ import (
 
 var bigZero = big.NewInt(0)
 
-func (l Ledger) getBalance(addr []byte, hash []byte, cache txResultCache) (*big.Int, error) {
+func (l Ledger) getBalance(addr []byte, assetsHash []byte, cache txResultCache) (*big.Int, error) {
 	addrStr := string(addr)
 	if cache[addrStr] != nil {
 		return cache[addrStr].val, nil
 	}
 
-	balance, err := l.balanceOf(addr, hash)
+	if len(assetsHash) == 0 {
+		assetsHash = l.genesisAssets.getHash()
+	}
+
+	balance, err := l.balanceOf(addr, assetsHash)
 	if err == nil {
 		cache[addrStr] = &txResultCacheData{
 			val:balance,
