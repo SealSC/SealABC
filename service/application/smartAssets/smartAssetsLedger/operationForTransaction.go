@@ -17,7 +17,10 @@
 
 package smartAssetsLedger
 
-import "math/big"
+import (
+	"SealABC/metadata/block"
+	"math/big"
+)
 
 type txResultCacheData struct {
 	val  *big.Int
@@ -26,5 +29,5 @@ type txResultCacheData struct {
 
 type txResultCache map[string] *txResultCacheData
 
-type txPreActuator func(tx Transaction, cache txResultCache) (ret []StateData, resultCache txResultCache, err error)
-type batchTxActuator func(tx []Transaction) (err error)
+type txPreActuator func(tx Transaction, cache txResultCache, blk block.Entity) (ret []StateData, resultCache txResultCache, err error)
+type batchTxActuator func(tx []Transaction, header block.Header) (err error)

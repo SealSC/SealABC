@@ -26,14 +26,16 @@ import (
 	"SealABC/metadata/blockchainRequest"
 	"SealABC/metadata/seal"
 	"SealABC/storage/db/dbInterface/kvDatabase"
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 	"sync"
 )
 
 type Ledger struct {
-	txPool        [] *blockchainRequest.Entity
+	txPool        [] *Transaction
 	txHashRecord  map[string] bool
 	txPoolLimit   int
 	clientTxCount map[string] int
@@ -163,26 +165,68 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 		return errors.New("duplicate pending transaction")
 	}
 
-	l.txPool = append(l.txPool, &req)
+	l.txPool = append(l.txPool, &tx)
 	l.clientTxCount[client] = clientTxCount + 1
 
 	return nil
 }
 
-func (l Ledger) PreExecute(txList []Transaction, blockHeader block.Header) (result []byte, err error) {
+func (l Ledger) txResultCheck(orgResult TransactionResult, execResult TransactionResult, txHash []byte) error {
+	if orgResult.Success != execResult.Success {
+		return errors.New(fmt.Sprintf("transaction %x verify failed", txHash))
+	}
+
+	if orgResult.ErrorCode != execResult.ErrorCode {
+		return errors.New(fmt.Sprintf("transaction %x has different error code", txHash))
+	}
+
+
+	if orgResult.ErrorCode != execResult.ErrorCode {
+		return errors.New(fmt.Sprintf("transaction %x has different error code",txHash))
+	}
+
+	if len(orgResult.NewState) != len(execResult.NewState) {
+		return errors.New(fmt.Sprintf("transaction %x has different count state to change", txHash))
+	}
+
+	for i, s := range orgResult.NewState {
+		if !bytes.Equal(s.Key, execResult.NewState[i].Key) || !bytes.Equal(s.Val, execResult.NewState[i].Val) {
+			return errors.New(fmt.Sprintf("transaction %x has different state to change", txHash))
+		}
+	}
+
+	return nil
+}
+
+func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []byte, err error) {
 	//only check signature & duplicate
 	txHash := map[string] bool{}
-	for _, tx := range txList {
-		_, err = tx.verify(l.CryptoTools.HashCalculator)
-		if err != nil {
-			break
-		}
+	resultCache := txResultCache{}
 
+	for _, tx := range txList.Transactions {
 		hash := string(tx.DataSeal.Hash)
 		if _, exists := txHash[hash]; !exists {
 			txHash[hash] = true
 		} else {
 			err = errors.New("duplicate transaction")
+			break
+		}
+
+		_, err = tx.verify(l.CryptoTools.HashCalculator)
+		if err != nil {
+			break
+		}
+
+		if preExec, exists := l.preActuators[tx.Type]; exists {
+			newState, _, execErr := preExec(tx, resultCache, blk)
+			txForCheck := Transaction{}
+			l.setTxResult(execErr, newState, &txForCheck)
+
+			checkErr := l.txResultCheck(tx.TransactionResult, txForCheck.TransactionResult, tx.getHash())
+			if checkErr != nil {
+				err = checkErr
+				break
+			}
 		}
 	}
 
@@ -200,11 +244,11 @@ func (l Ledger) setTxResult(err error, newState []StateData, tx *Transaction) {
 		tx.TransactionResult.ErrorCode = errEl.Code()
 	} else {
 		tx.TransactionResult.Success = true
-		tx.TransactionResult.NewStatus = newState
+		tx.TransactionResult.NewState = newState
 	}
 }
 
-func (l Ledger) GetTransactionsFromPool() (txList []blockchainRequest.Entity, count uint32) {
+func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionList, count uint32) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
@@ -214,21 +258,14 @@ func (l Ledger) GetTransactionsFromPool() (txList []blockchainRequest.Entity, co
 	}
 
 	resultCache := txResultCache{}
-	for _, i := range l.txPool {
-		txReq := blockchainRequest.Entity{}
-		tx := Transaction{}
-
-		//will never unmarshal fail because we marshal correctly when it's appending to the pool
-		_ = json.Unmarshal(i.Data, &txReq)
-		_ = json.Unmarshal(txReq.Data, &tx)
+	for _, tx := range l.txPool {
 
 		if preExec, exists := l.preActuators[tx.Type]; exists {
-			newState, _, err := preExec(tx, resultCache)
-			l.setTxResult(err, newState, &tx)
+			newState, _, err := preExec(*tx, resultCache, blk)
+			l.setTxResult(err, newState, tx)
 		}
 
-		txReq.Data = tx.toMFBytes()
-		txList = append(txList, txReq)
+		txList.Transactions = append(txList.Transactions, *tx)
 	}
 
 	return
@@ -236,7 +273,7 @@ func (l Ledger) GetTransactionsFromPool() (txList []blockchainRequest.Entity, co
 
 func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreator signerCommon.ISigner) *Ledger {
 	l := &Ledger{
-		txPool:        [] *blockchainRequest.Entity{},
+		txPool:        [] *Transaction{},
 		txHashRecord:  map[string] bool{},
 		txPoolLimit:   1000,
 		clientTxCount: map[string] int{},

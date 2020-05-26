@@ -42,6 +42,8 @@ type EntityData struct {
 
 type Entity struct {
     EntityData
-    Seal    seal.Entity
+
+    Seal      seal.Entity
+    BlankSeal seal.Entity
 }
 

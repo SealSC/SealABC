@@ -22,6 +22,7 @@ import (
     "SealABC/log"
     "SealABC/metadata/block"
     "SealABC/metadata/blockchainRequest"
+    "SealABC/metadata/seal"
     "time"
 )
 
@@ -29,7 +30,6 @@ func (b *Blockchain) buildBasicBlock(requests []blockchainRequest.Entity) (newBl
     newBlock = block.Entity{}
 
     newBlock.Header.Version = "1"
-    newBlock.Header.Timestamp = uint64(time.Now().Unix())
     newBlock.Body.RequestsCount = len(requests)
     newBlock.Body.Requests = requests
 
@@ -47,17 +47,31 @@ func (b *Blockchain) buildBasicBlock(requests []blockchainRequest.Entity) (newBl
     return
 }
 
-func (b *Blockchain) newGenesisBlock(actions []blockchainRequest.Entity) (newBlock block.Entity) {
-    newBlock = b.buildBasicBlock(actions)
-    newBlock.Header.Height = 0
+func (b *Blockchain) NewBlankBlock() (newBlock block.Entity) {
+    newBlock = b.buildBasicBlock(nil)
 
+    if b.lastBlock != nil {
+        newBlock.Header.Height = b.lastBlock.Header.Height + 1
+
+        //set block prev hash
+        newBlock.Header.PrevBlock = append([]byte{}, b.lastBlock.Seal.Hash...)
+    }
+
+    //set block hash
+    err := newBlock.Sign(b.Config.CryptoTools, b.Config.Signer.PrivateKeyBytes())
+    if err != nil {
+        log.Log.Error("sign blank block failed: ", err.Error())
+    }
+
+    newBlock.BlankSeal = newBlock.Seal
     return
 }
 
-func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity) (newBlock block.Entity) {
-
+func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity, blankSeal seal.Entity) (newBlock block.Entity) {
     //build a basic block
     newBlock = b.buildBasicBlock(requests)
+    newBlock.Header.Timestamp = uint64(time.Now().Unix())
+    newBlock.BlankSeal = blankSeal
 
     //set block height
     if b.lastBlock != nil {

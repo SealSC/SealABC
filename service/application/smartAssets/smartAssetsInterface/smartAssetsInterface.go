@@ -18,16 +18,17 @@
 package smartAssetsInterface
 
 import (
+	"SealABC/common/utility/serializer/structSerializer"
 	"SealABC/crypto"
 	"SealABC/metadata/applicationResult"
 	"SealABC/metadata/block"
 	"SealABC/metadata/blockchainRequest"
+	"SealABC/metadata/seal"
 	"SealABC/service"
 	"SealABC/service/application/smartAssets/smartAssetsLedger"
 	"SealABC/service/system/blockchain/chainStructure"
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/json"
 )
 
 type SmartAssetsApplication struct {
@@ -47,19 +48,19 @@ func (s *SmartAssetsApplication) Query(req string) (result interface{}, err erro
 	return
 }
 
-func (s *SmartAssetsApplication) PreExecute(req blockchainRequest.Entity, header block.Header) (result []byte, err error) {
-	var txList []smartAssetsLedger.Transaction
-	err = json.Unmarshal(req.Data, txList)
+func (s *SmartAssetsApplication) PreExecute(req blockchainRequest.Entity, blk block.Entity) (result []byte, err error) {
+	var txList smartAssetsLedger.TransactionList
+	err = structSerializer.FromMFBytes(req.Data, &txList)
 	if err != nil {
 		return
 	}
 
-	return s.ledger.PreExecute(txList, header)
+	return s.ledger.PreExecute(txList, blk)
 }
 
 func (s *SmartAssetsApplication) Execute(
 	req blockchainRequest.Entity,
-	header block.Header,
+	blk block.Entity,
 	actIndex uint32,
 ) (result applicationResult.Entity, err error) {
 
@@ -70,8 +71,25 @@ func (s *SmartAssetsApplication) Cancel(req blockchainRequest.Entity) (err error
 	return
 }
 
-func (s *SmartAssetsApplication) RequestsForBlock() (reqList []blockchainRequest.Entity, cnt uint32) {
-	return s.ledger.GetTransactionsFromPool()
+func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
+	txList, cnt := s.ledger.GetTransactionsFromPool(blk)
+	if cnt == 0 {
+		return
+	}
+
+	reqData, _ := structSerializer.ToMFBytes(txList)
+	packReq := blockchainRequest.Entity{
+		EntityData: blockchainRequest.EntityData{
+			RequestApplication: s.Name(),
+			RequestAction:      "",
+			Data:               reqData,
+			QueryString:        "",
+		},
+		Packed:     true,
+		Seal:       seal.Entity{},
+	}
+
+	return []blockchainRequest.Entity{packReq}, 1
 }
 
 func (s *SmartAssetsApplication) Information() (info service.BasicInformation) {

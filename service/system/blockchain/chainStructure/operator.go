@@ -27,11 +27,11 @@ import (
     "encoding/json"
 )
 
-const last_block_key = "last_block_key"
+const lastBlockKey = "lastBlockKey"
 
 func (b *Blockchain) executeRequest(blk block.Entity) (err error) {
     for idx, req := range blk.Body.Requests {
-        appRet, exeErr := b.Executor.ExecuteRequest(req, blk.Header, uint32(idx))
+        appRet, exeErr := b.Executor.ExecuteRequest(req, blk, uint32(idx))
 
         if exeErr != nil {
             err = exeErr
@@ -82,7 +82,7 @@ func (b *Blockchain) AddBlock(blk block.Entity) (err error) {
 
         //last: save block as last block
         {
-            Key: []byte(last_block_key),
+            Key: []byte(lastBlockKey),
             Data: blockBytes,
         },
     })
@@ -175,7 +175,7 @@ func (b *Blockchain) GetBlockRowByHash (hash string) (blk chainTables.BlockListR
 }
 
 func (b *Blockchain) GetLastBlock() (last *block.Entity) {
-    kv, _ := b.Config.StorageDriver.Get([]byte(last_block_key))
+    kv, _ := b.Config.StorageDriver.Get([]byte(lastBlockKey))
 
     if !kv.Exists {
         return

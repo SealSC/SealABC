@@ -72,7 +72,7 @@ func (b *BasicAssetsApplication) Query(req string) (result interface{}, err erro
     }
 }
 
-func (b *BasicAssetsApplication) PreExecute(req blockchainRequest.Entity, _ block.Header) (result []byte, err error) {
+func (b *BasicAssetsApplication) PreExecute(req blockchainRequest.Entity, _ block.Entity) (result []byte, err error) {
     tx := basicAssetsLedger.Transaction{}
     err = json.Unmarshal(req.Data, &tx)
     if err != nil {
@@ -125,7 +125,7 @@ func (b *BasicAssetsApplication) storeTransfer(tx basicAssetsLedger.TransactionW
 
 func (b *BasicAssetsApplication) Execute(
         req blockchainRequest.Entity,
-        blockHeader block.Header,
+        blk block.Entity,
         actIndex uint32,
     ) (result applicationResult.Entity, err error) {
 
@@ -141,7 +141,7 @@ func (b *BasicAssetsApplication) Execute(
     }
 
     reqHash := req.Seal.Hash
-    err =  b.Ledger.SaveTransactionWithBlockInfo(tx, reqHash, blockHeader.Height, actIndex)
+    err =  b.Ledger.SaveTransactionWithBlockInfo(tx, reqHash, blk.Header.Height, actIndex)
     if err != nil {
         return
     }
@@ -154,7 +154,7 @@ func (b *BasicAssetsApplication) Execute(
         }
 
         txWithBlk.BlockInfo.RequestHash = reqHash
-        txWithBlk.BlockInfo.BlockHeight = blockHeader.Height
+        txWithBlk.BlockInfo.BlockHeight = blk.Header.Height
         txWithBlk.BlockInfo.ActionIndex = actIndex
 
         txTypes :=  basicAssetsLedger.TransactionTypes
@@ -181,7 +181,7 @@ func (b *BasicAssetsApplication) Cancel(req blockchainRequest.Entity) (err error
     return
 }
 
-func (b *BasicAssetsApplication) RequestsForBlock() (reqList []blockchainRequest.Entity, cnt uint32) {
+func (b *BasicAssetsApplication) RequestsForBlock(_ block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
     return b.Ledger.GetTransactionsFromPool()
 }
 

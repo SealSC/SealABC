@@ -43,16 +43,16 @@ type IBlockchainExternalApplication interface {
     Query(req string) (result interface{}, err error)
 
     //receive and verify request from a block
-    PreExecute(req blockchainRequest.Entity, header block.Header) (result []byte, err error)
+    PreExecute(req blockchainRequest.Entity, header block.Entity) (result []byte, err error)
 
     //receive and execute confirmed block
-    Execute(req blockchainRequest.Entity, header block.Header, actIndex uint32) (result applicationResult.Entity, err error)
+    Execute(req blockchainRequest.Entity, header block.Entity, actIndex uint32) (result applicationResult.Entity, err error)
 
     //handle consensus failed
     Cancel(req blockchainRequest.Entity) (err error)
 
     //build request list for new block
-    RequestsForBlock() (entity []blockchainRequest.Entity, cnt uint32)
+    RequestsForBlock(block block.Entity) (entity []blockchainRequest.Entity, cnt uint32)
 
     //external service information
     Information() (info service.BasicInformation)
@@ -80,7 +80,7 @@ func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalA
     return
 }
 
-func (a *applicationExecutor)PreExecute(act blockchainRequest.Entity, header block.Header) (result []byte, err error) {
+func (a *applicationExecutor)PreExecute(act blockchainRequest.Entity, blk block.Entity) (result []byte, err error) {
     a.externalExeLock.RLock()
     defer a.externalExeLock.RUnlock()
 
@@ -89,10 +89,10 @@ func (a *applicationExecutor)PreExecute(act blockchainRequest.Entity, header blo
         return
     }
 
-    return exe.PreExecute(act, header)
+    return exe.PreExecute(act, blk)
 }
 
-func (a *applicationExecutor)ExecuteRequest(req blockchainRequest.Entity, header block.Header, actIndex uint32) (result applicationResult.Entity, err error) {
+func (a *applicationExecutor)ExecuteRequest(req blockchainRequest.Entity, blk block.Entity, actIndex uint32) (result applicationResult.Entity, err error) {
     a.externalExeLock.RLock()
     defer a.externalExeLock.RUnlock()
 
@@ -101,15 +101,15 @@ func (a *applicationExecutor)ExecuteRequest(req blockchainRequest.Entity, header
         return
     }
 
-    return exe.Execute(req, header, actIndex)
+    return exe.Execute(req, blk, actIndex)
 }
 
-func (a *applicationExecutor)GetRequestListToBuildBlock() (reqList []blockchainRequest.Entity) {
+func (a *applicationExecutor)GetRequestListToBuildBlock(block block.Entity) (reqList []blockchainRequest.Entity) {
     a.externalExeLock.RLock()
     defer a.externalExeLock.RUnlock()
 
     for _, exe := range a.ExternalExecutors {
-        req, cnt := exe.RequestsForBlock()
+        req, cnt := exe.RequestsForBlock(block)
         if cnt == 0 {
             continue
         }

@@ -18,6 +18,7 @@
 package smartAssetsLedger
 
 import (
+	"SealABC/metadata/block"
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"math/big"
 )
@@ -97,7 +98,7 @@ func (l Ledger) verifyTransfer(tx Transaction, cache txResultCache) ([]StateData
 	return statusToChange, nil
 }
 
-func (l Ledger) preTransfer(tx Transaction, cache txResultCache) ([]StateData, txResultCache, error) {
+func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity) ([]StateData, txResultCache, error) {
 	if cache == nil {
 		cache = txResultCache{}
 	}
@@ -110,35 +111,13 @@ func (l Ledger) preTransfer(tx Transaction, cache txResultCache) ([]StateData, t
 
 	return statusToChange, cache, err
 }
-//
-//func (l Ledger) batchPreTransferActuator(txList []Transaction) error {
-//	balanceCache := map[string] *big.Int{}
-//
-//	for _, tx := range txList {
-//		statusToChange, _, err := l.preTransfer(tx, balanceCache)
-//		if err != nil {
-//			errEl, ok := err.(enum.ErrorElement)
-//			if !ok {
-//				return err
-//			}
-//
-//			tx.TransactionResult.Success = false
-//			tx.TransactionResult.ErrorCode = errEl.Code()
-//		} else {
-//			tx.TransactionResult.Success = true
-//			tx.TransactionResult.NewStatus = statusToChange
-//		}
-//	}
-//
-//	return nil
-//}
 
-func (l Ledger) batchTransferActuator(txList []Transaction) (err error) {
+func (l Ledger) batchTransferActuator(txList []Transaction, _ block.Header) (err error) {
 
 	var statusKVList []kvDatabase.KVItem
 
 	for _, tx := range txList {
-		for _, s := range tx.TransactionResult.NewStatus {
+		for _, s := range tx.TransactionResult.NewState {
 			statusKVList = append(statusKVList, kvDatabase.KVItem {
 				Key:    s.Key,
 				Data:   s.Val,

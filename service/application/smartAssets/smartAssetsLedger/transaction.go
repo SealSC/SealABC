@@ -48,7 +48,7 @@ type StateData struct {
 type TransactionResult struct {
 	Success   bool
 	ErrorCode int64
-	NewStatus []StateData
+	NewState  []StateData
 }
 
 type Transaction struct {
@@ -56,6 +56,10 @@ type Transaction struct {
 	TransactionResult
 
 	DataSeal   seal.Entity
+}
+
+type TransactionList struct {
+	Transactions []Transaction
 }
 
 func (t Transaction) getData() []byte {

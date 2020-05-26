@@ -105,15 +105,15 @@ func (m *MemoApplication) Query(req string) (result interface{}, err error) {
     }
 }
 
-func (m *MemoApplication) PreExecute(req blockchainRequest.Entity, _ block.Header) (result []byte, err error) {
+func (m *MemoApplication) PreExecute(req blockchainRequest.Entity, _ block.Entity) (result []byte, err error) {
     _, _, err = m.VerifyReq(req)
     return
 }
 
 func (m *MemoApplication) Execute(
         req blockchainRequest.Entity,
-        blockHeader block.Header,
-        actIndex uint32,
+        blk block.Entity,
+        _ uint32,
     ) (result applicationResult.Entity, err error) {
 
     _, memo, err := m.VerifyReq(req)
@@ -144,7 +144,7 @@ func (m *MemoApplication) Execute(
     }
 
     if m.sqlStorage != nil {
-        _ = m.sqlStorage.StoreMemo(blockHeader.Height, time.Now().Unix(), req, memo)
+        _ = m.sqlStorage.StoreMemo(blk.Header.Height, time.Now().Unix(), req, memo)
     }
 
     return
@@ -154,7 +154,7 @@ func (m *MemoApplication) Cancel(req blockchainRequest.Entity) (err error) {
     return
 }
 
-func (m *MemoApplication) RequestsForBlock() (reqList []blockchainRequest.Entity, cnt uint32) {
+func (m *MemoApplication) RequestsForBlock(_ block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
     m.operateLock.Lock()
     defer m.operateLock.Unlock()
 
