@@ -45,7 +45,8 @@ type Ledger struct {
 	genesisAssets BaseAssets
 	genesisSigner signerCommon.ISigner
 
-	validators map[string] txValidator
+	preActuators map[string] txPreActuator
+	actuators    map[string] batchTxActuator
 
 	CryptoTools   crypto.Tools
 	Storage       kvDatabase.IDriver
@@ -54,6 +55,7 @@ type Ledger struct {
 func Load() {
 	enum.SimpleBuild(&StoragePrefixes)
 	enum.SimpleBuild(&TxType)
+	enum.BuildErrorEnum(&Errors, 1000)
 }
 
 func (l *Ledger) LoadGenesisAssets(creatorKey interface{}, assets BaseAssetsData) error  {
@@ -191,6 +193,17 @@ func (l Ledger) Execute(txList []Transaction, blockHeader block.Header) (result 
 	return
 }
 
+func (l Ledger) setTxResult(err error, newState []StateData, tx *Transaction) {
+	if err != nil {
+		errEl := err.(enum.ErrorElement)
+		tx.TransactionResult.Success = false
+		tx.TransactionResult.ErrorCode = errEl.Code()
+	} else {
+		tx.TransactionResult.Success = true
+		tx.TransactionResult.NewStatus = newState
+	}
+}
+
 func (l Ledger) GetTransactionsFromPool() (txList []blockchainRequest.Entity, count uint32) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
@@ -200,13 +213,22 @@ func (l Ledger) GetTransactionsFromPool() (txList []blockchainRequest.Entity, co
 		return
 	}
 
+	resultCache := txResultCache{}
 	for _, i := range l.txPool {
+		txReq := blockchainRequest.Entity{}
 		tx := Transaction{}
 
 		//will never unmarshal fail because we marshal correctly when it's appending to the pool
-		_ = json.Unmarshal(i.Data, &tx)
+		_ = json.Unmarshal(i.Data, &txReq)
+		_ = json.Unmarshal(txReq.Data, &tx)
 
+		if preExec, exists := l.preActuators[tx.Type]; exists {
+			newState, _, err := preExec(tx, resultCache)
+			l.setTxResult(err, newState, &tx)
+		}
 
+		txReq.Data = tx.toMFBytes()
+		txList = append(txList, txReq)
 	}
 
 	return
@@ -227,8 +249,12 @@ func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreat
 		Storage:       driver,
 	}
 
-	l.validators = map[string]txValidator{
-		TxType.Transfer.String(): l.verifyTransfer,
+	l.preActuators = map[string]txPreActuator{
+		TxType.Transfer.String(): l.preTransfer,
+	}
+
+	l.actuators = map[string]batchTxActuator{
+		TxType.Transfer.String(): l.batchTransferActuator,
 	}
 
 	return l

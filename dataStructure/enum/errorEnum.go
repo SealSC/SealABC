@@ -31,52 +31,52 @@ type ErrorElement struct {
     code    int64
     name    string
     message string
-    data    interface{}
 }
 
-type ErrorElementInstance struct {
+type ErrorElementWithData struct {
     ErrorElement
+    data interface{}
 }
 
-func (e *ErrorElement)Instance() *ErrorElementInstance {
-    return e.InstanceWithData("", nil)
-}
-
-func (e *ErrorElement) InstanceWithData(msg string, data interface{}) *ErrorElementInstance {
-    return &ErrorElementInstance{
-            ErrorElement{
-                code:    e.code,
-                name:    e.name,
-                message: msg,
-                data:    data,
-            },
+func (e ErrorElement) NewErrorWithNewMessage(msg string) ErrorElement {
+    return ErrorElement{
+        code:    e.code,
+        name:    e.name,
+        message: msg,
     }
 }
 
-func (e *ErrorElement)Code() int64  {
+func (e ErrorElement) NewErrorWithData(msg string, data interface{}) *ErrorElementWithData {
+    return &ErrorElementWithData{
+            ErrorElement: ErrorElement{
+                code:    e.code,
+                name:    e.name,
+                message: msg,
+            },
+            data:    data,
+    }
+}
+
+func (e ErrorElement)Code() int64  {
     return e.code
 }
 
-func (e *ErrorElement)Name() string  {
+func (e ErrorElement)Name() string  {
     return e.name
 }
 
-func (e *ErrorElement)Message() string  {
+func (e ErrorElement)Error() string  {
     return e.message
 }
 
-func (e *ErrorElement)Data() interface{}  {
-    return e.data
+func (e ErrorElementWithData)Data() interface{}  {
+   return e.data
 }
 
-func (e *ErrorElementInstance)Error() string  {
-    return e.message
-}
-
-func BuildErrorEnum(enum interface{}) {
+func BuildErrorEnum(enum interface{}, startCode int64) {
     buildEnum(enum, func(code int, name string, tag reflect.StructTag) reflect.Value {
         codeStr := tag.Get(errorCodeTag)
-        codeNum := int64(code)
+        codeNum := int64(code) + startCode
         if "" != codeStr {
             codeNum, _ = strconv.ParseInt(codeStr, 0, 64)
         }

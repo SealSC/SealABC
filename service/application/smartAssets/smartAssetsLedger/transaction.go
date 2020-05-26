@@ -40,15 +40,15 @@ type TransactionData struct {
 	SN    []byte
 }
 
-type StatusData struct {
+type StateData struct {
 	Key []byte
 	Val []byte
 }
 
 type TransactionResult struct {
 	Success   bool
-	NewStatus []StatusData
-	Time      uint64
+	ErrorCode int64
+	NewStatus []StateData
 }
 
 type Transaction struct {
@@ -58,10 +58,13 @@ type Transaction struct {
 	DataSeal   seal.Entity
 }
 
-//type TransactionList []Transaction
-
 func (t Transaction) getData() []byte {
 	data, _ := structSerializer.ToMFBytes(t.Data)
+	return data
+}
+
+func (t Transaction) toMFBytes() []byte {
+	data, _ := structSerializer.ToMFBytes(t)
 	return data
 }
 

@@ -17,14 +17,12 @@
 
 package smartAssetsLedger
 
-import "math/big"
+import "SealABC/dataStructure/enum"
 
-type txResultCacheData struct {
-	val  *big.Int
-	data []byte
+var Errors struct {
+	DBError                enum.ErrorElement
+	InvalidTransactionType enum.ErrorElement
+	InvalidTransferValue   enum.ErrorElement
+	InsufficientBalance    enum.ErrorElement
+	NegativeTransferValue  enum.ErrorElement
 }
-
-type txResultCache map[string] *txResultCacheData
-
-type txPreActuator func(tx Transaction, cache txResultCache) (ret []StateData, resultCache txResultCache, err error)
-type batchTxActuator func(tx []Transaction) (err error)
