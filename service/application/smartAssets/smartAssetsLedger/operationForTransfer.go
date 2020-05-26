@@ -19,7 +19,6 @@ package smartAssetsLedger
 
 import (
 	"SealABC/metadata/block"
-	"SealABC/storage/db/dbInterface/kvDatabase"
 	"math/big"
 )
 
@@ -110,22 +109,4 @@ func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity)
 	}
 
 	return statusToChange, cache, err
-}
-
-func (l Ledger) batchTransferActuator(txList []Transaction, _ block.Header) (err error) {
-
-	var statusKVList []kvDatabase.KVItem
-
-	for _, tx := range txList {
-		for _, s := range tx.TransactionResult.NewState {
-			statusKVList = append(statusKVList, kvDatabase.KVItem {
-				Key:    s.Key,
-				Data:   s.Val,
-				Exists: true,
-			})
-		}
-	}
-
-	err = l.Storage.BatchPut(statusKVList)
-	return
 }

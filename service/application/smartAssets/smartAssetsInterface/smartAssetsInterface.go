@@ -63,6 +63,14 @@ func (s *SmartAssetsApplication) Execute(
 	blk block.Entity,
 	actIndex uint32,
 ) (result applicationResult.Entity, err error) {
+	txList := smartAssetsLedger.TransactionList{}
+	err = structSerializer.FromMFBytes(req.Data, &txList)
+	if err != nil {
+		return
+	}
+
+
+	_, err = s.ledger.Execute(txList, blk)
 
 	return
 }

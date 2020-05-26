@@ -35,8 +35,8 @@ import (
 )
 
 type Ledger struct {
-	txPool        [] *Transaction
-	txHashRecord  map[string] bool
+	txPool        map[string] *Transaction
+	txPoolRecord  []string
 	txPoolLimit   int
 	clientTxCount map[string] int
 	clientTxLimit int
@@ -48,7 +48,6 @@ type Ledger struct {
 	genesisSigner signerCommon.ISigner
 
 	preActuators map[string] txPreActuator
-	actuators    map[string] batchTxActuator
 
 	CryptoTools   crypto.Tools
 	Storage       kvDatabase.IDriver
@@ -161,11 +160,12 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 	}
 
 	txHash := string(tx.DataSeal.Hash)
-	if l.txHashRecord[txHash] {
+	if l.txPool[txHash] != nil {
 		return errors.New("duplicate pending transaction")
 	}
 
-	l.txPool = append(l.txPool, &tx)
+	l.txPool[txHash] = &tx
+	l.txPoolRecord = append(l.txPoolRecord, txHash)
 	l.clientTxCount[client] = clientTxCount + 1
 
 	return nil
@@ -199,7 +199,9 @@ func (l Ledger) txResultCheck(orgResult TransactionResult, execResult Transactio
 }
 
 func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []byte, err error) {
-	//only check signature & duplicate
+	l.poolLock.Lock()
+	defer l.poolLock.Unlock()
+
 	txHash := map[string] bool{}
 	resultCache := txResultCache{}
 
@@ -233,7 +235,49 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []b
 	return
 }
 
-func (l Ledger) Execute(txList []Transaction, blockHeader block.Header) (result []byte, err error) {
+func (l *Ledger) removeTransactionsFromPool(txList []Transaction) {
+	removeTxHashes := map[string] bool {}
+
+	for _, tx := range txList {
+		txHashStr := string(tx.getHash())
+		poolEl := l.txPool[txHashStr]
+		if poolEl != nil {
+			removeTxHashes[txHashStr] = true
+			delete(l.txPool, txHashStr)
+		}
+	}
+
+	var newTxPoolRecord []string
+	for _, recHash := range l.txPoolRecord {
+		if !removeTxHashes[recHash] {
+			newTxPoolRecord = append(newTxPoolRecord, recHash)
+		}
+	}
+
+	l.txPoolRecord = newTxPoolRecord
+}
+
+func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byte, err error) {
+	l.poolLock.Lock()
+	defer l.poolLock.Unlock()
+
+	var statusKVList []kvDatabase.KVItem
+	for _, tx := range txList.Transactions {
+		for _, s := range tx.TransactionResult.NewState {
+			statusKVList = append(statusKVList, kvDatabase.KVItem {
+				Key:    s.Key,
+				Data:   s.Val,
+				Exists: true,
+			})
+		}
+	}
+
+	err = l.Storage.BatchPut(statusKVList)
+	if err != nil {
+		return 
+	}
+
+	l.removeTransactionsFromPool(txList.Transactions)
 	return
 }
 
@@ -258,7 +302,8 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 	}
 
 	resultCache := txResultCache{}
-	for _, tx := range l.txPool {
+	for _, txHashStr := range l.txPoolRecord {
+		tx := l.txPool[txHashStr]
 
 		if preExec, exists := l.preActuators[tx.Type]; exists {
 			newState, _, err := preExec(*tx, resultCache, blk)
@@ -273,8 +318,8 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 
 func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreator signerCommon.ISigner) *Ledger {
 	l := &Ledger{
-		txPool:        [] *Transaction{},
-		txHashRecord:  map[string] bool{},
+		txPool:        map[string] *Transaction{},
+		txPoolRecord:  []string {},
 		txPoolLimit:   1000,
 		clientTxCount: map[string] int{},
 		clientTxLimit: 4,
@@ -288,10 +333,6 @@ func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreat
 
 	l.preActuators = map[string]txPreActuator{
 		TxType.Transfer.String(): l.preTransfer,
-	}
-
-	l.actuators = map[string]batchTxActuator{
-		TxType.Transfer.String(): l.batchTransferActuator,
 	}
 
 	return l
