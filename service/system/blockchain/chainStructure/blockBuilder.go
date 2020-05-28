@@ -22,7 +22,6 @@ import (
     "SealABC/log"
     "SealABC/metadata/block"
     "SealABC/metadata/blockchainRequest"
-    "SealABC/metadata/seal"
     "time"
 )
 
@@ -32,6 +31,7 @@ func (b *Blockchain) buildBasicBlock(requests []blockchainRequest.Entity) (newBl
     newBlock.Header.Version = "1"
     newBlock.Body.RequestsCount = len(requests)
     newBlock.Body.Requests = requests
+    newBlock.Header.Timestamp = uint64(time.Now().Unix())
 
     mt := merkleTree.Tree{}
     for _, req := range requests {
@@ -67,11 +67,11 @@ func (b *Blockchain) NewBlankBlock() (newBlock block.Entity) {
     return
 }
 
-func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity, blankSeal seal.Entity) (newBlock block.Entity) {
+func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity, blankBlock block.Entity) (newBlock block.Entity) {
     //build a basic block
     newBlock = b.buildBasicBlock(requests)
-    newBlock.Header.Timestamp = uint64(time.Now().Unix())
-    newBlock.BlankSeal = blankSeal
+    newBlock.Header.Timestamp = blankBlock.Header.Timestamp
+    newBlock.BlankSeal = blankBlock.BlankSeal
 
     //set block height
     if b.lastBlock != nil {

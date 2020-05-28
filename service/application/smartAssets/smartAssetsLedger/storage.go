@@ -39,10 +39,13 @@ func (p prefixEl) buildKey(baseKey []byte, extra ...[]byte) []byte {
 var StoragePrefixes struct {
 	Assets       prefixEl
 	Transaction  prefixEl
-	ContractData prefixEl
-	ContractCode prefixEl
-	ContractHash prefixEl
 	Balance      prefixEl
+
+	ContractLog       prefixEl
+	ContractData      prefixEl
+	ContractCode      prefixEl
+	ContractHash      prefixEl
+	ContractDestructs prefixEl
 }
 
 func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err error) {
@@ -157,8 +160,8 @@ func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt
 	return ret
 }
 
-func (c *contractStorage) Load(n *evmInt256.Int, k *evmInt256.Int) (*evmInt256.Int, error) {
-	key := StoragePrefixes.ContractData.buildKey(n.Bytes(), k.Bytes())
+func (c *contractStorage) Load(n string, k string) (*evmInt256.Int, error) {
+	key := StoragePrefixes.ContractData.buildKey([]byte(n), []byte(k))
 	data, err := c.basedLedger.Storage.Get(key)
 
 	if err != nil {

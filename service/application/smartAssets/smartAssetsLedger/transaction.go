@@ -21,7 +21,9 @@ import (
 	"SealABC/common/utility/serializer/structSerializer"
 	"SealABC/crypto/hashes"
 	"SealABC/dataStructure/enum"
+	"SealABC/metadata/block"
 	"SealABC/metadata/seal"
+	"math/big"
 )
 
 var TxType struct {
@@ -35,7 +37,7 @@ type TransactionData struct {
 	Type  string
 	From  []byte
 	To    []byte
-	Value []byte
+	Value string
 	Data  []byte
 	SN    []byte
 }
@@ -93,4 +95,15 @@ func (t Transaction) Execute() (result []byte) {
 
 	return
 }
+
+type txResultCacheData struct {
+	val     *big.Int
+	gasLeft uint64
+	data    []byte
+}
+
+const cachedBlockGasKey = "block gas"
+
+type txResultCache map[string] *txResultCacheData
+type txPreActuator func(tx Transaction, cache txResultCache, blk block.Entity) (ret []StateData, resultCache txResultCache, err error)
 

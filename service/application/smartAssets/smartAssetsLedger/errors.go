@@ -25,4 +25,7 @@ var Errors struct {
 	InvalidTransferValue   enum.ErrorElement
 	InsufficientBalance    enum.ErrorElement
 	NegativeTransferValue  enum.ErrorElement
+
+	InvalidContractCreationAddress enum.ErrorElement
+	ContractCreationFailed         enum.ErrorElement
 }

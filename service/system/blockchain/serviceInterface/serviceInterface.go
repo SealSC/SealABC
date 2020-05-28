@@ -86,7 +86,7 @@ func (b *BlockchainService) RequestsForConsensus() (req [][]byte, cnt uint32) {
 
     newBlankBlock := b.chain.NewBlankBlock()
     reqList := b.chain.Executor.GetRequestListToBuildBlock(newBlankBlock)
-    newBlock := b.chain.NewBlock(reqList, newBlankBlock.BlankSeal)
+    newBlock := b.chain.NewBlock(reqList, newBlankBlock)
 
     blockBytes, err := structSerializer.ToMFBytes(newBlock)
     if err != nil {

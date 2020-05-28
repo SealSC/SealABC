@@ -44,44 +44,44 @@ func (l Ledger) getBalance(addr []byte, assetsHash []byte, cache txResultCache) 
 	return balance, err
 }
 
-func (l Ledger) verifyTransfer(tx Transaction, cache txResultCache) ([]StateData, error) {
+func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity) ([]StateData, txResultCache, error) {
 	if tx.Type != TxType.Transfer.String() {
-		return nil, Errors.InvalidTransactionType
+		return nil, cache, Errors.InvalidTransactionType
 	}
 
 	_, err := tx.DataSeal.Verify(tx.getData(), l.CryptoTools.HashCalculator)
 	if err != nil {
-		return nil, Errors.DBError.NewErrorWithNewMessage(err.Error())
+		return nil, cache, Errors.DBError.NewErrorWithNewMessage(err.Error())
 	}
 
 	assetsHash := l.genesisAssets.getHash()
 	fromBalance, err := l.getBalance(tx.From, assetsHash, cache)
 	if err != nil {
-		return nil, err
+		return nil, cache, err
 	}
 
 	toBalance, err := l.getBalance(tx.To, assetsHash, cache)
 	if err != nil {
-		return nil, err
+		return nil, cache, err
 	}
 
 	if fromBalance.Cmp(bigZero) <= 0 {
-		return nil, Errors.InsufficientBalance
+		return nil, cache, Errors.InsufficientBalance
 	}
 
 	amount, valid := big.NewInt(0).SetString(string(tx.Value), 10)
 	if !valid {
-		return nil, Errors.InvalidTransferValue
+		return nil, cache, Errors.InvalidTransferValue
 	}
 
 	if amount.Sign() < 0 {
-		return nil, Errors.NegativeTransferValue
+		return nil, cache, Errors.NegativeTransferValue
 	} else if amount.Sign() == 0 {
-		return nil, nil
+		return nil, cache, nil
 	}
 
 	if fromBalance.Cmp(amount) < 0 {
-		return nil, Errors.InsufficientBalance
+		return nil, cache, Errors.InsufficientBalance
 	}
 
 	fromBalance.Sub(fromBalance, amount)
@@ -89,27 +89,14 @@ func (l Ledger) verifyTransfer(tx Transaction, cache txResultCache) ([]StateData
 
 	statusToChange := []StateData{
 		{
-			Key: tx.From,
+			Key: StoragePrefixes.Balance.buildKey(tx.From),
 			Val: fromBalance.Bytes(),
 		},
 
 		{
-			Key: tx.To,
+			Key: StoragePrefixes.Balance.buildKey(tx.To),
 			Val: toBalance.Bytes(),
 		},
-	}
-	return statusToChange, nil
-}
-
-func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity) ([]StateData, txResultCache, error) {
-	if cache == nil {
-		cache = txResultCache{}
-	}
-
-	statusToChange, err := l.verifyTransfer(tx, cache)
-
-	if err != nil {
-		return nil, cache, err
 	}
 
 	return statusToChange, cache, err

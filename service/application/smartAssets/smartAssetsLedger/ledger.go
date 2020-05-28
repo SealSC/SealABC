@@ -342,6 +342,7 @@ func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreat
 	l.storageForEVM.basedLedger = l
 	l.preActuators = map[string]txPreActuator{
 		TxType.Transfer.String(): l.preTransfer,
+		TxType.CreateContract.String(): l.preContractCreation,
 	}
 
 	return l
