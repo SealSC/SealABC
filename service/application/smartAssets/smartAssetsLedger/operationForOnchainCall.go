@@ -22,7 +22,7 @@ import (
 	"SealEVM/evmInt256"
 )
 
-func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
+func (l Ledger) preOnChainContractCall(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
 	if tx.Type != TxType.CreateContract.String() {
 		return  nil, cache, Errors.InvalidTransactionType
 	}
@@ -32,27 +32,13 @@ func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk blo
 	}
 
 	initGas := cache[cachedBlockGasKey].gasLeft
-	evm, contract, _ := l.newEVM(tx, nil, blk, evmInt256.New(int64(initGas)))
+	evm, _, _ := l.newEVM(tx, nil, blk, evmInt256.New(int64(initGas)))
 
 	ret, err := evm.ExecuteContract(true)
 	newState := l.newStateFromEVMResult(ret, cache)
 
 	gasCost := initGas - ret.GasLeft
 	cache[cachedBlockGasKey].gasLeft -= gasCost
-
-	if err == nil {
-		contractAddr := contract.Namespace.Bytes()
-		newState = append(newState,
-			StateData {
-				Key: StoragePrefixes.ContractCode.buildKey(contractAddr),
-				Val: ret.ResultData,
-			},
-			StateData {
-				Key: StoragePrefixes.ContractHash.buildKey(contractAddr),
-				Val: contract.Hash.Bytes(),
-			},
-		)
-	}
 
 	cache[cachedContractReturnData].data = ret.ResultData
 	return newState, cache, err

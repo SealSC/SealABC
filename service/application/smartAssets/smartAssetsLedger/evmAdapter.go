@@ -39,7 +39,7 @@ func constTransactionGasLimit() *evmInt256.Int {
 }
 
 func (l Ledger)newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
-	blk block.Entity, blockGasLimit *evmInt256.Int) (*SealEVM.EVM, environment.Contract) {
+	blk block.Entity, blockGasLimit *evmInt256.Int) (*SealEVM.EVM, *environment.Contract, error) {
 
 	evmTransaction := environment.Transaction{
 		Origin:   common.BytesDataToEVMIntHash(tx.DataSeal.Hash),
@@ -51,15 +51,24 @@ func (l Ledger)newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 	contractHash := common.BytesDataToEVMIntHash(hashByte)
 	caller := common.BytesDataToEVMIntHash(tx.DataSeal.Hash)
 	var contractAddress *evmInt256.Int
+	var contractCode []byte
 	if len(tx.To) == 0 {
 		contractAddress = l.storageForEVM.CreateAddress(caller, evmTransaction)
+		contractCode = tx.Data
 	} else {
 		contractAddress = common.BytesDataToEVMIntHash(tx.To)
+		codeData, err := l.storageForEVM.GetCode(contractAddress)
+		if err != nil {
+			return nil, nil, Errors.ContractNotFound.NewErrorWithNewMessage(err.Error())
+		}
+
+		contractCode = codeData
+		contractHash, _ = l.storageForEVM.GetCodeHash(contractAddress)
 	}
 
 	contract := environment.Contract{
 		Namespace: contractAddress,
-		Code:      tx.Data,
+		Code:      contractCode,
 		Hash:      contractHash,
 	}
 
@@ -84,7 +93,7 @@ func (l Ledger)newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 				Data:   nil,
 			},
 		},
-	}), contract
+	}), &contract, nil
 }
 
 func getSortedKeys(src interface{}) []string {

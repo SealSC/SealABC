@@ -102,7 +102,10 @@ type txResultCacheData struct {
 	data    []byte
 }
 
-const cachedBlockGasKey = "block gas"
+const (
+	cachedBlockGasKey = "block gas"
+	cachedContractReturnData = "contract return data"
+)
 
 type txResultCache map[string] *txResultCacheData
 type txPreActuator func(tx Transaction, cache txResultCache, blk block.Entity) (ret []StateData, resultCache txResultCache, err error)

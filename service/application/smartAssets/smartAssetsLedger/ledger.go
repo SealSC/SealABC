@@ -309,7 +309,16 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 		return
 	}
 
-	resultCache := txResultCache{}
+	resultCache := txResultCache {
+		cachedBlockGasKey: &txResultCacheData{
+			gasLeft: constTransactionGasLimit().Uint64(),
+		},
+
+		cachedContractReturnData: &txResultCacheData{
+			data: nil,
+		},
+	}
+
 	for _, txHashStr := range l.txPoolRecord {
 		tx := l.txPool[txHashStr]
 

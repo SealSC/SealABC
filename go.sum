@@ -4,6 +4,8 @@ github.com/AKACoder/SealEVM v0.0.0-20200528092145-cd9db0d2698b h1:+2+4CoKZbQx5tg
 github.com/AKACoder/SealEVM v0.0.0-20200528092145-cd9db0d2698b/go.mod h1:ROvbhTpbRmfoV2emO+S3T5Sd85XXELwkFL9JTliZNHc=
 github.com/AKACoder/SealEVM v0.0.0-20200528104111-c64d3e3ff388 h1:TNaA/8cWa4tQc5Oayvm3IqHm9yWMrUt6hA1U/SSbOME=
 github.com/AKACoder/SealEVM v0.0.0-20200528104111-c64d3e3ff388/go.mod h1:ROvbhTpbRmfoV2emO+S3T5Sd85XXELwkFL9JTliZNHc=
+github.com/AKACoder/SealEVM v0.0.0-20200529072859-4473a740f692 h1:JfeSgNOqa0EHIAwAofcLv6Ez7yCinmO0bWd1IuTAWXg=
+github.com/AKACoder/SealEVM v0.0.0-20200529072859-4473a740f692/go.mod h1:ROvbhTpbRmfoV2emO+S3T5Sd85XXELwkFL9JTliZNHc=
 github.com/Azure/azure-pipeline-go v0.2.1/go.mod h1:UGSo8XybXnIGZ3epmeBw7Jdz+HiUVpqIlpz/HKHylF4=
 github.com/Azure/azure-pipeline-go v0.2.2/go.mod h1:4rQ/NZncSvGqNkkOsNpOU1tgoNuIlp9AfUH5G1tvCHc=
 github.com/Azure/azure-storage-blob-go v0.7.0/go.mod h1:f9YQKtsG1nMisotuTPpO0tjNuEjKRYAcJU8/ydDI++4=

@@ -28,4 +28,5 @@ var Errors struct {
 
 	InvalidContractCreationAddress enum.ErrorElement
 	ContractCreationFailed         enum.ErrorElement
+	ContractNotFound               enum.ErrorElement
 }
