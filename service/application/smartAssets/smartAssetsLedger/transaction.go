@@ -27,10 +27,9 @@ import (
 )
 
 var TxType struct {
-	Transfer             enum.Element
-	CreateContract       enum.Element
-	OffChainContractCall enum.Element
-	OnChainContractCall  enum.Element
+	Transfer       enum.Element
+	CreateContract enum.Element
+	ContractCall   enum.Element
 }
 
 type TransactionData struct {
@@ -109,4 +108,5 @@ const (
 
 type txResultCache map[string] *txResultCacheData
 type txPreActuator func(tx Transaction, cache txResultCache, blk block.Entity) (ret []StateData, resultCache txResultCache, err error)
+type queryActuator func(req QueryRequest) (ret interface{}, err error)
 

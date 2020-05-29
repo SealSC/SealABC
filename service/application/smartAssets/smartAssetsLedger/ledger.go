@@ -48,7 +48,8 @@ type Ledger struct {
 	genesisAssets BaseAssets
 	genesisSigner signerCommon.ISigner
 
-	preActuators map[string] txPreActuator
+	preActuators   map[string] txPreActuator
+	queryActuators map[string] queryActuator
 
 	chain         *chainStructure.Blockchain
 	CryptoTools   crypto.Tools
@@ -60,6 +61,8 @@ type Ledger struct {
 func Load() {
 	enum.SimpleBuild(&StoragePrefixes)
 	enum.SimpleBuild(&TxType)
+	enum.SimpleBuild(&QueryTypes)
+	enum.SimpleBuild(&QueryParameterFields)
 	enum.BuildErrorEnum(&Errors, 1000)
 }
 
@@ -269,10 +272,17 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
-	var statusKVList []kvDatabase.KVItem
+	var kvList []kvDatabase.KVItem
 	for _, tx := range txList.Transactions {
+		txData, _ := structSerializer.ToMFBytes(tx)
+		kvList = append(kvList, kvDatabase.KVItem{
+			Key:    StoragePrefixes.Transaction.buildKey(tx.DataSeal.Hash),
+			Data:   txData,
+			Exists: true,
+		})
+
 		for _, s := range tx.TransactionResult.NewState {
-			statusKVList = append(statusKVList, kvDatabase.KVItem {
+			kvList = append(kvList, kvDatabase.KVItem {
 				Key:    s.Key,
 				Data:   s.Val,
 				Exists: true,
@@ -280,7 +290,7 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 		}
 	}
 
-	err = l.Storage.BatchPut(statusKVList)
+	err = l.Storage.BatchPut(kvList)
 	if err != nil {
 		return 
 	}
@@ -333,6 +343,14 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 	return
 }
 
+func (l Ledger) DoQuery(req QueryRequest) (interface{}, error) {
+	if actuator, exists := l.queryActuators[req.QueryType]; exists {
+		return actuator(req)
+	}
+
+	return nil, Errors.InvalidQuery
+}
+
 func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreator signerCommon.ISigner) *Ledger {
 	l := &Ledger{
 		txPool:        map[string] *Transaction{},
@@ -352,6 +370,14 @@ func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreat
 	l.preActuators = map[string]txPreActuator{
 		TxType.Transfer.String(): l.preTransfer,
 		TxType.CreateContract.String(): l.preContractCreation,
+		TxType.ContractCall.String(): l.preContractCall,
+	}
+
+	l.queryActuators = map[string]queryActuator{
+		QueryTypes.BaseAssets.String(): l.queryBaseAssets,
+		QueryTypes.Balance.String(): l.queryBalance,
+		QueryTypes.Transaction.String(): l.queryTransaction,
+		QueryTypes.OffChainCall.String(): l.contractOffChainCall,
 	}
 
 	return l

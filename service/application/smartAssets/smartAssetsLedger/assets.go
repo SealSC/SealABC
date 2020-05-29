@@ -25,8 +25,6 @@ import (
 	"math/big"
 )
 
-const baseAssetsPrefix = "base-assets-"
-
 type BaseAssetsData struct {
 	Name        string
 	Symbol      string

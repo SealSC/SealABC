@@ -22,12 +22,12 @@ import (
 	"SealEVM/evmInt256"
 )
 
-func (l Ledger) preOnChainContractCall(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
-	if tx.Type != TxType.CreateContract.String() {
+func (l Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
+	if tx.Type != TxType.ContractCall.String() {
 		return  nil, cache, Errors.InvalidTransactionType
 	}
 
-	if len(tx.To) != 0{
+	if len(tx.To) == 0 {
 		return nil, nil, Errors.InvalidContractCreationAddress
 	}
 

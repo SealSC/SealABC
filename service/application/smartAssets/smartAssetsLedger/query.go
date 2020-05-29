@@ -19,17 +19,20 @@ package smartAssetsLedger
 
 import "SealABC/dataStructure/enum"
 
-var Errors struct {
-	DBError                enum.ErrorElement
-	InvalidTransactionType enum.ErrorElement
-	InvalidTransferValue   enum.ErrorElement
-	InsufficientBalance    enum.ErrorElement
-	NegativeTransferValue  enum.ErrorElement
+var QueryTypes struct {
+	BaseAssets   enum.Element
+	Balance      enum.Element
+	Transaction  enum.Element
+	OffChainCall enum.Element
+}
 
-	InvalidContractCreationAddress enum.ErrorElement
-	ContractCreationFailed         enum.ErrorElement
-	ContractNotFound               enum.ErrorElement
+var QueryParameterFields struct{
+	Address enum.Element
+	TxHash  enum.Element
+	Data    enum.Element
+}
 
-	InvalidQuery     enum.ErrorElement
-	InvalidParameter enum.ErrorElement
+type QueryRequest struct {
+	QueryType string
+	Parameter map[string] string
 }
