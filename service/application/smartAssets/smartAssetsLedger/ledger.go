@@ -329,12 +329,13 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 		},
 	}
 
-	for _, txHashStr := range l.txPoolRecord {
+	for idx, txHashStr := range l.txPoolRecord {
 		tx := l.txPool[txHashStr]
 
 		if preExec, exists := l.preActuators[tx.Type]; exists {
 			newState, _, err := preExec(*tx, resultCache, blk)
 			l.setTxResult(err, newState, tx)
+			tx.SequenceNumber = uint32(idx)
 		}
 
 		txList.Transactions = append(txList.Transactions, *tx)

@@ -15,7 +15,7 @@
  *
  */
 
-package basicAssetsTables
+package basicAssetsSQLTables
 
 func Load()  {
     AssetsList.load()

@@ -15,7 +15,7 @@
  *
  */
 
-package basicAssetsTables
+package basicAssetsSQLTables
 
 import (
     "SealABC/common"

@@ -19,7 +19,7 @@ package basicAssetsSQLStorage
 
 import (
     "SealABC/metadata/httpJSONResult/rowsWithCount"
-    "SealABC/service/application/basicAssets/basicAssetsTables"
+    "SealABC/service/application/basicAssets/basicAssetsSQLTables"
     "errors"
 )
 
@@ -31,8 +31,8 @@ func (s *Storage) GetAssetsList(p []string) (ret interface{}, err error) {
         return
     }
 
-    table := basicAssetsTables.AssetsList.Name()
-    rowType := basicAssetsTables.AssetsListRow{}
+    table := basicAssetsSQLTables.AssetsList.Name()
+    rowType := basicAssetsSQLTables.AssetsListRow{}
     start := rowsPerPage * page
 
     pSQL := "select * from " +
@@ -68,8 +68,8 @@ func (s *Storage) GetTransferList(p []string) (ret interface{}, err error) {
         return
     }
 
-    rowType := basicAssetsTables.TransfersRow{}
-    table := basicAssetsTables.Transfers.Name()
+    rowType := basicAssetsSQLTables.TransfersRow{}
+    table := basicAssetsSQLTables.Transfers.Name()
     count, err := s.Driver.RowCount(table, "", nil)
     if err != nil {
         return
@@ -104,8 +104,8 @@ func (s *Storage) GetTransfer(p []string) (ret interface{}, err error) {
         return
     }
 
-    rowType := basicAssetsTables.TransfersRow{}
-    table := basicAssetsTables.Transfers.Name()
+    rowType := basicAssetsSQLTables.TransfersRow{}
+    table := basicAssetsSQLTables.Transfers.Name()
 
     rows, err := s.Driver.SimpleSelect(rowType, table, `c_tx_hash`, txHash)
     if err != nil {
@@ -127,8 +127,8 @@ func (s *Storage) GetTransfersUnderAssets(p []string) (ret interface{}, err erro
         return
     }
 
-    row := basicAssetsTables.TransfersRow{}
-    table := basicAssetsTables.Transfers.Name()
+    row := basicAssetsSQLTables.TransfersRow{}
+    table := basicAssetsSQLTables.Transfers.Name()
     count, err := s.Driver.RowCount(table, "where `c_assets_hash`=?", []interface{}{assets})
     if err != nil {
         return
@@ -164,8 +164,8 @@ func (s *Storage) GetAssets(p []string) (ret interface{}, err error)  {
         return
     }
 
-    row := basicAssetsTables.AssetsListRow{}
-    table :=  basicAssetsTables.AssetsList.Name()
+    row := basicAssetsSQLTables.AssetsListRow{}
+    table :=  basicAssetsSQLTables.AssetsList.Name()
 
     pSQL := "select * from " +
         "`" + table + "`" +
@@ -190,7 +190,7 @@ func (s *Storage) GetAddressesList(p []string) (ret interface{}, err error) {
         return
     }
 
-    table := basicAssetsTables.AddressList.Name()
+    table := basicAssetsSQLTables.AddressList.Name()
     offsetStart := page * rowsPerPage
 
     count, err := s.Driver.RowCount(table, "", nil)
@@ -209,7 +209,7 @@ func (s *Storage) GetAddressesList(p []string) (ret interface{}, err error) {
         "`" + table + "`" +
         " order by `c_id` desc limit ?,?"
 
-    row := basicAssetsTables.AddressListRow{}
+    row := basicAssetsSQLTables.AddressListRow{}
     rows, err := s.Driver.Query(row, pSQL, []interface{} {
         offsetStart,
         rowsPerPage,
@@ -232,8 +232,8 @@ func (s *Storage) GetBalancesUnderAssetsList(p []string) (ret interface{}, err e
         return
     }
 
-    table := basicAssetsTables.Balance.Name()
-    rowType := basicAssetsTables.BalanceRow{}
+    table := basicAssetsSQLTables.Balance.Name()
+    rowType := basicAssetsSQLTables.BalanceRow{}
     count, err := s.Driver.RowCount(table, "where `c_assets`=?", []interface{}{assets})
     if err != nil {
         return
@@ -267,8 +267,8 @@ func (s *Storage) GetAddressActionRecord(p []string) (ret interface{}, err error
         return
     }
 
-    table := basicAssetsTables.AddressRecord.Name()
-    rowType := basicAssetsTables.AddressRecordRow{}
+    table := basicAssetsSQLTables.AddressRecord.Name()
+    rowType := basicAssetsSQLTables.AddressRecordRow{}
 
     offsetStart := page * rowsPerPage
 
@@ -307,8 +307,8 @@ func (s *Storage) GetAddressBalance(p []string) (ret interface{}, err error) {
         return
     }
 
-    table := basicAssetsTables.Balance.Name()
-    rowType := basicAssetsTables.BalanceRow{}
+    table := basicAssetsSQLTables.Balance.Name()
+    rowType := basicAssetsSQLTables.BalanceRow{}
 
     count, err := s.Driver.RowCount(table, "where `c_address`=?", []interface{}{
         addr,

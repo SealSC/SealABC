@@ -33,12 +33,12 @@ var TxType struct {
 }
 
 type TransactionData struct {
-	Type  string
-	From  []byte
-	To    []byte
-	Value string
-	Data  []byte
-	SN    []byte
+	Type           string
+	From           []byte
+	To             []byte
+	Value          string
+	Data           []byte
+	SerialNumber   string
 }
 
 type StateData struct {
@@ -47,9 +47,10 @@ type StateData struct {
 }
 
 type TransactionResult struct {
-	Success   bool
-	ErrorCode int64
-	NewState  []StateData
+	Success        bool
+	ErrorCode      int64
+	SequenceNumber uint32
+	NewState       []StateData
 }
 
 type Transaction struct {

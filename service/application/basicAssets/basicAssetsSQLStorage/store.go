@@ -20,19 +20,19 @@ package basicAssetsSQLStorage
 import (
     "SealABC/log"
     "SealABC/service/application/basicAssets/basicAssetsLedger"
-    "SealABC/service/application/basicAssets/basicAssetsTables"
+    "SealABC/service/application/basicAssets/basicAssetsSQLTables"
     "encoding/hex"
 )
 
 func (s *Storage) StoreAssets(tx basicAssetsLedger.TransactionWithBlockInfo) (err error) {
-    assetsRows := basicAssetsTables.AssetsList.NewRows().(basicAssetsTables.AssetsListRows)
+    assetsRows := basicAssetsSQLTables.AssetsList.NewRows().(basicAssetsSQLTables.AssetsListRows)
     assetsRows.InsertAssets(tx)
     _, err = s.Driver.Insert(&assetsRows, true)
     if err != nil {
         log.Log.Error("insert assets to sql database failed: ", err.Error())
     }
 
-    transfersRows := basicAssetsTables.Transfers.NewRows().(basicAssetsTables.TransfersRows)
+    transfersRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
     transfersRows.InsertTransferInsideIssueTransaction(tx)
     _, err = s.Driver.Insert(&transfersRows, true)
     if err != nil {
@@ -41,14 +41,14 @@ func (s *Storage) StoreAssets(tx basicAssetsLedger.TransactionWithBlockInfo) (er
 
     issueToAddr := hex.EncodeToString(tx.Assets.MetaSeal.SignerPublicKey)
 
-    addressRecordRows := basicAssetsTables.AddressRecord.NewRows().(basicAssetsTables.AddressRecordRows)
-    addressRecordRows.InsertAddress(tx, issueToAddr, basicAssetsTables.AddressRoles.Issuer)
+    addressRecordRows := basicAssetsSQLTables.AddressRecord.NewRows().(basicAssetsSQLTables.AddressRecordRows)
+    addressRecordRows.InsertAddress(tx, issueToAddr, basicAssetsSQLTables.AddressRoles.Issuer)
     _, err = s.Driver.Insert(&addressRecordRows, true)
     if err != nil {
         log.Log.Error("insert address record to sql database failed: ", err.Error())
     }
 
-    addressListRows := basicAssetsTables.AddressList.NewRows().(basicAssetsTables.AddressListRows)
+    addressListRows := basicAssetsSQLTables.AddressList.NewRows().(basicAssetsSQLTables.AddressListRows)
     addressListRows.InsertAddress(tx, issueToAddr)
     _, err = s.Driver.Insert(&addressListRows, true)
     if err != nil {
@@ -59,21 +59,21 @@ func (s *Storage) StoreAssets(tx basicAssetsLedger.TransactionWithBlockInfo) (er
 }
 
 func (s *Storage) StoreUnspent(tx basicAssetsLedger.TransactionWithBlockInfo, inputUnspent []basicAssetsLedger.Unspent) (err error) {
-    transfersRows := basicAssetsTables.Transfers.NewRows().(basicAssetsTables.TransfersRows)
+    transfersRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
     transfersRows.InsertTransfer(tx, inputUnspent)
     _, err = s.Driver.Insert(&transfersRows, true)
     if err != nil {
         log.Log.Error("insert transfer to sql database failed: ", err.Error())
     }
 
-    addressRecordRows := basicAssetsTables.AddressRecord.NewRows().(basicAssetsTables.AddressRecordRows)
+    addressRecordRows := basicAssetsSQLTables.AddressRecord.NewRows().(basicAssetsSQLTables.AddressRecordRows)
     addressRecordRows.InsertAddressesInTransfer(tx, inputUnspent)
     _, err = s.Driver.Insert(&addressRecordRows, true)
     if err != nil {
         log.Log.Error("insert address record to sql database failed: ", err.Error())
     }
 
-    addressListRows := basicAssetsTables.AddressList.NewRows().(basicAssetsTables.AddressListRows)
+    addressListRows := basicAssetsSQLTables.AddressList.NewRows().(basicAssetsSQLTables.AddressListRows)
     addrCache := map[string] bool {}
     for _, out := range tx.Output {
         outAddr := hex.EncodeToString(out.To)
@@ -101,7 +101,7 @@ func (s *Storage) StoreUnspent(tx basicAssetsLedger.TransactionWithBlockInfo, in
 }
 
 func (s *Storage) StoreBalance(height uint64, tm int64, balanceList []basicAssetsLedger.Balance) (err error) {
-    rows := basicAssetsTables.Balance.NewRows().(basicAssetsTables.BalanceRows)
+    rows := basicAssetsSQLTables.Balance.NewRows().(basicAssetsSQLTables.BalanceRows)
     rows.InsertBalances(height, tm, balanceList)
 
     _, err = s.Driver.Replace(&rows)

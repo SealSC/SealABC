@@ -18,7 +18,7 @@
 package basicAssets
 
 import (
-    "SealABC/service/application/basicAssets/basicAssetsTables"
+	"SealABC/service/application/basicAssets/basicAssetsSQLTables"
     "SealABC/storage/db"
     "SealABC/log"
     "SealABC/service/application/basicAssets/basicAssetsInterface"
@@ -26,7 +26,7 @@ import (
 )
 
 func Load() {
-    basicAssetsTables.Load()
+    basicAssetsSQLTables.Load()
     basicAssetsInterface.Load()
 }
 
