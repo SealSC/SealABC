@@ -31,15 +31,15 @@ func (l Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.E
 		return nil, nil, Errors.InvalidContractCreationAddress
 	}
 
-	initGas := cache[cachedBlockGasKey].gasLeft
+	initGas := cache[CachedBlockGasKey].gasLeft
 	evm, _, _ := l.newEVM(tx, nil, blk, evmInt256.New(int64(initGas)))
 
 	ret, err := evm.ExecuteContract(true)
 	newState := l.newStateFromEVMResult(ret, cache)
 
 	gasCost := initGas - ret.GasLeft
-	cache[cachedBlockGasKey].gasLeft -= gasCost
+	cache[CachedBlockGasKey].gasLeft -= gasCost
 
-	cache[cachedContractReturnData].data = ret.ResultData
+	cache[CachedContractReturnData].data = ret.ResultData
 	return newState, cache, err
 }

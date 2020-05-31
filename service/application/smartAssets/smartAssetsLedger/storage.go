@@ -24,6 +24,8 @@ import (
 	"SealEVM/evmInt256"
 )
 
+const MaxContractAddressLen = 24
+
 type prefixEl struct {
 	enum.Element
 }
@@ -145,6 +147,10 @@ func (c *contractStorage) CreateAddress(caller *evmInt256.Int, tx environment.Tr
 }
 
 func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt256.Int, tx environment.Transaction) *evmInt256.Int {
+	addrPrefix := []byte("SC:")
+	prefixLen := len(addrPrefix)
+	hashByteLen := MaxContractAddressLen - prefixLen
+
 	hashCalc := c.basedLedger.CryptoTools.HashCalculator
 
 	baseBytes := caller.Bytes()
@@ -154,7 +160,18 @@ func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt
 		baseBytes = append(baseBytes, salt.Bytes()...)
 	}
 
-	addrBytes := hashCalc.Sum(baseBytes)
+	addrHashBytes := hashCalc.Sum(baseBytes)
+	orgHashLen := len(addrHashBytes)
+	if orgHashLen > hashByteLen {
+		addrHashBytes = addrHashBytes[orgHashLen-hashByteLen:]
+	} else if orgHashLen < hashByteLen {
+		paddingHashBytes := make([]byte, hashByteLen, hashByteLen)
+		copy(paddingHashBytes, addrHashBytes)
+		addrHashBytes = paddingHashBytes
+	}
+
+	addrBytes := append(addrPrefix, addrHashBytes...)
+
 	ret := evmInt256.New(0)
 	ret.SetBytes(addrBytes)
 	return ret

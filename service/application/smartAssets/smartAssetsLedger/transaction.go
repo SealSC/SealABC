@@ -32,6 +32,21 @@ var TxType struct {
 	ContractCall   enum.Element
 }
 
+func GetTxTypeCodeForName(name string) int {
+	switch name {
+	case TxType.Transfer.String():
+		return TxType.Transfer.Int()
+
+	case TxType.CreateContract.String():
+		return TxType.CreateContract.Int()
+
+	case TxType.ContractCall.String():
+		return TxType.ContractCall.Int()
+	}
+
+	return 1000
+}
+
 type TransactionData struct {
 	Type           string
 	From           []byte
@@ -50,6 +65,8 @@ type TransactionResult struct {
 	Success        bool
 	ErrorCode      int64
 	SequenceNumber uint32
+	NewAddress     []byte
+	ReturnData     []byte
 	NewState       []StateData
 }
 
@@ -99,12 +116,14 @@ func (t Transaction) Execute() (result []byte) {
 type txResultCacheData struct {
 	val     *big.Int
 	gasLeft uint64
+	address []byte
 	data    []byte
 }
 
 const (
-	cachedBlockGasKey = "block gas"
-	cachedContractReturnData = "contract return data"
+	CachedBlockGasKey             = "block gas"
+	CachedContractReturnData      = "contract return data"
+	CachedContractCreationAddress = "contract creation address"
 )
 
 type txResultCache map[string] *txResultCacheData

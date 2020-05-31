@@ -31,14 +31,14 @@ func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk blo
 		return nil, nil, Errors.InvalidContractCreationAddress
 	}
 
-	initGas := cache[cachedBlockGasKey].gasLeft
+	initGas := cache[CachedBlockGasKey].gasLeft
 	evm, contract, _ := l.newEVM(tx, nil, blk, evmInt256.New(int64(initGas)))
 
 	ret, err := evm.ExecuteContract(true)
 	newState := l.newStateFromEVMResult(ret, cache)
 
 	gasCost := initGas - ret.GasLeft
-	cache[cachedBlockGasKey].gasLeft -= gasCost
+	cache[CachedBlockGasKey].gasLeft -= gasCost
 
 	if err == nil {
 		contractAddr := contract.Namespace.Bytes()
@@ -54,6 +54,7 @@ func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk blo
 		)
 	}
 
-	cache[cachedContractReturnData].data = ret.ResultData
+	cache[CachedContractCreationAddress].address = contract.Namespace.Bytes()
+	cache[CachedContractReturnData].data = ret.ResultData
 	return newState, cache, err
 }

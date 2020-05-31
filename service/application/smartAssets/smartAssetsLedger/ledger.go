@@ -233,7 +233,7 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []b
 		if preExec, exists := l.preActuators[tx.Type]; exists {
 			newState, _, execErr := preExec(tx, resultCache, blk)
 			txForCheck := Transaction{}
-			l.setTxResult(execErr, newState, &txForCheck)
+			l.setTxNewState(execErr, newState, &txForCheck)
 
 			checkErr := l.txResultCheck(tx.TransactionResult, txForCheck.TransactionResult, tx.getHash())
 			if checkErr != nil {
@@ -299,7 +299,7 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 	return
 }
 
-func (l Ledger) setTxResult(err error, newState []StateData, tx *Transaction) {
+func (l Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) {
 	if err != nil {
 		errEl := err.(enum.ErrorElement)
 		tx.TransactionResult.Success = false
@@ -320,11 +320,15 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 	}
 
 	resultCache := txResultCache {
-		cachedBlockGasKey: &txResultCacheData{
+		CachedBlockGasKey: &txResultCacheData{
 			gasLeft: constTransactionGasLimit().Uint64(),
 		},
 
-		cachedContractReturnData: &txResultCacheData{
+		CachedContractReturnData: &txResultCacheData{
+			data: nil,
+		},
+
+		CachedContractCreationAddress: &txResultCacheData{
 			data: nil,
 		},
 	}
@@ -334,8 +338,11 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 
 		if preExec, exists := l.preActuators[tx.Type]; exists {
 			newState, _, err := preExec(*tx, resultCache, blk)
-			l.setTxResult(err, newState, tx)
+			l.setTxNewState(err, newState, tx)
 			tx.SequenceNumber = uint32(idx)
+
+			tx.TransactionResult.ReturnData = resultCache[CachedContractReturnData].data
+			tx.TransactionResult.NewAddress = resultCache[CachedContractCreationAddress].address
 		}
 
 		txList.Transactions = append(txList.Transactions, *tx)
