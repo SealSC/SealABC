@@ -138,7 +138,7 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 
 		localBalance.Add(localBalance, val)
 		balanceToChange = append(balanceToChange, StateData{
-			Key: StoragePrefixes.Balance.buildKey(addr),
+			Key: StoragePrefixes.Balance.BuildKey(addr),
 			Val: localBalance.Bytes(),
 		})
 	}
@@ -153,7 +153,7 @@ func (l Ledger) processEVMNamedStateCache(ns string, cache storage.Cache, newSta
 	for _, k := range keys {
 		cacheData := cache[k]
 		state = append(state, StateData{
-			Key: StoragePrefixes.ContractData.buildKey([]byte(ns), []byte(k)),
+			Key: StoragePrefixes.ContractData.BuildKey([]byte(ns), []byte(k)),
 			Val: cacheData.Bytes(),
 		})
 
@@ -184,7 +184,7 @@ func (l Ledger) processEVMLogData(ns string, logList []storage.Log, newState *[]
 
 		logBytes := bytes.Join(logInfo, nil)
 		state = append(state, StateData{
-			Key: StoragePrefixes.ContractLog.buildKey([]byte(logKey)),
+			Key: StoragePrefixes.ContractLog.BuildKey([]byte(logKey)),
 			Val: logBytes,
 		})
 	}
@@ -206,7 +206,7 @@ func (l Ledger) processEVMDestructs(cache storage.Cache, newState *[]StateData) 
 
 	for _, k := range keys {
 		state = append(state, StateData{
-			Key: StoragePrefixes.ContractDestructs.buildKey([]byte(k)),
+			Key: StoragePrefixes.ContractDestructs.BuildKey([]byte(k)),
 			Val: []byte{1},
 		})
 	}

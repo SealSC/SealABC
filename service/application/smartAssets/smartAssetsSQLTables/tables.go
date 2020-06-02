@@ -17,6 +17,17 @@
 
 package smartAssetsSQLTables
 
+import (
+	"SealABC/metadata/block"
+	"SealABC/service/application/smartAssets/smartAssetsLedger"
+	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+)
+
+type ISQLRows interface {
+	simpleSQLDatabase.IRows
+	Insert(tx smartAssetsLedger.Transaction, blk block.Entity)
+}
+
 func Load()  {
 	AddressList.load()
 	ContractCall.load()

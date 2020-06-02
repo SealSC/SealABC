@@ -16,3 +16,20 @@
  */
 
 package smartAssetsSQLStorage
+
+import "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+
+type queryHandler func(map [string] string) (interface{}, error)
+type Storage struct {
+	queryHandlers map[string] queryHandler
+	Driver simpleSQLDatabase.IDriver
+}
+
+
+func NewStorage(sqlDriver simpleSQLDatabase.IDriver) (s *Storage) {
+	s = &Storage{
+		Driver:        sqlDriver,
+	}
+
+	return
+}

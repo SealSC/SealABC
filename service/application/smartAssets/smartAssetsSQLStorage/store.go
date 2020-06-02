@@ -16,3 +16,72 @@
  */
 
 package smartAssetsSQLStorage
+
+import (
+	"SealABC/log"
+	"SealABC/metadata/block"
+	"SealABC/service/application/smartAssets/smartAssetsLedger"
+	"SealABC/service/application/smartAssets/smartAssetsSQLTables"
+	"bytes"
+	"math/big"
+)
+
+func (s Storage) getClassifiedTableRows(txType string) smartAssetsSQLTables.ISQLRows {
+	switch txType {
+	case smartAssetsLedger.TxType.Transfer.String():
+		rows := smartAssetsSQLTables.Transfer.NewRows().(smartAssetsSQLTables.TransferRows)
+		return &rows
+
+	case smartAssetsLedger.TxType.ContractCall.String():
+		rows := smartAssetsSQLTables.ContractCall.NewRows().(smartAssetsSQLTables.ContractCallRows)
+		return &rows
+
+	case smartAssetsLedger.TxType.CreateContract.String():
+		rows := smartAssetsSQLTables.ContractCreation.NewRows().(smartAssetsSQLTables.ContractCreationRows)
+		return &rows
+	}
+
+	return nil
+}
+
+func (s Storage) isNewBalance(key []byte) bool {
+	balancePrefixKey := smartAssetsLedger.StoragePrefixes.Balance.BuildKey(nil)
+	return bytes.Equal(balancePrefixKey, key[:len(balancePrefixKey)])
+}
+
+func (s Storage) StoreTransaction(tx smartAssetsLedger.Transaction, blk block.Entity) (err error) {
+	txRows := smartAssetsSQLTables.Transaction.NewRows().(smartAssetsSQLTables.TransactionRows)
+
+	txRows.Insert(tx, blk)
+	_, err = s.Driver.Insert(&txRows, true)
+	if err != nil {
+		log.Log.Error("insert transaction to sql database failed: ", err.Error())
+	}
+	
+	classifiedRows := s.getClassifiedTableRows(tx.Type)
+	if classifiedRows == nil {
+		return
+	}
+
+	classifiedRows.Insert(tx, blk)
+	_, err = s.Driver.Insert(classifiedRows, true)
+	if err != nil {
+		log.Log.Error("insert classified rows [" + tx.Type + "] failed: " + err.Error())
+	}
+
+
+	addressListRows := smartAssetsSQLTables.AddressList.NewRows().(smartAssetsSQLTables.AddressListRows)
+	for _, v := range tx.TransactionResult.NewState {
+		if s.isNewBalance(v.Key) {
+			balance := big.NewInt(0).SetBytes(v.Val)
+			addressListRows.Insert(tx, balance, blk)
+		}
+	}
+
+	_, err = s.Driver.Replace(&addressListRows)
+	if err != nil {
+		log.Log.Error("update balance rows failed: " + err.Error())
+	}
+
+	return
+}

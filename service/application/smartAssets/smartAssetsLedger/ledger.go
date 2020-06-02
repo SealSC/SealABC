@@ -123,7 +123,7 @@ func (l *Ledger) LoadGenesisAssets(creatorKey interface{}, assets BaseAssetsData
 		}
 
 		err = l.Storage.Put(kvDatabase.KVItem{
-			Key:    StoragePrefixes.Balance.buildKey([]byte(signer.PublicKeyString())),
+			Key:    StoragePrefixes.Balance.BuildKey([]byte(signer.PublicKeyString())),
 			Data:   balance.Bytes(),
 			Exists: false,
 		})
@@ -276,7 +276,7 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 	for _, tx := range txList.Transactions {
 		txData, _ := structSerializer.ToMFBytes(tx)
 		kvList = append(kvList, kvDatabase.KVItem{
-			Key:    StoragePrefixes.Transaction.buildKey(tx.DataSeal.Hash),
+			Key:    StoragePrefixes.Transaction.BuildKey(tx.DataSeal.Hash),
 			Data:   txData,
 			Exists: true,
 		})

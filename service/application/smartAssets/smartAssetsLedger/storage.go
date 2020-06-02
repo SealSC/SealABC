@@ -24,17 +24,27 @@ import (
 	"SealEVM/evmInt256"
 )
 
-const MaxContractAddressLen = 24
+const ContractAddressLen = 24
+func ContractAddressPrefix() []byte {
+	return []byte("SC:")
+}
 
 type prefixEl struct {
 	enum.Element
 }
 
-func (p prefixEl) buildKey(baseKey []byte, extra ...[]byte) []byte {
-	result := append([]byte(p.String()), baseKey...)
+func (p prefixEl) BuildKey(baseKey []byte, extra ...[]byte) []byte {
+	keyPrefix := []byte(p.String())
+
+	if baseKey == nil {
+		return keyPrefix
+	}
+
+	result := append(keyPrefix, baseKey...)
 	for _, k := range extra {
 		result = append(result, k...)
 	}
+
 	return result
 }
 
@@ -51,7 +61,7 @@ var StoragePrefixes struct {
 }
 
 func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err error) {
-	key := StoragePrefixes.Transaction.buildKey(hash)
+	key := StoragePrefixes.Transaction.BuildKey(hash)
 
 	txJson, err := l.Storage.Get(key)
 	if err != nil {
@@ -91,7 +101,7 @@ func (c *contractStorage) CanTransfer(from, to, val *evmInt256.Int) bool {
 }
 
 func (c *contractStorage) GetCode(address *evmInt256.Int) ([]byte, error) {
-	key := StoragePrefixes.ContractCode.buildKey(address.Bytes())
+	key := StoragePrefixes.ContractCode.BuildKey(address.Bytes())
 
 	codeKV, err := c.basedLedger.Storage.Get(key)
 	if err != nil {
@@ -102,7 +112,7 @@ func (c *contractStorage) GetCode(address *evmInt256.Int) ([]byte, error) {
 }
 
 func (c *contractStorage) GetCodeSize(address *evmInt256.Int) (*evmInt256.Int, error) {
-	key := StoragePrefixes.ContractCode.buildKey(address.Bytes())
+	key := StoragePrefixes.ContractCode.BuildKey(address.Bytes())
 
 	codeKV, err := c.basedLedger.Storage.Get(key)
 	if err != nil {
@@ -116,7 +126,7 @@ func (c *contractStorage) GetCodeSize(address *evmInt256.Int) (*evmInt256.Int, e
 }
 
 func (c *contractStorage) GetCodeHash(address *evmInt256.Int) (*evmInt256.Int, error) {
-	key := StoragePrefixes.ContractHash.buildKey(address.Bytes())
+	key := StoragePrefixes.ContractHash.BuildKey(address.Bytes())
 	hashKV, err := c.basedLedger.Storage.Get(key)
 	if err != nil {
 		return nil, err
@@ -147,9 +157,7 @@ func (c *contractStorage) CreateAddress(caller *evmInt256.Int, tx environment.Tr
 }
 
 func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt256.Int, tx environment.Transaction) *evmInt256.Int {
-	addrPrefix := []byte("SC:")
-	prefixLen := len(addrPrefix)
-	hashByteLen := MaxContractAddressLen - prefixLen
+	addrPrefix := ContractAddressPrefix()
 
 	hashCalc := c.basedLedger.CryptoTools.HashCalculator
 
@@ -162,10 +170,10 @@ func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt
 
 	addrHashBytes := hashCalc.Sum(baseBytes)
 	orgHashLen := len(addrHashBytes)
-	if orgHashLen > hashByteLen {
-		addrHashBytes = addrHashBytes[orgHashLen-hashByteLen:]
-	} else if orgHashLen < hashByteLen {
-		paddingHashBytes := make([]byte, hashByteLen, hashByteLen)
+	if orgHashLen > ContractAddressLen {
+		addrHashBytes = addrHashBytes[orgHashLen-ContractAddressLen:]
+	} else if orgHashLen < ContractAddressLen {
+		paddingHashBytes := make([]byte, ContractAddressLen, ContractAddressLen)
 		copy(paddingHashBytes, addrHashBytes)
 		addrHashBytes = paddingHashBytes
 	}
@@ -178,7 +186,7 @@ func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt
 }
 
 func (c *contractStorage) Load(n string, k string) (*evmInt256.Int, error) {
-	key := StoragePrefixes.ContractData.buildKey([]byte(n), []byte(k))
+	key := StoragePrefixes.ContractData.BuildKey([]byte(n), []byte(k))
 	data, err := c.basedLedger.Storage.Get(key)
 
 	if err != nil {

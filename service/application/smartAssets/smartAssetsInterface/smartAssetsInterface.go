@@ -26,6 +26,7 @@ import (
 	"SealABC/metadata/seal"
 	"SealABC/service"
 	"SealABC/service/application/smartAssets/smartAssetsLedger"
+	"SealABC/service/application/smartAssets/smartAssetsSQLStorage"
 	"SealABC/service/system/blockchain/chainStructure"
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
@@ -34,6 +35,7 @@ import (
 
 type SmartAssetsApplication struct {
 	ledger *smartAssetsLedger.Ledger
+	sqlStorage *smartAssetsSQLStorage.Storage
 }
 
 func (s *SmartAssetsApplication) Name() (name string) {
@@ -139,6 +141,10 @@ func NewApplicationInterface(
 	sa.ledger = &smartAssetsLedger.Ledger {
 		CryptoTools: tools,
 		Storage:     kvDriver,
+	}
+
+	if sqlDriver != nil {
+		sa.sqlStorage = smartAssetsSQLStorage.NewStorage(sqlDriver)
 	}
 
 	err = sa.ledger.LoadGenesisAssets(nil, assets)
