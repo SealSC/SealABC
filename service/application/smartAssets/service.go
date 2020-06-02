@@ -21,6 +21,7 @@ import (
 	"SealABC/log"
 	"SealABC/service/application/smartAssets/smartAssetsInterface"
 	"SealABC/service/application/smartAssets/smartAssetsLedger"
+	"SealABC/service/application/smartAssets/smartAssetsSQLStorage"
 	"SealABC/service/system/blockchain/chainStructure"
 	"SealABC/storage/db"
 	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
@@ -29,6 +30,7 @@ import (
 func Load() {
 	smartAssetsInterface.Load()
 	smartAssetsLedger.Load()
+	smartAssetsSQLStorage.Load()
 }
 
 func NewSmartAssetsApplication(config *Config) (app chainStructure.IBlockchainExternalApplication, err error) {

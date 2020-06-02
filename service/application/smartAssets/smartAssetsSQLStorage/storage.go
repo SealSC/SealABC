@@ -17,18 +17,35 @@
 
 package smartAssetsSQLStorage
 
-import "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+import (
+	"SealABC/dataStructure/enum"
+	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+)
 
-type queryHandler func(map [string] string) (interface{}, error)
 type Storage struct {
 	queryHandlers map[string] queryHandler
 	Driver simpleSQLDatabase.IDriver
 }
 
+func Load() {
+	enum.SimpleBuild(&QueryTypes)
+	enum.SimpleBuild(&QueryParameterFields)
+}
 
 func NewStorage(sqlDriver simpleSQLDatabase.IDriver) (s *Storage) {
 	s = &Storage{
 		Driver:        sqlDriver,
+	}
+
+	s.queryHandlers = map[string] queryHandler {
+		QueryTypes.TransactionList.String(): s.queryTransactionList,
+		QueryTypes.Transaction.String(): s.queryTransactionByHash,
+		QueryTypes.AccountList.String(): s.queryAccountList,
+		QueryTypes.Account.String(): s.queryAccount,
+		QueryTypes.Contract.String(): s.queryContractByHash,
+		QueryTypes.ContractCallList.String(): s.queryContractList,
+		QueryTypes.ContractCall.String(): s.queryContractCallByHash,
+		QueryTypes.TransferList.String(): s.queryTransferList,
 	}
 
 	return

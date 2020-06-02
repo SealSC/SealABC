@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-type ContractCreationTable struct {
+type ContractTable struct {
 	ID              enum.Element `col:"c_id" ignoreInsert:"true"`
 	Height          enum.Element `col:"c_height"`
 	TxHash          enum.Element `col:"c_tx_hash"`
@@ -42,22 +42,22 @@ type ContractCreationTable struct {
 	simpleSQLDatabase.BasicTable
 }
 
-var ContractCreation ContractCreationTable
+var Contract ContractTable
 
-func (t ContractCreationTable) NewRows() interface{} {
-	return simpleSQLDatabase.NewRowsInstance(ContractCreationRows{})
+func (t ContractTable) NewRows() interface{} {
+	return simpleSQLDatabase.NewRowsInstance(ContractRows{})
 }
 
-func (t ContractCreationTable) Name() (name string) {
-	return "t_smart_assets_contract_creation"
+func (t ContractTable) Name() (name string) {
+	return "t_smart_assets_contract"
 }
 
-func (t *ContractCreationTable) load() {
+func (t *ContractTable) load() {
 	enum.SimpleBuild(t)
 	t.Instance = *t
 }
 
-type ContractCreationRow struct {
+type ContractRow struct {
 	ID              string
 	Height          string
 	TxHash          string
@@ -69,13 +69,13 @@ type ContractCreationRow struct {
 	Time            string
 }
 
-type ContractCreationRows struct {
+type ContractRows struct {
 	simpleSQLDatabase.BasicRows
 }
 
-func (t *ContractCreationRows) Insert(tx smartAssetsLedger.Transaction, blk block.Entity) {
+func (t *ContractRows) Insert(tx smartAssetsLedger.Transaction, blk block.Entity) {
 	timestamp := time.Unix(int64(blk.Header.Timestamp), 0)
-	newAddressRow := ContractCreationRow{
+	newAddressRow := ContractRow{
 		Height:          fmt.Sprintf("%d", blk.Header.Height),
 		TxHash:          hex.EncodeToString(tx.DataSeal.Hash),
 		SequenceNumber:  fmt.Sprintf("%d", tx.SequenceNumber),
@@ -89,6 +89,6 @@ func (t *ContractCreationRows) Insert(tx smartAssetsLedger.Transaction, blk bloc
 	t.Rows = append(t.Rows, newAddressRow)
 }
 
-func (t *ContractCreationRows) Table() simpleSQLDatabase.ITable {
-	return &ContractCreation
+func (t *ContractRows) Table() simpleSQLDatabase.ITable {
+	return &Contract
 }

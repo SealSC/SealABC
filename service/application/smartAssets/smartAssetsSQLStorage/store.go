@@ -37,7 +37,7 @@ func (s Storage) getClassifiedTableRows(txType string) smartAssetsSQLTables.ISQL
 		return &rows
 
 	case smartAssetsLedger.TxType.CreateContract.String():
-		rows := smartAssetsSQLTables.ContractCreation.NewRows().(smartAssetsSQLTables.ContractCreationRows)
+		rows := smartAssetsSQLTables.Contract.NewRows().(smartAssetsSQLTables.ContractRows)
 		return &rows
 	}
 

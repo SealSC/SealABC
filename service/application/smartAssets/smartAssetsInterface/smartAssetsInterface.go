@@ -54,8 +54,15 @@ func (s *SmartAssetsApplication) Query(req string) (result interface{}, err erro
 		return
 	}
 
-	result, err = s.ledger.DoQuery(queryReq)
-	return
+	if queryReq.QueryType == smartAssetsLedger.QueryTypes.BaseAssets.String() {
+		return s.ledger.DoQuery(queryReq)
+	} else {
+		if s.sqlStorage != nil {
+			return s.sqlStorage.DoQuery(queryReq)
+		}
+
+		return s.ledger.DoQuery(queryReq)
+	}
 }
 
 func (s *SmartAssetsApplication) PreExecute(req blockchainRequest.Entity, blk block.Entity) (result []byte, err error) {

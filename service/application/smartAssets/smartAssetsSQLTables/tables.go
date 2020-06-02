@@ -31,7 +31,7 @@ type ISQLRows interface {
 func Load()  {
 	AddressList.load()
 	ContractCall.load()
-	ContractCreation.load()
+	Contract.load()
 	Transaction.load()
 	Transfer.load()
 }
