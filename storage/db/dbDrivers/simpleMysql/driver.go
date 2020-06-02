@@ -190,6 +190,34 @@ func (s *simpleMySQLDriver) RowCount(table string, condition string, args []inte
     return
 }
 
+func (s *simpleMySQLDriver) SimplePagingQuery(param simpleSQLDatabase.SimplePagingQueryParam) (ret *simpleSQLDatabase.SimplePagingQueryResult, err error) {
+
+    count, err := s.RowCount(param.Table, param.Condition, param.ConditionArgs)
+    if err != nil {
+        return nil, err
+    }
+
+    start := param.Page * param.Count
+    queryData := append(param.ConditionArgs, start, param.Count)
+
+    pSQL := "select * from " +
+        "`" + param.Table + "` " +
+        param.Condition +
+        " order by `c_id` desc limit ?,?"
+
+    rows, err := s.Query(param.RowType, pSQL, queryData)
+    if err != nil {
+        return nil, err
+    }
+
+    result := &simpleSQLDatabase.SimplePagingQueryResult {
+        Rows: rows,
+        Total: count,
+    }
+
+    return result, err
+}
+
 func Load()  {
     enum.SimpleBuild(&Charsets)
 }

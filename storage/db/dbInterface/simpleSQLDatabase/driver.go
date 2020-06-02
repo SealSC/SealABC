@@ -26,4 +26,5 @@ type IDriver interface {
     Query(rowType interface{}, sql string, args []interface{}) (rows []interface{}, err error)
     SimpleSelect(rowType interface{}, table string, col string, equalVal interface{}) (rows []interface{}, err error)
     RowCount(table string, condition string, args []interface{}) (cnt uint64, err error)
+    SimplePagingQuery(param SimplePagingQueryParam) (ret *SimplePagingQueryResult, err error)
 }

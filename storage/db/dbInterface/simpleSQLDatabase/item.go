@@ -19,6 +19,7 @@ package simpleSQLDatabase
 
 import (
     "reflect"
+    "strconv"
 )
 
 type ITable interface {
@@ -127,6 +128,34 @@ func (b BasicRows) DataForInsert() (data []interface{}) {
     }
 
     return
+}
+
+type SimplePagingQueryParam struct {
+    Page          int64
+    Count         int64
+    Table         string
+    RowType       interface{}
+    Condition     string
+    ConditionArgs []interface{}
+}
+
+func (s *SimplePagingQueryParam) PageFromString(page string)  {
+    s.Page = 0
+    if page == "" {
+        return
+    }
+
+    p, err := strconv.ParseInt(page, 10, 64)
+    if err != nil {
+        return
+    }
+
+    s.Page = p
+}
+
+type SimplePagingQueryResult struct {
+    Total uint64
+    Rows  interface{}
 }
 
 func NewRowsInstance(base interface{}) (rows interface{}) {
