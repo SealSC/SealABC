@@ -31,7 +31,7 @@ type BaseAssetsData struct {
 	Supply      string
 	Precision   byte
 	Increasable bool
-	Creator     string
+	Owner       string
 }
 
 type BaseAssets struct {
@@ -45,8 +45,8 @@ func (b BaseAssets) getHash() []byte {
 	return b.MetaSeal.Hash
 }
 
-func (l Ledger) balanceOf(address []byte, assetsHash []byte) (balance *big.Int, err error) {
-	_, exists, err := l.getAssetsByHash(assetsHash)
+func (l Ledger) balanceOf(address []byte) (balance *big.Int, err error) {
+	_, exists, err := l.getSystemAssets()
 	if err != nil {
 		return
 	}
@@ -56,7 +56,7 @@ func (l Ledger) balanceOf(address []byte, assetsHash []byte) (balance *big.Int, 
 		return
 	}
 
-	balanceKey := StoragePrefixes.Balance.BuildKey(address, assetsHash)
+	balanceKey := StoragePrefixes.Balance.BuildKey(address)
 	bKV, err := l.Storage.Get(balanceKey)
 	if err != nil {
 		return
@@ -67,6 +67,24 @@ func (l Ledger) balanceOf(address []byte, assetsHash []byte) (balance *big.Int, 
 	}
 
 	balance = big.NewInt(0).SetBytes(bKV.Data)
+	return
+}
+
+func (l Ledger) getSystemAssets() (assets *BaseAssets, exits bool, err error) {
+	key := StoragePrefixes.SystemAssets.BuildKey(nil)
+
+	assetsJson, err := l.Storage.Get(key)
+	if err != nil {
+		return
+	}
+
+	exits = assetsJson.Exists
+
+	if exits {
+		assets = &BaseAssets{}
+		err = json.Unmarshal(assetsJson.Data, assets)
+	}
+
 	return
 }
 
@@ -84,6 +102,23 @@ func (l Ledger) getAssetsByHash(hash []byte) (assets *BaseAssets, exists bool, e
 	}
 
 	return
+}
+
+func (l Ledger) storeSystemAssets(assets BaseAssets) error {
+	assetsJson, err := json.Marshal(assets)
+	if err != nil {
+		return err
+	}
+
+	key := StoragePrefixes.SystemAssets.BuildKey(nil)
+
+	err = l.Storage.Put(kvDatabase.KVItem{
+		Key:    key,
+		Data:   assetsJson,
+		Exists: true,
+	})
+
+	return err
 }
 
 func (l Ledger) storeAssets(assets BaseAssets) error {

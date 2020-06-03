@@ -37,7 +37,7 @@ func (l Ledger) queryBalance(req QueryRequest) (interface{}, error) {
 		return nil, Errors.InvalidParameter.NewErrorWithNewMessage(err.Error())
 	}
 
-	balance, err := l.balanceOf(addr, l.genesisAssets.getHash())
+	balance, err := l.balanceOf(addr)
 	if err != nil {
 		return nil, Errors.DBError.NewErrorWithNewMessage(err.Error())
 	}

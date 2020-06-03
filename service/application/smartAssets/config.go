@@ -59,7 +59,7 @@ func DefaultConfig() *Config {
 			Symbol:      "SST",
 			Supply:      "1000000000", //one billion
 			Increasable: false,
-			Creator:     "",
+			Owner:     "",
 		},
 	}
 }

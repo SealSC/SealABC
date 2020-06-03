@@ -114,7 +114,6 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 	keys := getSortedKeys(cache)
 
 	balanceToChange := *newState
-	assetsHash := l.genesisAssets.getHash()
 	for _, k := range keys {
 		addr := cache[k].Address.Bytes()
 		val := cache[k].Balance.Int
@@ -125,7 +124,7 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 		if resultCache[string(addr)] != nil {
 			localBalance = resultCache[string(addr)].val
 		} else {
-			localBalance, err = l.balanceOf(addr, assetsHash)
+			localBalance, err = l.balanceOf(addr)
 			if err != nil {
 				continue
 			}

@@ -154,7 +154,7 @@ func NewApplicationInterface(
 		sa.sqlStorage = smartAssetsSQLStorage.NewStorage(sqlDriver)
 	}
 
-	err = sa.ledger.LoadGenesisAssets(nil, assets)
+	err = sa.ledger.LoadGenesisAssets(assets.Owner, assets)
 	if err != nil {
 		return
 	}

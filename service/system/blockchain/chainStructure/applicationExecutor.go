@@ -74,6 +74,10 @@ func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalA
     a.externalExeLock.Lock()
     defer a.externalExeLock.Unlock()
 
+    if s == nil {
+        return
+    }
+
     if exe, _ := a.getExternalExecutor(s.Name()); exe != nil {
         return
     }

@@ -49,6 +49,7 @@ func (p prefixEl) BuildKey(baseKey []byte, extra ...[]byte) []byte {
 }
 
 var StoragePrefixes struct {
+	SystemAssets prefixEl
 	Assets       prefixEl
 	Transaction  prefixEl
 	Balance      prefixEl
@@ -82,7 +83,7 @@ type contractStorage struct {
 }
 
 func (c *contractStorage) GetBalance(address *evmInt256.Int) (*evmInt256.Int, error) {
-	balance, err := c.basedLedger.balanceOf(address.Bytes(), c.basedLedger.genesisAssets.getHash())
+	balance, err := c.basedLedger.balanceOf(address.Bytes())
 
 	var ret *evmInt256.Int
 	if err == nil {
@@ -92,7 +93,7 @@ func (c *contractStorage) GetBalance(address *evmInt256.Int) (*evmInt256.Int, er
 }
 
 func (c *contractStorage) CanTransfer(from, to, val *evmInt256.Int) bool {
-	balance, err := c.basedLedger.balanceOf(from.Bytes(), c.basedLedger.genesisAssets.getHash())
+	balance, err := c.basedLedger.balanceOf(from.Bytes())
 	if err != nil {
 		return false
 	}

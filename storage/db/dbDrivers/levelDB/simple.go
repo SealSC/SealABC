@@ -35,9 +35,9 @@ func (l *levelDBDriver)Get(k []byte) (kv kvDatabase.KVItem, err error) {
     }
 
     kv.Key = k
-    kv.Exists = notFound
+    kv.Exists = !notFound
     if notFound {
-        return
+        return kv, nil
     }
 
     kv.Data = v

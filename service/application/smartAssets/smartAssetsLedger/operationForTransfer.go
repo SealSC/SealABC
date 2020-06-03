@@ -34,7 +34,7 @@ func (l Ledger) getBalance(addr []byte, assetsHash []byte, cache txResultCache) 
 		assetsHash = l.genesisAssets.getHash()
 	}
 
-	balance, err := l.balanceOf(addr, assetsHash)
+	balance, err := l.balanceOf(addr)
 	if err == nil {
 		cache[addrStr] = &txResultCacheData{
 			val:balance,

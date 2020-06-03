@@ -70,68 +70,72 @@ func (l *Ledger) SetChain(chain *chainStructure.Blockchain)  {
 	l.chain = chain
 }
 
-func (l *Ledger) LoadGenesisAssets(creatorKey interface{}, assets BaseAssetsData) error  {
+func (l *Ledger) LoadGenesisAssets(owner string, assets BaseAssetsData) error  {
+	_, exists, err := l.getSystemAssets()
+	if err != nil {
+		return err
+	}
 
+	if exists {
+		return nil
+	}
+
+	//if not exists, create
 	supply := assets.Supply
 	assets.Supply = "0"
 
-	if creatorKey == nil {
-		return errors.New("no creator key")
+	if owner == "" {
+		return errors.New("no owner for system assets")
 	}
 
-	signer, err := l.CryptoTools.SignerGenerator.FromRawPrivateKey(creatorKey)
+	signer, err := l.CryptoTools.SignerGenerator.NewSigner(nil)
 	if err != nil {
 		return err
 	}
 
+	pk := signer.PrivateKeyBytes()
 	metaBytes, _ := structSerializer.ToMFBytes(assets)
 	metaSeal := seal.Entity{}
-	err = metaSeal.Sign(metaBytes, l.CryptoTools, creatorKey)
+	err = metaSeal.Sign(metaBytes, l.CryptoTools, pk)
 	if err != nil {
 		return err
 	}
 
-	gAssets, exists, _ := l.getAssetsByHash(metaSeal.Hash)
-
-	if !exists {
-		assets.Supply = supply
-		issuedBytes, _ := structSerializer.ToMFBytes(assets)
-		issuedSeal := seal.Entity{}
-		err = issuedSeal.Sign(issuedBytes, l.CryptoTools, creatorKey)
-		if err != nil {
-			return err
-		}
-
-		gAssets = &BaseAssets{
-			BaseAssetsData: assets,
-			IssuedSeal:     issuedSeal,
-			MetaSeal:       metaSeal,
-		}
-
-		err = l.storeAssets(*gAssets)
-		if err != nil {
-			return err
-		}
-
-		balance, valid := big.NewInt(0).SetString(assets.Supply, 10)
-		if !valid {
-			return errors.New("invalid assets supply")
-		}
-
-		if balance.Sign() <= 0 {
-			return errors.New("supply is zero or negative")
-		}
-
-		err = l.Storage.Put(kvDatabase.KVItem{
-			Key:    StoragePrefixes.Balance.BuildKey([]byte(signer.PublicKeyString())),
-			Data:   balance.Bytes(),
-			Exists: false,
-		})
-
+	assets.Supply = supply
+	issuedBytes, _ := structSerializer.ToMFBytes(assets)
+	issuedSeal := seal.Entity{}
+	err = issuedSeal.Sign(issuedBytes, l.CryptoTools, pk)
+	if err != nil {
 		return err
 	}
 
-	return nil
+	sysAssets := BaseAssets{
+		BaseAssetsData: assets,
+		IssuedSeal:     issuedSeal,
+		MetaSeal:       metaSeal,
+	}
+
+	err = l.storeSystemAssets(sysAssets)
+	if err != nil {
+		return err
+	}
+
+	balance, valid := big.NewInt(0).SetString(assets.Supply, 10)
+	if !valid {
+		return errors.New("invalid assets supply")
+	}
+
+	if balance.Sign() <= 0 {
+		return errors.New("supply is zero or negative")
+	}
+
+	err = l.Storage.Put(kvDatabase.KVItem{
+		Key:    StoragePrefixes.Balance.BuildKey([]byte(owner)),
+		Data:   balance.Bytes(),
+		Exists: false,
+	})
+
+	return err
 }
 
 func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
