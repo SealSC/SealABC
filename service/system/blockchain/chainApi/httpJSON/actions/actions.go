@@ -72,7 +72,7 @@ func (b *baseHandler) setServerInfo(basePath string,
     b.appQueryHandler = queryHandler
 }
 
-type applicationQueryHandler func(string) (interface{}, error)
+type applicationQueryHandler func([]byte) (interface{}, error)
 type ChainApiActions struct {
     serverBase          string
     actionList          []apiHandler

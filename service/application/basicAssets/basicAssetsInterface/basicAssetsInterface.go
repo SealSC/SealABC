@@ -52,9 +52,9 @@ func (b *BasicAssetsApplication) PushClientRequest(req blockchainRequest.Entity)
     return
 }
 
-func (b *BasicAssetsApplication) Query(req string) (result interface{}, err error) {
+func (b *BasicAssetsApplication) Query(req []byte) (result interface{}, err error) {
     queryReq := basicAssetsLedger.QueryRequest{}
-    err = json.Unmarshal([]byte(req), &queryReq)
+    err = json.Unmarshal(req, &queryReq)
     if err != nil {
         return
     }

@@ -45,9 +45,7 @@ func (q *queryApplication)Handle(ctx *gin.Context) {
         return
     }
 
-    reqStr := string(reqData)
-
-    ret, err := handler(reqStr)
+    ret, err := handler(reqData)
     if err != nil {
         res.BadRequest(err.Error())
         return
@@ -62,7 +60,7 @@ func (q *queryApplication)RouteRegister(router gin.IRouter) {
 
 func (q *queryApplication)BasicInformation() (info http.HandlerBasicInformation) {
 
-    info.Description = "will query application that registered on the blockchain."
+    info.Description = "will execute application query operation that registered on the blockchain."
     info.Path = q.serverBasePath + q.buildUrlPath()
     info.Method = service.ApiProtocolMethod.HttpPost.String()
 

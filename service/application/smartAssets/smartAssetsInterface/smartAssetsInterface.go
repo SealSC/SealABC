@@ -47,9 +47,9 @@ func (s *SmartAssetsApplication) PushClientRequest(req blockchainRequest.Entity)
 	return nil, err
 }
 
-func (s *SmartAssetsApplication) Query(req string) (result interface{}, err error) {
+func (s *SmartAssetsApplication) Query(req []byte) (result interface{}, err error) {
 	queryReq := smartAssetsLedger.QueryRequest{}
-	err = json.Unmarshal([]byte(req), &queryReq)
+	err = json.Unmarshal(req, &queryReq)
 	if err != nil {
 		return
 	}

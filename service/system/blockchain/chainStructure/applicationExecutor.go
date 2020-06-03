@@ -40,7 +40,7 @@ type IBlockchainExternalApplication interface {
     PushClientRequest(req blockchainRequest.Entity) (result interface{}, err error)
 
     //query
-    Query(req string) (result interface{}, err error)
+    Query(req []byte) (result interface{}, err error)
 
     //receive and verify request from a block
     PreExecute(req blockchainRequest.Entity, header block.Entity) (result []byte, err error)

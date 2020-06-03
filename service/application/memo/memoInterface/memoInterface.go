@@ -91,9 +91,9 @@ func (m *MemoApplication) PushClientRequest(req blockchainRequest.Entity) (resul
     }
 }
 
-func (m *MemoApplication) Query(req string) (result interface{}, err error) {
+func (m *MemoApplication) Query(req []byte) (result interface{}, err error) {
     queryReq := memoSpace.QueryRequest{}
-    err = json.Unmarshal([]byte(req), &queryReq)
+    err = json.Unmarshal(req, &queryReq)
     if err != nil {
         return
     }
