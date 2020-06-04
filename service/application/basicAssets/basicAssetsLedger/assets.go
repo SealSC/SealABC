@@ -84,9 +84,9 @@ func (l *Ledger) buildAssetsKey(assets Assets) (key []byte) {
 func (l *Ledger) assetsExists(assets Assets) bool {
     key := l.buildAssetsKey(assets)
 
-    _, err := l.Storage.Get(key)
-
-    return err == nil
+    assetsData, _ := l.Storage.Get(key)
+    exists := assetsData.Exists
+    return exists
 }
 
 func (l *Ledger) newAssets(assets Assets) (err error) {
@@ -136,6 +136,11 @@ func (l *Ledger) getLocalAssets(assets Assets) (a Assets, err error){
 
     kv, err := l.Storage.Get(assetsKey)
     if err != nil {
+        return
+    }
+
+    if !kv.Exists {
+        err = errors.New("no such assets")
         return
     }
 

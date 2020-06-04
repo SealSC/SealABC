@@ -40,31 +40,38 @@ func (l *Ledger) verifyTransfer(tx Transaction) (ret interface{}, err error) {
         return
     }
 
-    for _, utxo := range unspentList {
-        key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
-        if l.utxoPool[key] {
-            err = errors.New("double spent")
-            break
-        }
-    }
-
-    if err == nil {
-        for _, utxo := range unspentList {
-            key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
-            l.utxoPool[key] = true
-        }
-    }
-
     ret = unspentList
     return
+}
+
+func (l *Ledger) doubleSpentCheck(usList []Unspent, cachePool map[string] bool) (err error) {
+    for _, utxo := range usList {
+        key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
+        if cachePool[key] {
+            err = errors.New("double spent")
+            break
+        } else {
+            cachePool[key] = true
+        }
+    }
+
+    return
+}
+
+func (l *Ledger)updateDoubleSpentCache(usList []Unspent)  {
+    for _, utxo := range usList {
+        key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
+        delete(l.memUTXORecord, key)
+        delete(l.execUTXORecord, key)
+    }
 }
 
 func (l *Ledger) confirmTransfer(tx Transaction) (ret interface{}, err error) {
     l.operateLock.Lock()
     defer l.operateLock.Unlock()
 
-    //verifyTransfer transaction
-    usList, err := l.verifyTransfer(tx)
+    //tx in this phase was verified, get unspent list directly
+    usList, _, err := l.getUnspentListFromTransaction(tx)
     if err != nil {
         return
     }
@@ -72,7 +79,11 @@ func (l *Ledger) confirmTransfer(tx Transaction) (ret interface{}, err error) {
     localAssets, _ := l.localAssetsFromHash(tx.Assets.getUniqueHash())
 
     //save transaction
-    ret, err = l.saveUnspent(localAssets, tx, usList.([]Unspent))
+    ret, err = l.saveUnspent(localAssets, tx, usList)
+
+    if err == nil {
+        l.updateDoubleSpentCache(usList)
+    }
     return
 }
 

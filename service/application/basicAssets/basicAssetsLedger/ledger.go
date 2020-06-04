@@ -44,9 +44,10 @@ type Ledger struct {
     operateLock sync.RWMutex
     poolLock    sync.Mutex
 
-    txPool          map[string] blockchainRequest.Entity
-    utxoPool        map[string] bool
-    txValidators    map[string] txValidator
+    txPool         map[string] blockchainRequest.Entity
+    memUTXORecord  map[string] bool
+    execUTXORecord map[string] bool
+    txValidators   map[string] txValidator
     txActuators     map[string] txActuator
     ledgerQueries   map[string] ledgerQuery
 
@@ -71,7 +72,8 @@ func NewLedger(storage kvDatabase.IDriver) (ledger *Ledger) {
     }
 
     ledger.txPool = map[string] blockchainRequest.Entity{}
-    ledger.utxoPool = map[string] bool{}
+    ledger.memUTXORecord = map[string] bool{}
+    ledger.execUTXORecord = map[string] bool{}
 
     ledger.txValidators = map[string] txValidator {
         TransactionTypes.IssueAssets.String(): ledger.verifyIssueAssets,

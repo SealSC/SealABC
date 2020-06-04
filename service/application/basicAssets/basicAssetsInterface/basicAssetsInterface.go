@@ -164,7 +164,6 @@ func (b *BasicAssetsApplication) Execute(
             b.storeAssets(txWithBlk, execResult)
 
         case txTypes.Transfer.String():
-            log.Log.Warn(execResult)
             b.storeTransfer(txWithBlk, execResult)
 
         case txTypes.IncreaseSupply.String():

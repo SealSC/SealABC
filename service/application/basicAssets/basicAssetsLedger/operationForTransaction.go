@@ -42,7 +42,7 @@ func (l *Ledger) verifyTransaction(tx Transaction) (err error) {
 
     _, err = validator(tx)
     if err != nil {
-        log.Log.Error("invalid transaction: ", tx)
+        log.Log.Error("invalid transaction: ", err.Error(), "\r\n", tx)
         return
     }
 
@@ -54,6 +54,11 @@ func (l *Ledger) getLocalTransaction(txHash []byte) (tx TransactionWithBlockInfo
 
     kv, err := l.Storage.Get(key)
     if err != nil {
+        return
+    }
+
+    if !kv.Exists {
+        err = errors.New("no such transaction")
         return
     }
 
@@ -74,6 +79,15 @@ func (l *Ledger) PushTransaction(req blockchainRequest.Entity) (err error) {
     err = l.verifyTransaction(tx)
     if err != nil {
         return
+    }
+
+    if tx.TxType == TransactionTypes.Transfer.String() {
+        usList, _, _ := l.getUnspentListFromTransaction(tx)
+
+        err = l.doubleSpentCheck(usList, l.memUTXORecord)
+        if err != nil {
+            return err
+        }
     }
 
     l.poolLock.Lock()
@@ -115,6 +129,14 @@ func (l *Ledger) VerifyTransaction(tx Transaction) (err error) {
         return
     }
 
+    if tx.TxType == TransactionTypes.Transfer.String() {
+        usList, _, _ := l.getUnspentListFromTransaction(tx)
+        err = l.doubleSpentCheck(usList, l.execUTXORecord)
+        if err != nil{
+            return err
+        }
+    }
+
     return
 }
 
@@ -142,6 +164,11 @@ func (l *Ledger) GetOriginalTransactionWithBlockInfo(hash []byte) (tx Transactio
     kv, err := l.Storage.Get(key)
 
     if err != nil {
+        return
+    }
+
+    if !kv.Exists {
+        err = errors.New("no such transaction")
         return
     }
 

@@ -93,6 +93,11 @@ func (l *Ledger) getUnspent(key []byte) (unspent Unspent, err error) {
         return
     }
 
+    if !kv.Exists {
+        err = errors.New("no such unspent")
+        return
+    }
+
     err = json.Unmarshal(kv.Data, &unspent)
     return
 }
@@ -127,7 +132,7 @@ func (l *Ledger) deleteUnspent(tx Transaction) (err error) {
 
 func (l *Ledger) storeBalance(key []byte, change uint64, isIncrease bool) (amount uint64, err error) {
     bKV, err :=l.Storage.Get(key)
-    if err != nil {
+    if err != nil || !bKV.Exists {
         if !isIncrease {
             err = errors.New("invalid address")
             return

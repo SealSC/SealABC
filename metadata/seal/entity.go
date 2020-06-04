@@ -29,8 +29,8 @@ import (
 type Entity struct {
     Hash            []byte
     Signature       []byte
-    SignerAlgorithm string
     SignerPublicKey []byte
+    SignerAlgorithm string
 }
 
 func (e *Entity) HexHash() string {

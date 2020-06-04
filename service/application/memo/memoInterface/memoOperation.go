@@ -62,6 +62,11 @@ func (m *MemoApplication) QueryMemo(hash string) (memo memoSpace.Memo, err error
         return
     }
 
+    if !memoData.Exists {
+        err = errors.New("no such memo")
+        return
+    }
+
     err = json.Unmarshal(memoData.Data, &memo)
     return
 }

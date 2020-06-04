@@ -20,7 +20,6 @@ package basicAssetsSQLTables
 import (
     "SealABC/common"
     "SealABC/dataStructure/enum"
-    "SealABC/log"
     "SealABC/service/application/basicAssets/basicAssetsLedger"
     "SealABC/storage/db/dbInterface/simpleSQLDatabase"
     "encoding/hex"
@@ -74,7 +73,6 @@ type BalanceRows struct {
 func (b *BalanceRows) InsertBalances(height uint64, tm int64, balanceList []basicAssetsLedger.Balance)  {
     timestamp := time.Unix(tm, 0)
     for _, balance := range balanceList {
-        log.Log.Warn(balance.Assets.Name, " : ", balance.Assets.Symbol)
         newAddressRow := BalanceRow{
             LastHeight: fmt.Sprintf("%d", height),
             Address: hex.EncodeToString(balance.Address),
