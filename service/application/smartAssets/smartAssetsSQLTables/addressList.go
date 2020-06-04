@@ -21,7 +21,6 @@ import (
 	"SealABC/common"
 	"SealABC/dataStructure/enum"
 	"SealABC/metadata/block"
-	"SealABC/service/application/smartAssets/smartAssetsLedger"
 	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
 	"encoding/hex"
 	"fmt"
@@ -66,10 +65,10 @@ type AddressListRows struct {
 	simpleSQLDatabase.BasicRows
 }
 
-func (a *AddressListRows) Insert(tx smartAssetsLedger.Transaction, balance *big.Int, blk block.Entity) {
+func (a *AddressListRows) Insert(addr []byte, balance *big.Int, blk block.Entity) {
 	timestamp := time.Unix(int64(blk.Header.Timestamp), 0)
 	newAddressRow := AddressListRow{
-		Address:      hex.EncodeToString(tx.From),
+		Address:      hex.EncodeToString(addr),
 		Balance:      balance.String(),
 		UpdateHeight: fmt.Sprintf("%d", blk.Header.Height),
 		UpdateTime:   timestamp.Format(common.BASIC_TIME_FORMAT),

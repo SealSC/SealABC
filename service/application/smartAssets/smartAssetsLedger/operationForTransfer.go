@@ -47,17 +47,17 @@ func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity)
 
 	_, err := tx.DataSeal.Verify(tx.getData(), l.CryptoTools.HashCalculator)
 	if err != nil {
-		return nil, cache, Errors.DBError.NewErrorWithNewMessage(err.Error())
+		return nil, cache, Errors.InvalidParameter.NewErrorWithNewMessage(err.Error())
 	}
 
 	fromBalance, err := l.getBalance(tx.From, cache)
 	if err != nil {
-		return nil, cache, err
+		return nil, cache, Errors.DBError.NewErrorWithNewMessage(err.Error())
 	}
 
 	toBalance, err := l.getBalance(tx.To, cache)
 	if err != nil {
-		return nil, cache, err
+		return nil, cache, Errors.DBError.NewErrorWithNewMessage(err.Error())
 	}
 
 	if fromBalance.Cmp(bigZero) <= 0 {
@@ -72,7 +72,7 @@ func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity)
 	if amount.Sign() < 0 {
 		return nil, cache, Errors.NegativeTransferValue
 	} else if amount.Sign() == 0 {
-		return nil, cache, nil
+		return nil, cache, Errors.Success
 	}
 
 	if fromBalance.Cmp(amount) < 0 {
@@ -81,6 +81,9 @@ func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity)
 
 	fromBalance.Sub(fromBalance, amount)
 	toBalance.Add(toBalance, amount)
+
+	cache[string(tx.From)].val = fromBalance
+	cache[string(tx.To)].val = toBalance
 
 	statusToChange := []StateData{
 		{
@@ -94,5 +97,5 @@ func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity)
 		},
 	}
 
-	return statusToChange, cache, err
+	return statusToChange, cache, Errors.Success
 }

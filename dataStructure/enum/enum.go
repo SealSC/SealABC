@@ -49,7 +49,7 @@ func (t *Element)Description() string {
 }
 
 func Build(enums interface{}, begin int, prefix string) {
-    buildEnum(enums, func(value int, name string, tag reflect.StructTag) reflect.Value {
+    buildEnum(enums, false, func(value int, name string, tag reflect.StructTag) reflect.Value {
         taggedName := tag.Get(elementNameTag)
         enumName := prefix + name
         if taggedName != "" {

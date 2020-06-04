@@ -35,20 +35,20 @@ func (c *callApplication)Handle(ctx *gin.Context) {
     reqData := blockchainRequest.Entity{}
     _, err := http.GetPostedJson(ctx, &reqData)
     if err != nil {
-        res.BadRequest(err.Error())
+        res.BadRequest( "request error: " + err.Error())
         return
     }
 
     result, err := c.chain.Executor.PushRequest(reqData)
 
     if err != nil {
-        res.BadRequest(err.Error())
+        res.BadRequest("call application error: " + err.Error())
         return
     }
 
     broadcastErr := c.p2p.BroadcastRequest(reqData)
     if broadcastErr != nil{
-        log.Log.Warn("broadcast request failed: ", broadcastErr)
+       log.Log.Warn("broadcast request failed: ", broadcastErr)
     }
     res.OK(result)
 }

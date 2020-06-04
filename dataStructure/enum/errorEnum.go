@@ -74,7 +74,7 @@ func (e ErrorElementWithData)Data() interface{}  {
 }
 
 func BuildErrorEnum(enum interface{}, startCode int64) {
-    buildEnum(enum, func(code int, name string, tag reflect.StructTag) reflect.Value {
+    buildEnum(enum, true, func(code int, name string, tag reflect.StructTag) reflect.Value {
         codeStr := tag.Get(errorCodeTag)
         codeNum := int64(code) + startCode
         if "" != codeStr {

@@ -65,7 +65,7 @@ func (e Entity) Verify(orgData []byte, hashCalc hashes.IHashCalculator) (passed 
 
     hash := hashCalc.Sum(orgData)
     if !bytes.Equal(hash, e.Hash) {
-        err = errors.New("hash not equal")
+        err = errors.New("hash not equal: " + hex.EncodeToString(hash) + " vs " + hex.EncodeToString(e.Hash) )
         return
     }
 

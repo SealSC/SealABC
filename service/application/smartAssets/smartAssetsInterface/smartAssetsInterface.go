@@ -20,6 +20,7 @@ package smartAssetsInterface
 import (
 	"SealABC/common/utility/serializer/structSerializer"
 	"SealABC/crypto"
+	"SealABC/log"
 	"SealABC/metadata/applicationResult"
 	"SealABC/metadata/block"
 	"SealABC/metadata/blockchainRequest"
@@ -67,7 +68,7 @@ func (s *SmartAssetsApplication) Query(req []byte) (result interface{}, err erro
 }
 
 func (s *SmartAssetsApplication) PreExecute(req blockchainRequest.Entity, blk block.Entity) (result []byte, err error) {
-	var txList smartAssetsLedger.TransactionList
+	var txList = smartAssetsLedger.TransactionList{}
 	err = structSerializer.FromMFBytes(req.Data, &txList)
 	if err != nil {
 		return
@@ -84,11 +85,16 @@ func (s *SmartAssetsApplication) Execute(
 	txList := smartAssetsLedger.TransactionList{}
 	err = structSerializer.FromMFBytes(req.Data, &txList)
 	if err != nil {
+		log.Log.Warn("deserialization failed: ", err.Error())
 		return
 	}
 
-
 	_, err = s.ledger.Execute(txList, blk)
+	if err == nil && s.sqlStorage != nil{
+		for _, tx := range txList.Transactions {
+			_ = s.sqlStorage.StoreTransaction(tx, blk)
+		}
+	}
 
 	return
 }
@@ -146,10 +152,7 @@ func NewApplicationInterface(
 	) (app chainStructure.IBlockchainExternalApplication, err error) {
 	sa := SmartAssetsApplication{}
 
-	sa.ledger = &smartAssetsLedger.Ledger {
-		CryptoTools: tools,
-		Storage:     kvDriver,
-	}
+	sa.ledger = smartAssetsLedger.NewLedger(tools, kvDriver)
 
 	if sqlDriver != nil {
 		sa.sqlStorage = smartAssetsSQLStorage.NewStorage(sqlDriver)

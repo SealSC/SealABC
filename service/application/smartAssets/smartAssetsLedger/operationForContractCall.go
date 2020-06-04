@@ -34,12 +34,16 @@ func (l Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.E
 	initGas := cache[CachedBlockGasKey].gasLeft
 	evm, _, _ := l.newEVM(tx, nil, blk, evmInt256.New(int64(initGas)))
 
+	execErr := Errors.Success
 	ret, err := evm.ExecuteContract(true)
+	if err != nil {
+		execErr = Errors.ContractExecuteFailed.NewErrorWithNewMessage(err.Error())
+	}
 	newState := l.newStateFromEVMResult(ret, cache)
 
 	gasCost := initGas - ret.GasLeft
 	cache[CachedBlockGasKey].gasLeft -= gasCost
 
 	cache[CachedContractReturnData].data = ret.ResultData
-	return newState, cache, err
+	return newState, cache, execErr
 }

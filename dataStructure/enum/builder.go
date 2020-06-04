@@ -21,7 +21,7 @@ import (
     "reflect"
 )
 
-func buildEnum(enum interface{}, valueBuilder func(int, string, reflect.StructTag) reflect.Value) {
+func buildEnum(enum interface{}, isErrEnum bool, valueBuilder func(int, string, reflect.StructTag) reflect.Value) {
     eValue := reflect.ValueOf(enum).Elem()
     eType := eValue.Type()
 
@@ -36,9 +36,16 @@ func buildEnum(enum interface{}, valueBuilder func(int, string, reflect.StructTa
             continue
         }
 
-        _, ok := elemValue.Interface().(Element)
-        if !ok {
-            continue
+        if isErrEnum {
+            _, ok := elemValue.Interface().(ErrorElement)
+            if !ok {
+                continue
+            }
+        } else {
+            _, ok := elemValue.Interface().(Element)
+            if !ok {
+                continue
+            }
         }
 
         elemType := eType.Field(i)

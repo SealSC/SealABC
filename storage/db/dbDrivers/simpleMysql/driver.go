@@ -88,6 +88,10 @@ func (s *simpleMySQLDriver) insert(sqlPrefix string, rows simpleSQLDatabase.IRow
 }
 
 func (s *simpleMySQLDriver) Insert(rows simpleSQLDatabase.IRows, ignoreKey bool) (result sql.Result, err error) {
+    if rows.Count() == 0 {
+        return
+    }
+
     var pSQL string
     if ignoreKey {
         pSQL = "insert ignore into "
@@ -100,12 +104,20 @@ func (s *simpleMySQLDriver) Insert(rows simpleSQLDatabase.IRows, ignoreKey bool)
 }
 
 func (s *simpleMySQLDriver) Replace(rows simpleSQLDatabase.IRows) (result sql.Result, err error) {
+    if rows.Count() == 0 {
+        return
+    }
+
     pSQL := "replace into "
     result, err = s.insert(pSQL , rows)
     return
 }
 
 func (s *simpleMySQLDriver) Update(rows simpleSQLDatabase.IRows, columns []string, condition string, args []interface{}) (result sql.Result, err error) {
+    if rows.Count() == 0 {
+        return
+    }
+
     pSQL := "update ? set "
     var data []interface{}
 

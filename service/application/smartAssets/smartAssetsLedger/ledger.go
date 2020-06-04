@@ -20,9 +20,7 @@ package smartAssetsLedger
 import (
 	"SealABC/common/utility/serializer/structSerializer"
 	"SealABC/crypto"
-	"SealABC/crypto/signers/signerCommon"
 	"SealABC/dataStructure/enum"
-	"SealABC/log"
 	"SealABC/metadata/block"
 	"SealABC/metadata/blockchainRequest"
 	"SealABC/metadata/seal"
@@ -47,7 +45,6 @@ type Ledger struct {
 	poolLock    sync.Mutex
 
 	genesisAssets BaseAssets
-	genesisSigner signerCommon.ISigner
 
 	preActuators   map[string] txPreActuator
 	queryActuators map[string] queryActuator
@@ -78,7 +75,6 @@ func (l *Ledger) LoadGenesisAssets(owner []byte, assets BaseAssetsData) error  {
 	}
 
 	if exists {
-		log.Log.Warn("assets exists???")
 		return nil
 	}
 
@@ -266,6 +262,11 @@ func (l *Ledger) removeTransactionsFromPool(txList []Transaction) {
 			removeTxHashes[txHashStr] = true
 			delete(l.txPool, txHashStr)
 		}
+
+		client := string(tx.DataSeal.SignerPublicKey)
+		if l.clientTxCount[client] > 0{
+			l.clientTxCount[client] -= 1
+		}
 	}
 
 	var newTxPoolRecord []string
@@ -369,7 +370,7 @@ func (l Ledger) DoQuery(req QueryRequest) (interface{}, error) {
 	return nil, Errors.InvalidQuery
 }
 
-func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreator signerCommon.ISigner) *Ledger {
+func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver) *Ledger {
 	l := &Ledger{
 		txPool:        map[string] *Transaction{},
 		txPoolRecord:  []string {},
@@ -379,7 +380,6 @@ func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, genesisAssetsCreat
 		operateLock:   sync.RWMutex{},
 		poolLock:      sync.Mutex{},
 		genesisAssets: BaseAssets{},
-		genesisSigner: genesisAssetsCreator,
 		CryptoTools:   tools,
 		Storage:       driver,
 	}

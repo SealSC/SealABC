@@ -20,6 +20,7 @@ package smartAssetsLedger
 import "SealABC/dataStructure/enum"
 
 var Errors struct {
+	Success                enum.ErrorElement `code:"0"`
 	DBError                enum.ErrorElement
 	InvalidTransactionType enum.ErrorElement
 	InvalidTransferValue   enum.ErrorElement
@@ -29,6 +30,7 @@ var Errors struct {
 	InvalidContractCreationAddress enum.ErrorElement
 	ContractCreationFailed         enum.ErrorElement
 	ContractNotFound               enum.ErrorElement
+	ContractExecuteFailed          enum.ErrorElement
 
 	InvalidQuery     enum.ErrorElement
 	InvalidParameter enum.ErrorElement

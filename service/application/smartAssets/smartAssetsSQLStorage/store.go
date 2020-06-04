@@ -82,7 +82,7 @@ func (s Storage) StoreTransaction(tx smartAssetsLedger.Transaction, blk block.En
 	for _, v := range tx.TransactionResult.NewState {
 		if s.isNewBalance(v.Key) {
 			balance := big.NewInt(0).SetBytes(v.Val)
-			addressListRows.Insert(tx, balance, blk)
+			addressListRows.Insert(v.Key, balance, blk)
 		}
 	}
 

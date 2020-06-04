@@ -55,6 +55,7 @@ type TransactionData struct {
 	To             []byte
 	Value          string
 	Data           []byte
+	Memo           string
 	SerialNumber   string
 }
 
@@ -84,7 +85,7 @@ type TransactionList struct {
 }
 
 func (t Transaction) getData() []byte {
-	data, _ := structSerializer.ToMFBytes(t.Data)
+	data, _ := structSerializer.ToMFBytes(t.TransactionData)
 	return data
 }
 

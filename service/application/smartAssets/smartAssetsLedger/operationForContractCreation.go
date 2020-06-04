@@ -27,7 +27,7 @@ func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk blo
 		return  nil, cache, Errors.InvalidTransactionType
 	}
 
-	if len(tx.To) != 0{
+	if len(tx.To) != 0 {
 		return nil, nil, Errors.InvalidContractCreationAddress
 	}
 
@@ -56,5 +56,5 @@ func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk blo
 
 	cache[CachedContractCreationAddress].address = contract.Namespace.Bytes()
 	cache[CachedContractReturnData].data = ret.ResultData
-	return newState, cache, err
+	return newState, cache, Errors.Success
 }

@@ -18,10 +18,10 @@
 package structSerializer
 
 import (
-    "reflect"
-    "encoding/binary"
     "SealABC/dataStructure/mfb"
+    "encoding/binary"
     "errors"
+    "reflect"
 )
 
 type standardDeserializer func (value reflect.Value, data []byte) (error)
@@ -139,6 +139,7 @@ func bytesToArray(value reflect.Value, data []byte) (err error) {
         sMakeType = reflect.SliceOf(value.Type().Elem())
     }
 
+    sElLen := getMarklessElementLen(elKind)
     if !isMarklessSlice(elKind)  {
         mfBytes := mfb.MarkedFlatBytes(data)
         var bytesList [][]byte
@@ -169,13 +170,10 @@ func bytesToArray(value reflect.Value, data []byte) (err error) {
             }
         }
     } else {
-        sElLen := getMarklessElementLen(elKind)
         sLen := len(data) / sElLen
         arrayFromReflect = reflect.MakeSlice(sMakeType, sLen, sLen)
 
-        if elKind == reflect.Uint8 {
-            arrayFromReflect.SetBytes(data[:sElLen])
-        } else {
+        if sElLen != 1 {
             for i:=0; i<sLen; i+=1 {
                 err = callStandardDeserializer(elKind, arrayFromReflect.Index(i), data[i : (i+1) * sElLen])
                 if err != nil {
@@ -186,7 +184,11 @@ func bytesToArray(value reflect.Value, data []byte) (err error) {
     }
 
     if sType.Kind() == reflect.Slice {
-        value.Set(arrayFromReflect)
+        if  sElLen == 1 {
+            value.SetBytes(data)
+        } else {
+            value.Set(arrayFromReflect)
+        }
     } else {
         reflect.Copy(value, arrayFromReflect)
     }

@@ -21,7 +21,6 @@ import (
 	"SealABC/metadata/seal"
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"encoding/json"
-	"errors"
 	"math/big"
 )
 
@@ -46,16 +45,6 @@ func (b BaseAssets) getHash() []byte {
 }
 
 func (l Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
-	_, exists, err := l.getSystemAssets()
-	if err != nil {
-		return
-	}
-
-	if !exists {
-		err = errors.New("no such assets")
-		return
-	}
-
 	balanceKey := StoragePrefixes.Balance.BuildKey(address)
 	bKV, err := l.Storage.Get(balanceKey)
 	if err != nil {
