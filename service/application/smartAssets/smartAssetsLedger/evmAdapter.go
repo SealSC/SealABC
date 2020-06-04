@@ -124,7 +124,7 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 		if resultCache[string(addr)] != nil {
 			localBalance = resultCache[string(addr)].val
 		} else {
-			localBalance, err = l.balanceOf(addr)
+			localBalance, err = l.BalanceOf(addr)
 			if err != nil {
 				continue
 			}

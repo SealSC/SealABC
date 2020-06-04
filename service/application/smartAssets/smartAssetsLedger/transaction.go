@@ -23,6 +23,8 @@ import (
 	"SealABC/dataStructure/enum"
 	"SealABC/metadata/block"
 	"SealABC/metadata/seal"
+	"bytes"
+	"errors"
 	"math/big"
 )
 
@@ -96,6 +98,10 @@ func (t Transaction) getHash() []byte {
 }
 
 func (t Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err error) {
+	if !bytes.Equal(t.From, t.DataSeal.SignerPublicKey) {
+		return false, errors.New("invalid sender")
+	}
+
 	passed, err = t.DataSeal.Verify(t.getData(), hashCalc)
 	if !passed {
 		return

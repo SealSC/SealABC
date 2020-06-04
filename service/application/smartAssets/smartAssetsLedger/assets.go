@@ -45,7 +45,7 @@ func (b BaseAssets) getHash() []byte {
 	return b.MetaSeal.Hash
 }
 
-func (l Ledger) balanceOf(address []byte) (balance *big.Int, err error) {
+func (l Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
 	_, exists, err := l.getSystemAssets()
 	if err != nil {
 		return

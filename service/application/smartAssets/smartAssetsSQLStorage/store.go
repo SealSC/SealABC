@@ -49,6 +49,14 @@ func (s Storage) isNewBalance(key []byte) bool {
 	return bytes.Equal(balancePrefixKey, key[:len(balancePrefixKey)])
 }
 
+func (s Storage) StoreSystemIssueBalance(balance *big.Int, owner string) error {
+	addressListRows := smartAssetsSQLTables.AddressList.NewRows().(smartAssetsSQLTables.AddressListRows)
+	addressListRows.InsertSystemIssueBalance(balance, owner)
+
+	_, err := s.Driver.Insert(&addressListRows, true)
+	return err
+}
+
 func (s Storage) StoreTransaction(tx smartAssetsLedger.Transaction, blk block.Entity) (err error) {
 	txRows := smartAssetsSQLTables.Transaction.NewRows().(smartAssetsSQLTables.TransactionRows)
 

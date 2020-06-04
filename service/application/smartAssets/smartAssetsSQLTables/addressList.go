@@ -78,6 +78,16 @@ func (a *AddressListRows) Insert(tx smartAssetsLedger.Transaction, balance *big.
 	a.Rows = append(a.Rows, newAddressRow)
 }
 
+func (a *AddressListRows) InsertSystemIssueBalance(balance *big.Int, address string)  {
+	newRow := AddressListRow{
+		Address:      address,
+		Balance:      balance.String(),
+		UpdateHeight: "0",
+		UpdateTime:   time.Now().Format(common.BASIC_TIME_FORMAT),
+	}
+	a.Rows = append(a.Rows, newRow)
+}
+
 func (a *AddressListRows) Table() simpleSQLDatabase.ITable {
 	return &AddressList
 }

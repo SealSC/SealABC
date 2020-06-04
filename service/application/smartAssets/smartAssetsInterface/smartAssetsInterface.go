@@ -30,6 +30,7 @@ import (
 	"SealABC/service/system/blockchain/chainStructure"
 	"SealABC/storage/db/dbInterface/kvDatabase"
 	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"encoding/hex"
 	"encoding/json"
 )
 
@@ -154,9 +155,26 @@ func NewApplicationInterface(
 		sa.sqlStorage = smartAssetsSQLStorage.NewStorage(sqlDriver)
 	}
 
-	err = sa.ledger.LoadGenesisAssets(assets.Owner, assets)
+	ownerBytes, err := hex.DecodeString(assets.Owner)
 	if err != nil {
 		return
+	}
+
+	err = sa.ledger.LoadGenesisAssets(ownerBytes, assets)
+	if err != nil {
+		return
+	}
+
+	ownerBalance, err := sa.ledger.BalanceOf(ownerBytes)
+	if err != nil {
+		return
+	}
+
+	if sqlDriver != nil {
+		err = sa.sqlStorage.StoreSystemIssueBalance(ownerBalance, assets.Owner)
+		if err != nil {
+			return
+		}
 	}
 
 	app = &sa

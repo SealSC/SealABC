@@ -24,17 +24,13 @@ import (
 
 var bigZero = big.NewInt(0)
 
-func (l Ledger) getBalance(addr []byte, assetsHash []byte, cache txResultCache) (*big.Int, error) {
+func (l Ledger) getBalance(addr []byte, cache txResultCache) (*big.Int, error) {
 	addrStr := string(addr)
 	if cache[addrStr] != nil {
 		return cache[addrStr].val, nil
 	}
 
-	if len(assetsHash) == 0 {
-		assetsHash = l.genesisAssets.getHash()
-	}
-
-	balance, err := l.balanceOf(addr)
+	balance, err := l.BalanceOf(addr)
 	if err == nil {
 		cache[addrStr] = &txResultCacheData{
 			val:balance,
@@ -54,13 +50,12 @@ func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity)
 		return nil, cache, Errors.DBError.NewErrorWithNewMessage(err.Error())
 	}
 
-	assetsHash := l.genesisAssets.getHash()
-	fromBalance, err := l.getBalance(tx.From, assetsHash, cache)
+	fromBalance, err := l.getBalance(tx.From, cache)
 	if err != nil {
 		return nil, cache, err
 	}
 
-	toBalance, err := l.getBalance(tx.To, assetsHash, cache)
+	toBalance, err := l.getBalance(tx.To, cache)
 	if err != nil {
 		return nil, cache, err
 	}

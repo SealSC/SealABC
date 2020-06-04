@@ -22,6 +22,7 @@ import (
 	"SealABC/service/application/smartAssets/smartAssetsInterface"
 	"SealABC/service/application/smartAssets/smartAssetsLedger"
 	"SealABC/service/application/smartAssets/smartAssetsSQLStorage"
+	"SealABC/service/application/smartAssets/smartAssetsSQLTables"
 	"SealABC/service/system/blockchain/chainStructure"
 	"SealABC/storage/db"
 	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
@@ -30,6 +31,7 @@ import (
 func Load() {
 	smartAssetsInterface.Load()
 	smartAssetsLedger.Load()
+	smartAssetsSQLTables.Load()
 	smartAssetsSQLStorage.Load()
 }
 

@@ -22,6 +22,7 @@ import (
 	"SealABC/crypto"
 	"SealABC/crypto/signers/signerCommon"
 	"SealABC/dataStructure/enum"
+	"SealABC/log"
 	"SealABC/metadata/block"
 	"SealABC/metadata/blockchainRequest"
 	"SealABC/metadata/seal"
@@ -70,13 +71,14 @@ func (l *Ledger) SetChain(chain *chainStructure.Blockchain)  {
 	l.chain = chain
 }
 
-func (l *Ledger) LoadGenesisAssets(owner string, assets BaseAssetsData) error  {
+func (l *Ledger) LoadGenesisAssets(owner []byte, assets BaseAssetsData) error  {
 	_, exists, err := l.getSystemAssets()
 	if err != nil {
 		return err
 	}
 
 	if exists {
+		log.Log.Warn("assets exists???")
 		return nil
 	}
 
@@ -84,7 +86,7 @@ func (l *Ledger) LoadGenesisAssets(owner string, assets BaseAssetsData) error  {
 	supply := assets.Supply
 	assets.Supply = "0"
 
-	if owner == "" {
+	if len(owner) == 0 {
 		return errors.New("no owner for system assets")
 	}
 
@@ -130,7 +132,7 @@ func (l *Ledger) LoadGenesisAssets(owner string, assets BaseAssetsData) error  {
 	}
 
 	err = l.Storage.Put(kvDatabase.KVItem{
-		Key:    StoragePrefixes.Balance.BuildKey([]byte(owner)),
+		Key:    StoragePrefixes.Balance.BuildKey(owner),
 		Data:   balance.Bytes(),
 		Exists: false,
 	})
@@ -148,7 +150,11 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 	if tx.Type != req.RequestAction {
 		return errors.New("transaction type is not equal to block request action")
 	}
-	
+
+	if !bytes.Equal(tx.From, tx.DataSeal.SignerPublicKey) {
+		return errors.New("invalid sender")
+	}
+
 	valid, err := tx.verify(l.CryptoTools.HashCalculator)
 	if !valid {
 		return err
