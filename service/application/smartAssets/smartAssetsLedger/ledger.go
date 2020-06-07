@@ -128,7 +128,7 @@ func (l *Ledger) LoadGenesisAssets(owner []byte, assets BaseAssetsData) error  {
 	}
 
 	err = l.Storage.Put(kvDatabase.KVItem{
-		Key:    StoragePrefixes.Balance.BuildKey(owner),
+		Key:    BuildKey(StoragePrefixes.Balance, owner),
 		Data:   balance.Bytes(),
 		Exists: false,
 	})
@@ -220,7 +220,19 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []b
 	defer l.poolLock.Unlock()
 
 	txHash := map[string] bool{}
-	resultCache := txResultCache{}
+	resultCache := txResultCache {
+		CachedBlockGasKey: &txResultCacheData{
+			gasLeft: constTransactionGasLimit().Uint64(),
+		},
+
+		CachedContractReturnData: &txResultCacheData{
+			data: nil,
+		},
+
+		CachedContractCreationAddress: &txResultCacheData{
+			data: nil,
+		},
+	}
 
 	for _, tx := range txList.Transactions {
 		hash := string(tx.DataSeal.Hash)
@@ -287,7 +299,7 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 	for _, tx := range txList.Transactions {
 		txData, _ := structSerializer.ToMFBytes(tx)
 		kvList = append(kvList, kvDatabase.KVItem{
-			Key:    StoragePrefixes.Transaction.BuildKey(tx.DataSeal.Hash),
+			Key:    BuildKey(StoragePrefixes.Transaction, tx.DataSeal.Hash),
 			Data:   txData,
 			Exists: true,
 		})
@@ -311,8 +323,9 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 }
 
 func (l Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) {
-	if err != nil {
-		errEl := err.(enum.ErrorElement)
+	errEl := err.(enum.ErrorElement)
+
+	if errEl != Errors.Success {
 		tx.TransactionResult.Success = false
 		tx.TransactionResult.ErrorCode = errEl.Code()
 	} else {

@@ -22,6 +22,7 @@ import (
 	"SealABC/dataStructure/enum"
 	"SealEVM/environment"
 	"SealEVM/evmInt256"
+	"errors"
 )
 
 const ContractAddressLen = 24
@@ -29,12 +30,21 @@ func ContractAddressPrefix() []byte {
 	return []byte("SC:")
 }
 
-type prefixEl struct {
-	enum.Element
+var StoragePrefixes struct {
+	SystemAssets enum.Element
+	Assets       enum.Element
+	Transaction  enum.Element
+	Balance      enum.Element
+
+	ContractLog       enum.Element
+	ContractData      enum.Element
+	ContractCode      enum.Element
+	ContractHash      enum.Element
+	ContractDestructs enum.Element
 }
 
-func (p prefixEl) BuildKey(baseKey []byte, extra ...[]byte) []byte {
-	keyPrefix := []byte(p.String())
+func BuildKey(el enum.Element, baseKey []byte, extra ...[]byte)  []byte {
+	keyPrefix := []byte(el.String())
 
 	if baseKey == nil {
 		return keyPrefix
@@ -48,21 +58,8 @@ func (p prefixEl) BuildKey(baseKey []byte, extra ...[]byte) []byte {
 	return result
 }
 
-var StoragePrefixes struct {
-	SystemAssets prefixEl
-	Assets       prefixEl
-	Transaction  prefixEl
-	Balance      prefixEl
-
-	ContractLog       prefixEl
-	ContractData      prefixEl
-	ContractCode      prefixEl
-	ContractHash      prefixEl
-	ContractDestructs prefixEl
-}
-
 func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err error) {
-	key := StoragePrefixes.Transaction.BuildKey(hash)
+	key := BuildKey(StoragePrefixes.Transaction, hash)
 
 	txJson, err := l.Storage.Get(key)
 	if err != nil {
@@ -102,18 +99,22 @@ func (c *contractStorage) CanTransfer(from, to, val *evmInt256.Int) bool {
 }
 
 func (c *contractStorage) GetCode(address *evmInt256.Int) ([]byte, error) {
-	key := StoragePrefixes.ContractCode.BuildKey(address.Bytes())
+	key := BuildKey(StoragePrefixes.ContractCode, address.Bytes())
 
 	codeKV, err := c.basedLedger.Storage.Get(key)
 	if err != nil {
 		return nil, err
 	}
 
+	if !codeKV.Exists {
+		return nil, errors.New("no such contract")
+	}
+
 	return codeKV.Data, nil
 }
 
 func (c *contractStorage) GetCodeSize(address *evmInt256.Int) (*evmInt256.Int, error) {
-	key := StoragePrefixes.ContractCode.BuildKey(address.Bytes())
+	key := BuildKey(StoragePrefixes.ContractCode, address.Bytes())
 
 	codeKV, err := c.basedLedger.Storage.Get(key)
 	if err != nil {
@@ -127,7 +128,7 @@ func (c *contractStorage) GetCodeSize(address *evmInt256.Int) (*evmInt256.Int, e
 }
 
 func (c *contractStorage) GetCodeHash(address *evmInt256.Int) (*evmInt256.Int, error) {
-	key := StoragePrefixes.ContractHash.BuildKey(address.Bytes())
+	key := BuildKey(StoragePrefixes.ContractHash, address.Bytes())
 	hashKV, err := c.basedLedger.Storage.Get(key)
 	if err != nil {
 		return nil, err
@@ -187,7 +188,7 @@ func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt
 }
 
 func (c *contractStorage) Load(n string, k string) (*evmInt256.Int, error) {
-	key := StoragePrefixes.ContractData.BuildKey([]byte(n), []byte(k))
+	key := BuildKey(StoragePrefixes.ContractData, []byte(n), []byte(k))
 	data, err := c.basedLedger.Storage.Get(key)
 
 	if err != nil {

@@ -48,7 +48,7 @@ func (c *callApplication)Handle(ctx *gin.Context) {
 
     broadcastErr := c.p2p.BroadcastRequest(reqData)
     if broadcastErr != nil{
-       log.Log.Warn("broadcast request failed: ", broadcastErr)
+        log.Log.Warn("broadcast request failed: ", broadcastErr)
     }
     res.OK(result)
 }

@@ -44,11 +44,11 @@ func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk blo
 		contractAddr := contract.Namespace.Bytes()
 		newState = append(newState,
 			StateData {
-				Key: StoragePrefixes.ContractCode.BuildKey(contractAddr),
+				Key: BuildKey(StoragePrefixes.ContractCode, contractAddr),
 				Val: ret.ResultData,
 			},
 			StateData {
-				Key: StoragePrefixes.ContractHash.BuildKey(contractAddr),
+				Key: BuildKey(StoragePrefixes.ContractHash, contractAddr),
 				Val: contract.Hash.Bytes(),
 			},
 		)

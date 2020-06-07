@@ -32,7 +32,10 @@ func (l Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.E
 	}
 
 	initGas := cache[CachedBlockGasKey].gasLeft
-	evm, _, _ := l.newEVM(tx, nil, blk, evmInt256.New(int64(initGas)))
+	evm, _, err := l.newEVM(tx, nil, blk, evmInt256.New(int64(initGas)))
+	if err != nil {
+		return nil, cache, err
+	}
 
 	execErr := Errors.Success
 	ret, err := evm.ExecuteContract(true)
@@ -43,7 +46,6 @@ func (l Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.E
 
 	gasCost := initGas - ret.GasLeft
 	cache[CachedBlockGasKey].gasLeft -= gasCost
-
 	cache[CachedContractReturnData].data = ret.ResultData
 	return newState, cache, execErr
 }

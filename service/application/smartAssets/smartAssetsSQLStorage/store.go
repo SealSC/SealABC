@@ -45,7 +45,7 @@ func (s Storage) getClassifiedTableRows(txType string) smartAssetsSQLTables.ISQL
 }
 
 func (s Storage) isNewBalance(key []byte) bool {
-	balancePrefixKey := smartAssetsLedger.StoragePrefixes.Balance.BuildKey(nil)
+	balancePrefixKey := smartAssetsLedger.BuildKey(smartAssetsLedger.StoragePrefixes.Balance, nil)
 	return bytes.Equal(balancePrefixKey, key[:len(balancePrefixKey)])
 }
 

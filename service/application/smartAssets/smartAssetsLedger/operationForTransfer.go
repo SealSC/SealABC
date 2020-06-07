@@ -87,12 +87,12 @@ func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity)
 
 	statusToChange := []StateData{
 		{
-			Key: StoragePrefixes.Balance.BuildKey(tx.From),
+			Key: BuildKey(StoragePrefixes.Balance, tx.From),
 			Val: fromBalance.Bytes(),
 		},
 
 		{
-			Key: StoragePrefixes.Balance.BuildKey(tx.To),
+			Key: BuildKey(StoragePrefixes.Balance, tx.To),
 			Val: toBalance.Bytes(),
 		},
 	}

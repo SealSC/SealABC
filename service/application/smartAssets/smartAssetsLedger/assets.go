@@ -45,7 +45,7 @@ func (b BaseAssets) getHash() []byte {
 }
 
 func (l Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
-	balanceKey := StoragePrefixes.Balance.BuildKey(address)
+	balanceKey := BuildKey(StoragePrefixes.Balance, address)
 	bKV, err := l.Storage.Get(balanceKey)
 	if err != nil {
 		return
@@ -60,7 +60,7 @@ func (l Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
 }
 
 func (l Ledger) getSystemAssets() (assets *BaseAssets, exits bool, err error) {
-	key := StoragePrefixes.SystemAssets.BuildKey(nil)
+	key := BuildKey(StoragePrefixes.SystemAssets, nil)
 
 	assetsJson, err := l.Storage.Get(key)
 	if err != nil {
@@ -78,7 +78,7 @@ func (l Ledger) getSystemAssets() (assets *BaseAssets, exits bool, err error) {
 }
 
 func (l Ledger) getAssetsByHash(hash []byte) (assets *BaseAssets, exists bool, err error) {
-	key := StoragePrefixes.Assets.BuildKey(hash)
+	key := BuildKey(StoragePrefixes.Assets, hash)
 	assetsJson, err := l.Storage.Get(key)
 	if err != nil {
 		return
@@ -99,7 +99,7 @@ func (l Ledger) storeSystemAssets(assets BaseAssets) error {
 		return err
 	}
 
-	key := StoragePrefixes.SystemAssets.BuildKey(nil)
+	key := BuildKey(StoragePrefixes.SystemAssets, nil)
 
 	err = l.Storage.Put(kvDatabase.KVItem{
 		Key:    key,
@@ -116,7 +116,7 @@ func (l Ledger) storeAssets(assets BaseAssets) error {
 		return err
 	}
 
-	key := StoragePrefixes.Assets.BuildKey(assets.MetaSeal.Hash)
+	key := BuildKey(StoragePrefixes.Assets, assets.MetaSeal.Hash)
 
 	err = l.Storage.Put(kvDatabase.KVItem{
 		Key:    key,
