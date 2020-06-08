@@ -226,11 +226,11 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []b
 		},
 
 		CachedContractReturnData: &txResultCacheData{
-			data: nil,
+			Data: nil,
 		},
 
 		CachedContractCreationAddress: &txResultCacheData{
-			data: nil,
+			Data: nil,
 		},
 	}
 
@@ -349,11 +349,11 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 		},
 
 		CachedContractReturnData: &txResultCacheData{
-			data: nil,
+			Data: nil,
 		},
 
 		CachedContractCreationAddress: &txResultCacheData{
-			data: nil,
+			Data: nil,
 		},
 	}
 
@@ -365,7 +365,7 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 			l.setTxNewState(err, newState, tx)
 			tx.SequenceNumber = uint32(idx)
 
-			tx.TransactionResult.ReturnData = resultCache[CachedContractReturnData].data
+			tx.TransactionResult.ReturnData = resultCache[CachedContractReturnData].Data
 			tx.TransactionResult.NewAddress = resultCache[CachedContractCreationAddress].address
 		}
 
@@ -375,7 +375,7 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 	return
 }
 
-func (l Ledger) DoQuery(req QueryRequest) (interface{}, error) {
+func (l *Ledger) DoQuery(req QueryRequest) (interface{}, error) {
 	if actuator, exists := l.queryActuators[req.QueryType]; exists {
 		return actuator(req)
 	}

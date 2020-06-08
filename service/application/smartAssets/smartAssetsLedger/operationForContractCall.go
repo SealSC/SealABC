@@ -22,7 +22,7 @@ import (
 	"SealEVM/evmInt256"
 )
 
-func (l Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
+func (l *Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
 	if tx.Type != TxType.ContractCall.String() {
 		return  nil, cache, Errors.InvalidTransactionType
 	}
@@ -46,6 +46,6 @@ func (l Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.E
 
 	gasCost := initGas - ret.GasLeft
 	cache[CachedBlockGasKey].gasLeft -= gasCost
-	cache[CachedContractReturnData].data = ret.ResultData
+	cache[CachedContractReturnData].Data = ret.ResultData
 	return newState, cache, execErr
 }

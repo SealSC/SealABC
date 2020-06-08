@@ -66,6 +66,9 @@ func (e ErrorElement)Name() string  {
 }
 
 func (e ErrorElement)Error() string  {
+    if e.message == "" {
+        return e.name
+    }
     return e.message
 }
 

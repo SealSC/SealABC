@@ -56,7 +56,9 @@ func (s *SmartAssetsApplication) Query(req []byte) (result interface{}, err erro
 		return
 	}
 
-	if queryReq.QueryType == smartAssetsLedger.QueryTypes.BaseAssets.String() {
+	baseAssetsQuery := smartAssetsLedger.QueryTypes.BaseAssets.String()
+	offChainCallQuery := smartAssetsLedger.QueryTypes.OffChainCall.String()
+	if queryReq.QueryType == baseAssetsQuery || queryReq.QueryType == offChainCallQuery {
 		return s.ledger.DoQuery(queryReq)
 	} else {
 		if s.sqlStorage != nil {

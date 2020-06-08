@@ -22,11 +22,11 @@ import (
 	"encoding/json"
 )
 
-func (l Ledger) queryBaseAssets(_ QueryRequest) (interface{}, error) {
+func (l *Ledger) queryBaseAssets(_ QueryRequest) (interface{}, error) {
 	return l.genesisAssets, nil
 }
 
-func (l Ledger) queryBalance(req QueryRequest) (interface{}, error) {
+func (l *Ledger) queryBalance(req QueryRequest) (interface{}, error) {
 	hexStr := req.Parameter[QueryParameterFields.Address.String()]
 	if hexStr == "" {
 		return nil, Errors.InvalidParameter
@@ -45,7 +45,7 @@ func (l Ledger) queryBalance(req QueryRequest) (interface{}, error) {
 	return balance.String(), nil
 }
 
-func (l Ledger) queryTransaction(req QueryRequest) (interface{}, error) {
+func (l *Ledger) queryTransaction(req QueryRequest) (interface{}, error) {
 	param := req.Parameter[QueryParameterFields.TxHash.String()]
 	if param == "" {
 		return nil, Errors.InvalidParameter
@@ -61,7 +61,7 @@ func (l Ledger) queryTransaction(req QueryRequest) (interface{}, error) {
 	return tx, err
 }
 
-func (l Ledger) contractOffChainCall(req QueryRequest) (interface{}, error) {
+func (l *Ledger) contractOffChainCall(req QueryRequest) (interface{}, error) {
 	txJson := req.Parameter[QueryParameterFields.Data.String()]
 	if txJson == "" {
 		return nil, Errors.InvalidParameter
@@ -74,7 +74,25 @@ func (l Ledger) contractOffChainCall(req QueryRequest) (interface{}, error) {
 		return nil, Errors.InvalidParameter.NewErrorWithNewMessage(err.Error())
 	}
 
-	_, cache, err := l.preContractCall(tx, nil, *blk)
+	resultCache := txResultCache {
+		CachedBlockGasKey: &txResultCacheData{
+			gasLeft: constTransactionGasLimit().Uint64(),
+		},
 
-	return cache, err
+		CachedContractReturnData: &txResultCacheData{
+			Data: nil,
+		},
+
+		CachedContractCreationAddress: &txResultCacheData{
+			Data: nil,
+		},
+	}
+
+	_, cache, err := l.preContractCall(tx, resultCache, *blk)
+
+	if err == Errors.Success {
+		return cache, nil
+	} else {
+		return cache, err
+	}
 }

@@ -40,11 +40,11 @@ type BaseAssets struct {
 	MetaSeal   seal.Entity
 }
 
-func (b BaseAssets) getHash() []byte {
+func (b *BaseAssets) getHash() []byte {
 	return b.MetaSeal.Hash
 }
 
-func (l Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
+func (l *Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
 	balanceKey := BuildKey(StoragePrefixes.Balance, address)
 	bKV, err := l.Storage.Get(balanceKey)
 	if err != nil {
@@ -59,7 +59,7 @@ func (l Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
 	return
 }
 
-func (l Ledger) getSystemAssets() (assets *BaseAssets, exits bool, err error) {
+func (l *Ledger) getSystemAssets() (assets *BaseAssets, exits bool, err error) {
 	key := BuildKey(StoragePrefixes.SystemAssets, nil)
 
 	assetsJson, err := l.Storage.Get(key)
@@ -77,7 +77,7 @@ func (l Ledger) getSystemAssets() (assets *BaseAssets, exits bool, err error) {
 	return
 }
 
-func (l Ledger) getAssetsByHash(hash []byte) (assets *BaseAssets, exists bool, err error) {
+func (l *Ledger) getAssetsByHash(hash []byte) (assets *BaseAssets, exists bool, err error) {
 	key := BuildKey(StoragePrefixes.Assets, hash)
 	assetsJson, err := l.Storage.Get(key)
 	if err != nil {
@@ -93,7 +93,7 @@ func (l Ledger) getAssetsByHash(hash []byte) (assets *BaseAssets, exists bool, e
 	return
 }
 
-func (l Ledger) storeSystemAssets(assets BaseAssets) error {
+func (l *Ledger) storeSystemAssets(assets BaseAssets) error {
 	assetsJson, err := json.Marshal(assets)
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (l Ledger) storeSystemAssets(assets BaseAssets) error {
 	return err
 }
 
-func (l Ledger) storeAssets(assets BaseAssets) error {
+func (l *Ledger) storeAssets(assets BaseAssets) error {
 	assetsJson, err := json.Marshal(assets)
 	if err != nil {
 		return err

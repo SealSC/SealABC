@@ -24,7 +24,7 @@ import (
 
 var bigZero = big.NewInt(0)
 
-func (l Ledger) getBalance(addr []byte, cache txResultCache) (*big.Int, error) {
+func (l *Ledger) getBalance(addr []byte, cache txResultCache) (*big.Int, error) {
 	addrStr := string(addr)
 	if cache[addrStr] != nil {
 		return cache[addrStr].val, nil
@@ -40,7 +40,7 @@ func (l Ledger) getBalance(addr []byte, cache txResultCache) (*big.Int, error) {
 	return balance, err
 }
 
-func (l Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity) ([]StateData, txResultCache, error) {
+func (l *Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity) ([]StateData, txResultCache, error) {
 	if tx.Type != TxType.Transfer.String() {
 		return nil, cache, Errors.InvalidTransactionType
 	}

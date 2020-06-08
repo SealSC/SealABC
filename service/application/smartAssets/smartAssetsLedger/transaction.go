@@ -84,21 +84,21 @@ type TransactionList struct {
 	Transactions []Transaction
 }
 
-func (t Transaction) getData() []byte {
+func (t *Transaction) getData() []byte {
 	data, _ := structSerializer.ToMFBytes(t.TransactionData)
 	return data
 }
 
-func (t Transaction) toMFBytes() []byte {
+func (t *Transaction) toMFBytes() []byte {
 	data, _ := structSerializer.ToMFBytes(t)
 	return data
 }
 
-func (t Transaction) getHash() []byte {
+func (t *Transaction) getHash() []byte {
 	return t.DataSeal.Hash
 }
 
-func (t Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err error) {
+func (t *Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err error) {
 	if !bytes.Equal(t.From, t.DataSeal.SignerPublicKey) {
 		return false, errors.New("invalid sender")
 	}
@@ -111,7 +111,7 @@ func (t Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err e
 	return
 }
 
-func (t Transaction) Execute() (result []byte) {
+func (t *Transaction) Execute() (result []byte) {
 	switch t.Type {
 	case TxType.Transfer.String():
 
@@ -124,7 +124,7 @@ type txResultCacheData struct {
 	val     *big.Int
 	gasLeft uint64
 	address []byte
-	data    []byte
+	Data    []byte
 }
 
 const (

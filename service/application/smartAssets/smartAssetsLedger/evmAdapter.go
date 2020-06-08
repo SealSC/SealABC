@@ -42,6 +42,7 @@ func (l Ledger)newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 	blk block.Entity, blockGasLimit *evmInt256.Int) (*SealEVM.EVM, *environment.Contract, error) {
 
 	evmTransaction := environment.Transaction{
+		TxHash:   tx.DataSeal.Hash,
 		Origin:   common.BytesDataToEVMIntHash(tx.DataSeal.Hash),
 		GasPrice: constTransactionGasPrice(),
 		GasLimit: constTransactionGasLimit(),

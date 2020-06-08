@@ -22,7 +22,7 @@ import (
 	"SealEVM/evmInt256"
 )
 
-func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
+func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
 	if tx.Type != TxType.CreateContract.String() {
 		return  nil, cache, Errors.InvalidTransactionType
 	}
@@ -55,6 +55,6 @@ func (l Ledger) preContractCreation(tx Transaction, cache txResultCache, blk blo
 	}
 
 	cache[CachedContractCreationAddress].address = contract.Namespace.Bytes()
-	cache[CachedContractReturnData].data = ret.ResultData
+	cache[CachedContractReturnData].Data = ret.ResultData
 	return newState, cache, Errors.Success
 }

@@ -58,7 +58,7 @@ func BuildKey(el enum.Element, baseKey []byte, extra ...[]byte)  []byte {
 	return result
 }
 
-func (l Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err error) {
+func (l *Ledger) getTxFromStorage(hash []byte) (tx *Transaction, exists bool, err error) {
 	key := BuildKey(StoragePrefixes.Transaction, hash)
 
 	txJson, err := l.Storage.Get(key)
