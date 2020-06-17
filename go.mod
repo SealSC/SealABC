@@ -2,10 +2,10 @@ module SealABC
 
 go 1.14
 
-replace SealEVM => github.com/AKACoder/SealEVM v0.0.0-20200607030853-e7febeee9d57
+replace SealEVM => github.com/AKACoder/SealEVM v0.0.0-20200608081344-395c701e0732
 
 require (
-	SealEVM v0.0.0-20200607030853-e7febeee9d57
+	SealEVM v0.0.0-20200608081344-395c701e0732
 	github.com/cbergoon/merkletree v0.2.0
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-sql-driver/mysql v1.5.0

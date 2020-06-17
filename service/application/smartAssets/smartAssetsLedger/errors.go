@@ -31,6 +31,7 @@ var Errors struct {
 	ContractCreationFailed         enum.ErrorElement
 	ContractNotFound               enum.ErrorElement
 	ContractExecuteFailed          enum.ErrorElement
+	ContractExecuteRevert          enum.ErrorElement
 
 	InvalidQuery     enum.ErrorElement
 	InvalidParameter enum.ErrorElement

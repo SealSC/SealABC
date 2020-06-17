@@ -20,6 +20,7 @@ package smartAssetsLedger
 import (
 	"SealABC/metadata/block"
 	"SealEVM/evmInt256"
+	"SealEVM/opcodes"
 )
 
 func (l *Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
@@ -41,6 +42,10 @@ func (l *Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.
 	ret, err := evm.ExecuteContract(true)
 	if err != nil {
 		execErr = Errors.ContractExecuteFailed.NewErrorWithNewMessage(err.Error())
+	} else {
+		if ret.ExitOpCode == opcodes.REVERT {
+			execErr = Errors.ContractExecuteRevert
+		}
 	}
 	newState := l.newStateFromEVMResult(ret, cache)
 

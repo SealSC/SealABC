@@ -44,9 +44,12 @@ func (s Storage) getClassifiedTableRows(txType string) smartAssetsSQLTables.ISQL
 	return nil
 }
 
-func (s Storage) isNewBalance(key []byte) bool {
+func (s Storage) isNewBalance(key []byte) (bool, []byte) {
 	balancePrefixKey := smartAssetsLedger.BuildKey(smartAssetsLedger.StoragePrefixes.Balance, nil)
-	return bytes.Equal(balancePrefixKey, key[:len(balancePrefixKey)])
+	prefixLen := len(balancePrefixKey)
+	isBalance := bytes.Equal(balancePrefixKey, key[:prefixLen])
+	addr := key[prefixLen:]
+	return isBalance, addr
 }
 
 func (s Storage) StoreSystemIssueBalance(balance *big.Int, owner string) error {
@@ -80,9 +83,9 @@ func (s Storage) StoreTransaction(tx smartAssetsLedger.Transaction, blk block.En
 
 	addressListRows := smartAssetsSQLTables.AddressList.NewRows().(smartAssetsSQLTables.AddressListRows)
 	for _, v := range tx.TransactionResult.NewState {
-		if s.isNewBalance(v.Key) {
+		if isBalance, addr := s.isNewBalance(v.Key); isBalance {
 			balance := big.NewInt(0).SetBytes(v.Val)
-			addressListRows.Insert(v.Key, balance, blk)
+			addressListRows.Insert(addr, balance, blk)
 		}
 	}
 
