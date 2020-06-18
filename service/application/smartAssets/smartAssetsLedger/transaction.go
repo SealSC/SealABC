@@ -28,6 +28,7 @@ import (
 	"math/big"
 )
 
+const maxMemoSize = 200 //in bytes
 var TxType struct {
 	Transfer       enum.Element
 	CreateContract enum.Element
@@ -103,18 +104,13 @@ func (t *Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err 
 		return false, errors.New("invalid sender")
 	}
 
+	if len(t.Memo) > maxMemoSize {
+		return false, errors.New("memo too large")
+	}
+
 	passed, err = t.DataSeal.Verify(t.getData(), hashCalc)
 	if !passed {
 		return
-	}
-
-	return
-}
-
-func (t *Transaction) Execute() (result []byte) {
-	switch t.Type {
-	case TxType.Transfer.String():
-
 	}
 
 	return

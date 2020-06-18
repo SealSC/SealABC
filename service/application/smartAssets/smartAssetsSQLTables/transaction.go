@@ -38,6 +38,7 @@ type TransactionTable struct {
 	To             enum.Element `col:"c_to"`
 	Value          enum.Element `col:"c_value"`
 	Data           enum.Element `col:"c_data"`
+	Memo           enum.Element `col:"c_memo"`
 	SerialNumber   enum.Element `col:"c_serial_number"`
 	SequenceNumber enum.Element `col:"c_sequence_number"`
 	TxDataSeal     enum.Element `col:"c_tx_data_seal"`
@@ -71,6 +72,7 @@ type TransactionRow struct {
 	To             string
 	Value          string
 	Data           string
+	Memo           string
 	SerialNumber   string
 	SequenceNumber string
 	TxDataSeal     string
@@ -94,6 +96,7 @@ func (t *TransactionRows) Insert(tx smartAssetsLedger.Transaction, blk block.Ent
 		To:             hex.EncodeToString(tx.To),
 		Value:          tx.Value,
 		Data:           hex.EncodeToString(tx.Data),
+		Memo:           tx.Memo,
 		SerialNumber:   tx.SerialNumber,
 		SequenceNumber: fmt.Sprintf("%d", tx.SequenceNumber),
 		TxDataSeal:     string(sealData),

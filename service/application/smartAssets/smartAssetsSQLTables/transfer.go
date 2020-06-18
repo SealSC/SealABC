@@ -36,6 +36,7 @@ type TransferTable struct {
 	From           enum.Element `col:"c_from"`
 	To             enum.Element `col:"c_to"`
 	Value          enum.Element `col:"c_value"`
+	Memo          enum.Element `col:"c_memo"`
 	Time           enum.Element `col:"c_time"`
 
 	simpleSQLDatabase.BasicTable
@@ -64,6 +65,7 @@ type TransferRow struct {
 	From           string
 	To             string
 	Value          string
+	Memo           string
 	Time           string
 }
 
@@ -80,6 +82,7 @@ func (t *TransferRows) Insert(tx smartAssetsLedger.Transaction, blk block.Entity
 		From:           hex.EncodeToString(tx.From),
 		To:             hex.EncodeToString(tx.To),
 		Value:          tx.Value,
+		Memo:           tx.Memo,
 		Time:           timestamp.Format(common.BASIC_TIME_FORMAT),
 	}
 
