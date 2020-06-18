@@ -56,7 +56,7 @@ func (s Storage) StoreSystemIssueBalance(balance *big.Int, owner string) error {
 	addressListRows := smartAssetsSQLTables.AddressList.NewRows().(smartAssetsSQLTables.AddressListRows)
 	addressListRows.InsertSystemIssueBalance(balance, owner)
 
-	_, err := s.Driver.Insert(&addressListRows, true)
+	_, err := s.Driver.Replace(&addressListRows)
 	return err
 }
 
