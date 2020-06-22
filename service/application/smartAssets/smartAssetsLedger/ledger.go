@@ -197,7 +197,6 @@ func (l Ledger) txResultCheck(orgResult TransactionResult, execResult Transactio
 		return errors.New(fmt.Sprintf("transaction %x has different error code", txHash))
 	}
 
-
 	if orgResult.ErrorCode != execResult.ErrorCode {
 		return errors.New(fmt.Sprintf("transaction %x has different error code",txHash))
 	}
@@ -207,7 +206,9 @@ func (l Ledger) txResultCheck(orgResult TransactionResult, execResult Transactio
 	}
 
 	for i, s := range orgResult.NewState {
-		if !bytes.Equal(s.Key, execResult.NewState[i].Key) || !bytes.Equal(s.Val, execResult.NewState[i].Val) {
+		if !bytes.Equal(s.Key, execResult.NewState[i].Key) ||
+		   !bytes.Equal(s.OrgVal, execResult.NewState[i].OrgVal) ||
+		   !bytes.Equal(s.NewVal, execResult.NewState[i].NewVal) {
 			return errors.New(fmt.Sprintf("transaction %x has different state to change", txHash))
 		}
 	}
@@ -307,7 +308,7 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 		for _, s := range tx.TransactionResult.NewState {
 			kvList = append(kvList, kvDatabase.KVItem {
 				Key:    s.Key,
-				Data:   s.Val,
+				Data:   s.NewVal,
 				Exists: true,
 			})
 		}

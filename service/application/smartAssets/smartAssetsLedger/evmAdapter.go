@@ -126,17 +126,20 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 			}
 		}
 
+		orgBalance := localBalance.Bytes()
+
 		localBalance.Add(localBalance, val)
 		balanceToChange = append(balanceToChange, StateData{
-			Key: BuildKey(StoragePrefixes.Balance, addr),
-			Val: localBalance.Bytes(),
+			Key:    BuildKey(StoragePrefixes.Balance, addr),
+			NewVal: localBalance.Bytes(),
+			OrgVal: orgBalance,
 		})
 	}
 
 	*newState = balanceToChange
 }
 
-func (l Ledger) processEVMNamedStateCache(ns string, cache storage.Cache, newState *[]StateData) {
+func (l Ledger) processEVMNamedStateCache(ns string, cache storage.Cache, org storage.Cache, newState *[]StateData) {
 	keys := make([]string, 0, len(cache))
 	for k := range cache {
 		keys = append(keys, k)
@@ -146,16 +149,24 @@ func (l Ledger) processEVMNamedStateCache(ns string, cache storage.Cache, newSta
 	state := *newState
 	for _, k := range keys {
 		cacheData := cache[k]
+		orgData := org[k]
+
+		var orgVal []byte
+		if orgData != nil {
+			orgVal = orgData.Bytes()
+		}
+
 		state = append(state, StateData{
-			Key: BuildKey(StoragePrefixes.ContractData, []byte(ns), []byte(k)),
-			Val: cacheData.Bytes(),
+			Key:    BuildKey(StoragePrefixes.ContractData, []byte(ns), []byte(k)),
+			NewVal: cacheData.Bytes(),
+			OrgVal: orgVal,
 		})
 	}
 
 	*newState = state
 }
 
-func (l Ledger) processEVMStateCache(cache storage.CacheUnderNamespace, newState *[]StateData) {
+func (l Ledger) processEVMStateCache(cache storage.CacheUnderNamespace, org storage.CacheUnderNamespace, newState *[]StateData) {
 	keys := make([]string, 0, len(cache))
 	for k := range cache {
 		keys = append(keys, k)
@@ -163,7 +174,7 @@ func (l Ledger) processEVMStateCache(cache storage.CacheUnderNamespace, newState
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		l.processEVMNamedStateCache(k, cache[k], newState)
+		l.processEVMNamedStateCache(k, cache[k], org[k], newState)
 	}
 }
 
@@ -181,8 +192,8 @@ func (l Ledger) processEVMLogData(ns string, logList []storage.Log, newState *[]
 
 		logBytes := bytes.Join(logInfo, nil)
 		state = append(state, StateData{
-			Key: BuildKey(StoragePrefixes.ContractLog, []byte(logKey)),
-			Val: logBytes,
+			Key:    BuildKey(StoragePrefixes.ContractLog, []byte(logKey)),
+			NewVal: logBytes,
 		})
 	}
 
@@ -212,8 +223,8 @@ func (l Ledger) processEVMDestructs(cache storage.Cache, newState *[]StateData) 
 
 	for _, k := range keys {
 		state = append(state, StateData{
-			Key: BuildKey(StoragePrefixes.ContractDestructs, []byte(k)),
-			Val: []byte{1},
+			Key:    BuildKey(StoragePrefixes.ContractDestructs, []byte(k)),
+			NewVal: []byte{1},
 		})
 	}
 
@@ -225,7 +236,7 @@ func (l Ledger) newStateFromEVMResult(evmRet SealEVM.ExecuteResult, cache txResu
 	var newState []StateData
 
 	l.processEVMBalanceCache(evmCache.Balance, cache, &newState)
-	l.processEVMStateCache(evmCache.CachedData, &newState)
+	l.processEVMStateCache(evmCache.CachedData, evmCache.OriginalData, &newState)
 	l.processEVMLogCache(evmCache.Logs, &newState)
 	l.processEVMDestructs(evmCache.Destructs, &newState)
 

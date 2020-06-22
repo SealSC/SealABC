@@ -79,6 +79,9 @@ func (l *Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity
 		return nil, cache, Errors.InsufficientBalance
 	}
 
+	orgFromBalance := fromBalance.Bytes()
+	orgToBalance := toBalance.Bytes()
+
 	fromBalance.Sub(fromBalance, amount)
 	toBalance.Add(toBalance, amount)
 
@@ -87,13 +90,15 @@ func (l *Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity
 
 	statusToChange := []StateData{
 		{
-			Key: BuildKey(StoragePrefixes.Balance, tx.From),
-			Val: fromBalance.Bytes(),
+			Key:    BuildKey(StoragePrefixes.Balance, tx.From),
+			NewVal: fromBalance.Bytes(),
+			OrgVal: orgFromBalance,
 		},
 
 		{
-			Key: BuildKey(StoragePrefixes.Balance, tx.To),
-			Val: toBalance.Bytes(),
+			Key:    BuildKey(StoragePrefixes.Balance, tx.To),
+			NewVal: toBalance.Bytes(),
+			OrgVal: orgToBalance,
 		},
 	}
 

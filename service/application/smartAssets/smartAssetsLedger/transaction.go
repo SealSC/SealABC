@@ -65,8 +65,9 @@ type TransactionData struct {
 }
 
 type StateData struct {
-	Key []byte
-	Val []byte
+	Key    []byte
+	NewVal []byte
+	OrgVal []byte
 }
 
 type TransactionResult struct {
@@ -140,4 +141,3 @@ const (
 type txResultCache map[string] *txResultCacheData
 type txPreActuator func(tx Transaction, cache txResultCache, blk block.Entity) (ret []StateData, resultCache txResultCache, err error)
 type queryActuator func(req QueryRequest) (ret interface{}, err error)
-
