@@ -133,9 +133,9 @@ type txResultCacheData struct {
 }
 
 const (
-	CachedBlockGasKey             = "block gas"
-	CachedContractReturnData      = "contract return data"
-	CachedContractCreationAddress = "contract creation address"
+	CachedBlockGasKey             = "blockGas"
+	CachedContractReturnData      = "contractReturnData"
+	CachedContractCreationAddress = "contractCreationAddress"
 )
 
 type txResultCache map[string] *txResultCacheData
