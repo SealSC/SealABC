@@ -168,7 +168,7 @@ func (s *SmartAssetsApplication) UnpackingActionsAsRequests(req blockchainReques
 		newReq.Seal = tx.DataSeal
 		newReq.RequestApplication = s.Name()
 		newReq.RequestAction = tx.Type
-		newReq.Data = req.Data
+		newReq.Data, _ = json.Marshal(tx)
 
 		list = append(list, newReq)
 	}

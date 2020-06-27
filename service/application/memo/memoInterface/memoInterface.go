@@ -189,7 +189,7 @@ func (m *MemoApplication) GetActionAsRequest(req blockchainRequest.Entity) block
     newReq := blockchainRequest.Entity{}
     newReq.Seal = memo.Seal
     newReq.RequestApplication = m.Name()
-    newReq.RequestAction = memo.Type
+    newReq.RequestAction = req.RequestAction
     newReq.Data, _ = json.Marshal(memo.MemoData)
 
     return newReq

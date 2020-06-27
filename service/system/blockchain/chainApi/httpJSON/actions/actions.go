@@ -124,10 +124,10 @@ func NewActions(basePath string, chain *chainStructure.Blockchain, p2p *chainNet
     action.appQueryHandler = map[string] applicationQueryHandler {}
 
     if sqlStorage != nil {
-
         action.actionList = append(action.actionList,
             &getBlockList{},
-            &getTransactionByHash{})
+            &getTransactionByHash{},
+            &getTransactionByHeight{})
     }
 
     return &action

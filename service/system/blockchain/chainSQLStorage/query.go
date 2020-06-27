@@ -126,3 +126,26 @@ func (s *Storage) GetRequestByHash(hash string) (req chainTables.RequestRow, err
     req = rows[0].(chainTables.RequestRow)
     return
 }
+
+
+func (s *Storage) GetRequestByHeight(height string) (ret rowsWithCount.Entity, err error) {
+
+    table := chainTables.Requests.Name()
+    pSQL := "select * from " +
+        "`" + table + "`" +
+        " where `c_height`=? order by `c_id` desc"
+
+    row := chainTables.RequestRow{}
+    rows, err := s.Driver.Query(row, pSQL, []interface{} {height})
+
+    if err != nil {
+        return
+    }
+
+    list := rowsWithCount.Entity {
+        Rows:  rows,
+        Total: uint64(len(rows)),
+    }
+
+    return list, err
+}
