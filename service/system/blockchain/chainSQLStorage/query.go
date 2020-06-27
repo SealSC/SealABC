@@ -127,7 +127,6 @@ func (s *Storage) GetRequestByHash(hash string) (req chainTables.RequestRow, err
     return
 }
 
-
 func (s *Storage) GetRequestByHeight(height string) (ret rowsWithCount.Entity, err error) {
 
     table := chainTables.Requests.Name()
@@ -137,6 +136,43 @@ func (s *Storage) GetRequestByHeight(height string) (ret rowsWithCount.Entity, e
 
     row := chainTables.RequestRow{}
     rows, err := s.Driver.Query(row, pSQL, []interface{} {height})
+
+    if err != nil {
+        return
+    }
+
+    list := rowsWithCount.Entity {
+        Rows:  rows,
+        Total: uint64(len(rows)),
+    }
+
+    return list, err
+}
+
+func (s *Storage) GetRequestByApplicationAndAction(app string, act string, page uint64) (ret rowsWithCount.Entity, err error) {
+
+    table := chainTables.Requests.Name()
+    pSQL := "select * from " +
+        "`" + table + "`" +
+        " where `c_application`=? "
+
+    if act != "*" {
+        pSQL += " and `c_action`=? "
+    }
+
+    pSQL += " order by `c_id` desc limit ?,?"
+
+    start := page * rowsPerPage
+
+    sqlParam := []interface{} {app}
+
+    if act != "*" {
+        sqlParam = append(sqlParam, act)
+    }
+    sqlParam = append(sqlParam, start, rowsPerPage)
+
+    row := chainTables.RequestRow{}
+    rows, err := s.Driver.Query(row, pSQL, sqlParam)
 
     if err != nil {
         return

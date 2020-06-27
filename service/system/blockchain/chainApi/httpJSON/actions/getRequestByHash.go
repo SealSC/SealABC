@@ -45,7 +45,7 @@ func (g *getTransactionByHash)RouteRegister(router gin.IRouter) {
 }
 
 func (g *getTransactionByHash)BasicInformation() (info http.HandlerBasicInformation)  {
-    info.Description = "return full block data of the given block hash."
+    info.Description = "return full request data of the given request hash."
     info.Path = g.serverBasePath + g.buildUrlPath()
     info.Method = service.ApiProtocolMethod.HttpGet.String()
 

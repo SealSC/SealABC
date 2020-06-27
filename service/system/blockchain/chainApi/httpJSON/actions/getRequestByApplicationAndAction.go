@@ -21,17 +21,26 @@ import (
 	"SealABC/network/http"
 	"SealABC/service"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
-type getTransactionByHeight struct{
+type getTransactionByApplicationAndAction struct{
 	baseHandler
 }
 
-func (g *getTransactionByHeight)Handle(ctx *gin.Context) {
+func (g *getTransactionByApplicationAndAction)Handle(ctx *gin.Context) {
 	res := http.NewResponse(ctx)
-	height := ctx.Param(URLParameterKeys.Height.String())
+	app := ctx.Param(URLParameterKeys.App.String())
+	act := ctx.Param(URLParameterKeys.Action.String())
+	page := ctx.Param(URLParameterKeys.Page.String())
 
-	txList, err := g.sqlStorage.GetRequestByHeight(height)
+	pageNum, err := strconv.ParseUint(page, 10, 64)
+	if err != nil {
+		res.BadRequest("invalid page")
+		return
+	}
+
+	txList, err := g.sqlStorage.GetRequestByApplicationAndAction(app, act, pageNum)
 	if err != nil {
 		res.InternalServerError(nil)
 		return
@@ -40,12 +49,12 @@ func (g *getTransactionByHeight)Handle(ctx *gin.Context) {
 	res.OK(txList)
 }
 
-func (g *getTransactionByHeight)RouteRegister(router gin.IRouter) {
+func (g *getTransactionByApplicationAndAction)RouteRegister(router gin.IRouter) {
 	router.GET(g.buildUrlPath(), g.Handle)
 }
 
-func (g *getTransactionByHeight)BasicInformation() (info http.HandlerBasicInformation)  {
-	info.Description = "return requests list of the given block height."
+func (g *getTransactionByApplicationAndAction)BasicInformation() (info http.HandlerBasicInformation)  {
+	info.Description = "return full block data of the given block hash."
 	info.Path = g.serverBasePath + g.buildUrlPath()
 	info.Method = service.ApiProtocolMethod.HttpGet.String()
 
@@ -54,13 +63,15 @@ func (g *getTransactionByHeight)BasicInformation() (info http.HandlerBasicInform
 	return
 }
 
-func (g *getTransactionByHeight) urlWithoutParameters() string  {
-	return "/get/request/by/height"
+func (g *getTransactionByApplicationAndAction) urlWithoutParameters() string  {
+	return "/get/request/by/application/"
 }
 
 
-func (g *getTransactionByHeight) buildUrlPath() string {
-	return g.urlWithoutParameters() + "/:" + URLParameterKeys.Height.String()
+func (g *getTransactionByApplicationAndAction) buildUrlPath() string {
+	return g.urlWithoutParameters() +
+		"/:" + URLParameterKeys.App.String() +
+		"/:" + URLParameterKeys.Action.String() +
+		"/:" + URLParameterKeys.Page.String()
 }
-
 

@@ -36,6 +36,7 @@ var URLParameterKeys = struct {
     Count   enum.Element
 
     App     enum.Element
+    Action  enum.Element
 
     Type    enum.Element
     Param   enum.Element
@@ -127,6 +128,7 @@ func NewActions(basePath string, chain *chainStructure.Blockchain, p2p *chainNet
         action.actionList = append(action.actionList,
             &getBlockList{},
             &getTransactionByHash{},
+            &getTransactionByApplicationAndAction{},
             &getTransactionByHeight{})
     }
 
