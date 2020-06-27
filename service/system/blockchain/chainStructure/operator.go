@@ -20,6 +20,7 @@ package chainStructure
 import (
     "SealABC/log"
     "SealABC/metadata/block"
+    "SealABC/metadata/blockchainRequest"
     "SealABC/service/system/blockchain/chainTables"
     "SealABC/storage/db/dbInterface/kvDatabase"
     "encoding/binary"
@@ -39,11 +40,33 @@ func (b *Blockchain) executeRequest(blk block.Entity) (err error) {
             break
         }
 
+        app, _ := b.Executor.getExternalExecutor(req.RequestApplication)
+
         if b.SQLStorage != nil {
-            sqlErr := b.SQLStorage.StoreTransaction(blk, req, appRet)
-            if sqlErr != nil {
-                log.Log.Error("store block in sql database failed: ", sqlErr.Error())
+            var reqList []blockchainRequest.Entity
+            var err error = nil
+            if req.Packed {
+                reqList, err = app.UnpackingActionsAsRequests(req)
+                if err != nil {
+                    log.Log.Errorf("unpack packed transaction for application %s failed: %s\r\n",
+                        req.RequestApplication, err.Error())
+                    continue
+                }
+
+                for _, r := range reqList {
+                    sqlErr := b.SQLStorage.StoreTransaction(blk, r, appRet)
+                    if sqlErr != nil {
+                        log.Log.Error("store block in sql database failed: ", sqlErr.Error())
+                    }
+                }
+            } else {
+                newReq := app.GetActionAsRequest(req)
+                sqlErr := b.SQLStorage.StoreTransaction(blk, newReq, appRet)
+                if sqlErr != nil {
+                    log.Log.Error("store block in sql database failed: ", sqlErr.Error())
+                }
             }
+
         }
         //todo: record result
     }
@@ -54,6 +77,7 @@ func (b *Blockchain) executeRequest(blk block.Entity) (err error) {
 func (b *Blockchain) AddBlock(blk block.Entity) (err error) {
     err = b.executeRequest(blk)
     if err != nil {
+        log.Log.Error("execute requests in the block failed!")
         return
     }
 

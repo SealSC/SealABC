@@ -180,6 +180,21 @@ func (m *MemoApplication) Information() (info service.BasicInformation) {
 }
 
 func (m *MemoApplication) SetBlockchainService(_ interface{}){}
+func (m *MemoApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
+
+func (m *MemoApplication) GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity {
+    memo := memoSpace.Memo{}
+    _ = json.Unmarshal(req.Data, &memo)
+
+    newReq := blockchainRequest.Entity{}
+    newReq.Seal = memo.Seal
+    newReq.RequestApplication = m.Name()
+    newReq.RequestAction = memo.Type
+    newReq.Data, _ = json.Marshal(memo.MemoData)
+
+    return newReq
+}
+
 
 func Load()  {
     enum.SimpleBuild(&applicationActions)

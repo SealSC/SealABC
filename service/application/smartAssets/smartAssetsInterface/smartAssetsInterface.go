@@ -106,7 +106,7 @@ func (s *SmartAssetsApplication) Cancel(req blockchainRequest.Entity) (err error
 }
 
 func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
-	txList, cnt := s.ledger.GetTransactionsFromPool(blk)
+	txList, cnt, txRoot := s.ledger.GetTransactionsFromPool(blk)
 	if cnt == 0 {
 		return
 	}
@@ -119,8 +119,15 @@ func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []b
 			Data:               reqData,
 			QueryString:        "",
 		},
-		Packed:     true,
-		Seal:       seal.Entity{},
+
+		Packed:      true,
+		PackedCount: cnt,
+		Seal:       seal.Entity{
+			Hash:            txRoot, //use merkle tree root as seal hash for packed actions
+			Signature:       nil,
+			SignerPublicKey: nil,
+			SignerAlgorithm: "",
+		},
 	}
 
 	return []blockchainRequest.Entity{packReq}, 1
@@ -142,6 +149,44 @@ func (s *SmartAssetsApplication) SetBlockchainService(bs interface{}) {
 		return
 	}
 	s.ledger.SetChain(chain)
+}
+
+func (s *SmartAssetsApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (list []blockchainRequest.Entity, err error){
+	if !req.Packed {
+		list = []blockchainRequest.Entity {req}
+		return
+	}
+
+	var txList = smartAssetsLedger.TransactionList{}
+	err = structSerializer.FromMFBytes(req.Data, &txList)
+	if err != nil {
+		return
+	}
+
+	for _, tx := range txList.Transactions {
+		newReq := blockchainRequest.Entity{}
+		newReq.Seal = tx.DataSeal
+		newReq.RequestApplication = s.Name()
+		newReq.RequestAction = tx.Type
+		newReq.Data = req.Data
+
+		list = append(list, newReq)
+	}
+
+	return
+}
+
+func (s *SmartAssetsApplication) GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity {
+	tx := smartAssetsLedger.Transaction{}
+	_ = json.Unmarshal(req.Data, &tx)
+
+	newReq := blockchainRequest.Entity{}
+	newReq.Seal = tx.DataSeal
+	newReq.RequestApplication = s.Name()
+	newReq.RequestAction = tx.Type
+	newReq.Data = req.Data
+
+	return newReq
 }
 
 func Load()  {}

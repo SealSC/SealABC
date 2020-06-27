@@ -58,6 +58,9 @@ type IBlockchainExternalApplication interface {
     Information() (info service.BasicInformation)
 
     SetBlockchainService(bs interface{})
+
+    UnpackingActionsAsRequests(req blockchainRequest.Entity) (reqList []blockchainRequest.Entity, err error)
+    GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity
 }
 
 func (a *applicationExecutor)getExternalExecutor(name string) (exe IBlockchainExternalApplication, err error) {

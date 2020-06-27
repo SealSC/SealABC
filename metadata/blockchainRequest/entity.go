@@ -32,5 +32,6 @@ type Entity struct {
     EntityData
 
     Packed bool
+    PackedCount uint32
     Seal   seal.Entity
 }

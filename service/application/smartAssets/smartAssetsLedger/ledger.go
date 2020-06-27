@@ -21,6 +21,7 @@ import (
 	"SealABC/common/utility/serializer/structSerializer"
 	"SealABC/crypto"
 	"SealABC/dataStructure/enum"
+	"SealABC/dataStructure/merkleTree"
 	"SealABC/metadata/block"
 	"SealABC/metadata/blockchainRequest"
 	"SealABC/metadata/seal"
@@ -335,7 +336,7 @@ func (l Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) 
 	}
 }
 
-func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionList, count uint32) {
+func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionList, count uint32, txRoot []byte) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
@@ -358,8 +359,12 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 		},
 	}
 
+	mt := merkleTree.Tree{}
+
 	for idx, txHashStr := range l.txPoolRecord {
 		tx := l.txPool[txHashStr]
+
+		mt.AddHash(tx.DataSeal.Hash)
 
 		if preExec, exists := l.preActuators[tx.Type]; exists {
 			newState, _, err := preExec(*tx, resultCache, blk)
@@ -372,6 +377,8 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 
 		txList.Transactions = append(txList.Transactions, *tx)
 	}
+
+	txRoot, _ = mt.Calculate()
 
 	return
 }

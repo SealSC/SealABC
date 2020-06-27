@@ -195,6 +195,20 @@ func (b *BasicAssetsApplication) Information() (info service.BasicInformation) {
 }
 
 func (b *BasicAssetsApplication) SetBlockchainService(_ interface{}) {}
+func (b *BasicAssetsApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
+
+func (b *BasicAssetsApplication) GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity {
+    tx := basicAssetsLedger.Transaction{}
+    _ = json.Unmarshal(req.Data, &tx)
+
+    newReq := blockchainRequest.Entity{}
+    newReq.Seal = tx.Seal
+    newReq.RequestApplication = b.Name()
+    newReq.RequestAction = tx.TxType
+    newReq.Data, _ = json.Marshal(tx.TransactionData)
+
+    return newReq
+}
 
 func Load()  {
     enum.SimpleBuild(&QueryDBType)

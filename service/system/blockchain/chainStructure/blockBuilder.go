@@ -30,6 +30,13 @@ func (b *Blockchain) buildBasicBlock(requests []blockchainRequest.Entity) (newBl
 
     newBlock.Header.Version = "1"
     newBlock.Body.RequestsCount = len(requests)
+
+    for _, req := range requests {
+        if req.Packed {
+            newBlock.Body.RequestsCount += int(req.PackedCount - 1)
+        }
+    }
+
     newBlock.Body.Requests = requests
     newBlock.Header.Timestamp = uint64(time.Now().Unix())
 

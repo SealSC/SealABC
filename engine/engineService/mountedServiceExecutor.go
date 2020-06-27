@@ -18,7 +18,6 @@
 package engineService
 
 import (
-    "SealABC/log"
     "SealABC/metadata/serviceRequest"
     "SealABC/service"
     "errors"
@@ -29,8 +28,6 @@ var serviceMap = map[string] service.IService{}
 var serviceLock sync.RWMutex
 
 func Mount(s service.IService) (err error) {
-    log.Log.Warn("register service: ",s.Name())
-
     serviceLock.Lock()
     defer serviceLock.Unlock()
 
