@@ -37,6 +37,7 @@ type ContractTable struct {
 	CreationData    enum.Element `col:"c_creation_data"`
 	ContractAddress enum.Element `col:"c_contract_address"`
 	ContractData    enum.Element `col:"c_contract_data"`
+	Memo            enum.Element `col:"c_memo"`
 	Time            enum.Element `col:"c_time"`
 
 	simpleSQLDatabase.BasicTable
@@ -66,6 +67,7 @@ type ContractRow struct {
 	CreationData    string
 	ContractAddress string
 	ContractData    string
+	Memo            string
 	Time            string
 }
 
@@ -83,6 +85,7 @@ func (t *ContractRows) Insert(tx smartAssetsLedger.Transaction, blk block.Entity
 		CreationData:    hex.EncodeToString(tx.Data),
 		ContractAddress: hex.EncodeToString(tx.TransactionResult.NewAddress),
 		ContractData:    hex.EncodeToString(tx.TransactionResult.ReturnData),
+		Memo:            tx.Memo,
 		Time:            timestamp.Format(common.BASIC_TIME_FORMAT),
 	}
 

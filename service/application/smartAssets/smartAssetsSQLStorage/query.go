@@ -28,14 +28,15 @@ type queryParam map[string] string
 type queryHandler func(param queryParam) (interface{}, error)
 
 var QueryTypes struct{
-	TransactionList  enum.Element
-	Transaction      enum.Element
-	AccountList      enum.Element
-	Account          enum.Element
-	Contract         enum.Element
-	ContractCallList enum.Element
-	ContractCall     enum.Element
-	TransferList     enum.Element
+	TransactionList enum.Element
+	Transaction     enum.Element
+	AccountList     enum.Element
+	Account         enum.Element
+	Contract        enum.Element
+	ContractByTx    enum.Element
+	ContractList    enum.Element
+	ContractCall    enum.Element
+	TransferList    enum.Element
 }
 
 var QueryParameterFields struct{

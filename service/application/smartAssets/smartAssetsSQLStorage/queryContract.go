@@ -42,11 +42,20 @@ func (s Storage) queryContractList(param queryParam) (interface{}, error) {
 	return s.commonPagingQuery(commonParam)
 }
 
-func (s Storage) queryContractByHash(param queryParam) (interface{}, error){
+func (s Storage) queryContractByTx(param queryParam) (interface{}, error){
 	txHash := param[QueryParameterFields.TxHash.String()]
 	if txHash == "" {
 		return nil, errors.New("invalid parameters")
 	}
 
 	return s.Driver.SimpleSelect(contractRowType, contractTableName, `c_tx_hash`, txHash)
+}
+
+func (s Storage) queryContractByAddress(param queryParam) (interface{}, error){
+	address := param[QueryParameterFields.Contract.String()]
+	if address == "" {
+		return nil, errors.New("invalid parameters")
+	}
+
+	return s.Driver.SimpleSelect(contractRowType, contractTableName, `c_contract_address`, address)
 }

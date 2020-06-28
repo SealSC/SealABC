@@ -39,13 +39,14 @@ func NewStorage(sqlDriver simpleSQLDatabase.IDriver) (s *Storage) {
 
 	s.queryHandlers = map[string] queryHandler {
 		QueryTypes.TransactionList.String(): s.queryTransactionList,
-		QueryTypes.Transaction.String(): s.queryTransactionByHash,
-		QueryTypes.AccountList.String(): s.queryAccountList,
-		QueryTypes.Account.String(): s.queryAccount,
-		QueryTypes.Contract.String(): s.queryContractByHash,
-		QueryTypes.ContractCallList.String(): s.queryContractList,
-		QueryTypes.ContractCall.String(): s.queryContractCallByHash,
-		QueryTypes.TransferList.String(): s.queryTransferList,
+		QueryTypes.Transaction.String():     s.queryTransactionByHash,
+		QueryTypes.AccountList.String():     s.queryAccountList,
+		QueryTypes.Account.String():         s.queryAccount,
+		QueryTypes.Contract.String():        s.queryContractByAddress,
+		QueryTypes.ContractByTx.String():    s.queryContractByTx,
+		QueryTypes.ContractList.String():    s.queryContractList,
+		QueryTypes.ContractCall.String():    s.queryContractCallByHash,
+		QueryTypes.TransferList.String():    s.queryTransferList,
 	}
 
 	return
