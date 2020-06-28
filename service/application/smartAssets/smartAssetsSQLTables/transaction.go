@@ -91,7 +91,7 @@ func (t *TransactionRows) Insert(tx smartAssetsLedger.Transaction, blk block.Ent
 	newAddressRow := TransactionRow{
 		Height:         fmt.Sprintf("%d", blk.Header.Height),
 		TxHash:         hex.EncodeToString(tx.DataSeal.Hash),
-		Type:           fmt.Sprintf("%d", smartAssetsLedger.GetTxTypeCodeForName(tx.Type)),
+		Type:           tx.Type,
 		From:           hex.EncodeToString(tx.From),
 		To:             hex.EncodeToString(tx.To),
 		Value:          tx.Value,

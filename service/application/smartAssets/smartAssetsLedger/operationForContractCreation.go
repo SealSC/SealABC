@@ -20,6 +20,7 @@ package smartAssetsLedger
 import (
 	"SealABC/metadata/block"
 	"SealEVM/evmInt256"
+	"SealEVM/opcodes"
 )
 
 func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
@@ -41,6 +42,11 @@ func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk bl
 	cache[CachedBlockGasKey].gasLeft -= gasCost
 
 	if err == nil {
+		if ret.ExitOpCode == opcodes.REVERT {
+			err = Errors.ContractExecuteRevert
+			return nil, nil, err
+		}
+
 		contractAddr := contract.Namespace.Bytes()
 		newState = append(newState,
 			StateData {
@@ -52,6 +58,8 @@ func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk bl
 				NewVal: contract.Hash.Bytes(),
 			},
 		)
+	} else {
+		return nil, nil, Errors.ContractCreationFailed.NewErrorWithNewMessage(err.Error())
 	}
 
 	cache[CachedContractCreationAddress].address = contract.Namespace.Bytes()
