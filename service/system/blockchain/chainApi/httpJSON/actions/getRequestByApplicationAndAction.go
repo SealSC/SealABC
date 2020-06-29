@@ -42,7 +42,7 @@ func (g *getTransactionByApplicationAndAction)Handle(ctx *gin.Context) {
 
 	txList, err := g.sqlStorage.GetRequestByApplicationAndAction(app, act, pageNum)
 	if err != nil {
-		res.InternalServerError(nil)
+		res.InternalServerError(err.Error())
 		return
 	}
 

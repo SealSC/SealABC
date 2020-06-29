@@ -18,9 +18,11 @@
 package chainSQLStorage
 
 import (
+    "SealABC/log"
     "SealABC/metadata/httpJSONResult/rowsWithCount"
     "SealABC/service/system/blockchain/chainTables"
     "errors"
+    "strings"
 )
 
 const rowsPerPage = 20
@@ -58,16 +60,26 @@ func (s *Storage) GetBlock(height uint64) (blk chainTables.BlockListRow, err err
 }
 
 func (s *Storage) GetRequestList(page uint64) (ret rowsWithCount.Entity, err error) {
-    startId := page * rowsPerPage
+
+    log.Log.Warn("request page : ", page)
 
     table := chainTables.Requests.Name()
+
+    count, err := s.Driver.RowCount(table, "", nil)
+    if err != nil {
+        return
+    }
+
+    startPage := page * rowsPerPage
+
     pSQL := "select * from " +
         "`" + table + "`" +
-        " where `c_id`>=? order by `c_id` desc limit 0,?"
+        " order by `c_id` desc limit ?,?"
+
 
     row := chainTables.RequestRow{}
     rows, err := s.Driver.Query(row, pSQL, []interface{} {
-        startId,
+        startPage,
         rowsPerPage,
     })
 
@@ -75,10 +87,7 @@ func (s *Storage) GetRequestList(page uint64) (ret rowsWithCount.Entity, err err
         return
     }
 
-    count, err := s.Driver.RowCount(table, "", nil)
-    if err != nil {
-        return
-    }
+
 
     list := rowsWithCount.Entity {
         Rows:  rows,
@@ -150,25 +159,32 @@ func (s *Storage) GetRequestByHeight(height string) (ret rowsWithCount.Entity, e
 }
 
 func (s *Storage) GetRequestByApplicationAndAction(app string, act string, page uint64) (ret rowsWithCount.Entity, err error) {
-
     table := chainTables.Requests.Name()
-    pSQL := "select * from " +
-        "`" + table + "`" +
-        " where `c_application`=? "
+
+    condition := []string{" `c_application`=? "}
 
     if act != "*" {
-        pSQL += " and `c_action`=? "
+        condition = append(condition, " `c_action`=? ")
     }
 
-    pSQL += " order by `c_id` desc limit ?,?"
-
-    start := page * rowsPerPage
+    conditionStr := " where " + strings.Join(condition, " and ")
 
     sqlParam := []interface{} {app}
-
     if act != "*" {
         sqlParam = append(sqlParam, act)
     }
+
+    count, err := s.Driver.RowCount(table, conditionStr, sqlParam)
+    if err != nil {
+        return
+    }
+
+    pSQL := "select * from " +
+        "`" + table + "`" +
+        conditionStr +
+        " order by `c_id` desc limit ?,?"
+
+    start := page * rowsPerPage
     sqlParam = append(sqlParam, start, rowsPerPage)
 
     row := chainTables.RequestRow{}
@@ -180,7 +196,7 @@ func (s *Storage) GetRequestByApplicationAndAction(app string, act string, page 
 
     list := rowsWithCount.Entity {
         Rows:  rows,
-        Total: uint64(len(rows)),
+        Total: count,
     }
 
     return list, err
