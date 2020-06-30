@@ -58,6 +58,8 @@ func (b *Blockchain) executeRequest(blk block.Entity) (err error) {
                     if sqlErr != nil {
                         log.Log.Error("store block in sql database failed: ", sqlErr.Error())
                     }
+
+                    go b.SQLStorage.StoreAddress(blk, r)
                 }
             } else {
                 newReq := app.GetActionAsRequest(req)
@@ -65,6 +67,8 @@ func (b *Blockchain) executeRequest(blk block.Entity) (err error) {
                 if sqlErr != nil {
                     log.Log.Error("store block in sql database failed: ", sqlErr.Error())
                 }
+
+                go b.SQLStorage.StoreAddress(blk, newReq)
             }
 
         }

@@ -76,7 +76,6 @@ func (s *Storage) GetRequestList(page uint64) (ret rowsWithCount.Entity, err err
         "`" + table + "`" +
         " order by `c_id` desc limit ?,?"
 
-
     row := chainTables.RequestRow{}
     rows, err := s.Driver.Query(row, pSQL, []interface{} {
         startPage,
@@ -189,6 +188,37 @@ func (s *Storage) GetRequestByApplicationAndAction(app string, act string, page 
 
     row := chainTables.RequestRow{}
     rows, err := s.Driver.Query(row, pSQL, sqlParam)
+
+    if err != nil {
+        return
+    }
+
+    list := rowsWithCount.Entity {
+        Rows:  rows,
+        Total: count,
+    }
+
+    return list, err
+}
+
+func (s *Storage) GetAddressList(page uint64) (ret rowsWithCount.Entity, err error) {
+    table := chainTables.AddressList.Name()
+
+    count, err := s.Driver.RowCount(table, "", nil)
+    if err != nil {
+        return
+    }
+
+    pSQL := "select * from " +
+        "`" + table + "`" +
+        " order by `c_time` desc limit ?,?"
+
+    start := page * rowsPerPage
+
+    row := chainTables.AddressListRow{}
+    rows, err := s.Driver.Query(row, pSQL, []interface{}{
+        start, rowsPerPage,
+    })
 
     if err != nil {
         return

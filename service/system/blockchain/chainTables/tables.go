@@ -20,4 +20,5 @@ package chainTables
 func Load() {
     BlockList.load()
     Requests.load()
+    AddressList.load()
 }

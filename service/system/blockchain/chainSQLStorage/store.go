@@ -23,6 +23,7 @@ import (
     "SealABC/metadata/block"
     "SealABC/metadata/blockchainRequest"
     "SealABC/service/system/blockchain/chainTables"
+    "encoding/hex"
 )
 
 func (s *Storage) StoreBlock(blk block.Entity) (err error)  {
@@ -43,6 +44,37 @@ func (s *Storage) StoreTransaction(blk block.Entity, req blockchainRequest.Entit
     _, err = s.Driver.Insert(&rows, true)
     if err != nil {
         log.Log.Error("insert transaction to block transaction list failed: ", err.Error())
+    }
+
+    return
+}
+
+func (s *Storage) StoreAddress(blk block.Entity, req blockchainRequest.Entity) (err error) {
+    defer func() {
+        if r := recover(); r != nil {
+            log.Log.Error("got panic: ", r)
+        }
+
+        if err != nil {
+            log.Log.Error(err.Error())
+            return
+        }
+    }()
+
+    cnt, err := s.Driver.RowCount(
+        chainTables.AddressList.Name(),
+        "where `c_address`=?",
+        []interface{}{
+            hex.EncodeToString(req.Seal.SignerPublicKey),
+        })
+
+
+    rows := chainTables.AddressList.NewRows().(chainTables.AddressListRows)
+    rows.UpdateAddress(blk, req)
+    if cnt == 0 {
+        _, err = s.Driver.Insert(&rows, true)
+    } else {
+        _, err = s.Driver.Replace(&rows)
     }
 
     return

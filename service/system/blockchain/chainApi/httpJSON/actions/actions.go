@@ -129,6 +129,7 @@ func NewActions(basePath string, chain *chainStructure.Blockchain, p2p *chainNet
             &getBlockList{},
             &getTransactionByHash{},
             &getTransactionByApplicationAndAction{},
+            &getAddressList{},
             &getTransactionByHeight{})
     }
 
