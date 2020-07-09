@@ -29,6 +29,18 @@ var TransactionTypes struct{
     IssueAssets    enum.Element
     Transfer       enum.Element
     IncreaseSupply enum.Element
+
+    StartSelling enum.Element
+    StopSelling  enum.Element
+    BuyAssets    enum.Element
+}
+
+type SellingData struct {
+    Price         uint64
+    Amount        uint64
+    Seller        []byte
+    SellingAssets []byte
+    PaymentAssets []byte
 }
 
 type TransactionData struct {
@@ -38,6 +50,8 @@ type TransactionData struct {
 
     Input   []UTXOInput
     Output  []UTXOOutput
+
+    ExtraData []byte
 }
 
 type Transaction struct {

@@ -24,6 +24,7 @@ var QueryTypes struct {
     AllAssets   enum.Element
     UnspentList enum.Element
     Transaction enum.Element
+    SellingList enum.Element
 }
 
 type AssetsList struct {
@@ -49,4 +50,3 @@ type QueryRequest struct {
     QueryType string
     Parameter []string
 }
-

@@ -32,6 +32,7 @@ type AssetsData struct {
     Symbol      string
     Supply      uint64 `json:",string"`
     Increasable bool
+    ExtraInfo   []byte
 }
 
 type Assets struct {

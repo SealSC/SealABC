@@ -38,6 +38,7 @@ type Unspent struct {
     Owner       []byte
     AssetsHash  []byte
     Transaction []byte
+    Singer      []byte
     OutputIndex uint64 `json:",string"`
     Value       uint64 `json:",string"`
 }
@@ -63,7 +64,6 @@ func (l *Ledger) buildUnspentStorageKey(addr []byte, assets []byte, txHash []byt
     binary.BigEndian.PutUint64(outputIdxBytes, outputIdx)
 
     key = append(key, outputIdxBytes...)
-    key = append(key, )
     return
 }
 
@@ -85,6 +85,12 @@ func (l *Ledger) buildUnspentQueryPrefix(addr []byte, assets []byte) (prefix []b
     prefix = append(prefix, addr...)
     prefix = append(prefix, assets...)
     return
+}
+
+func (l *Ledger) buildAssetsSellingKey(txHash []byte) []byte {
+    baseKey := []byte(StoragePrefixes.AssetsSellingList.String())
+
+    return append(baseKey, txHash...)
 }
 
 func (l *Ledger) getUnspent(key []byte) (unspent Unspent, err error) {
@@ -119,10 +125,10 @@ func (l *Ledger) getUnspentListFromTransaction(tx Transaction) (list []Unspent, 
     return
 }
 
-func (l *Ledger) deleteUnspent(tx Transaction) (err error) {
+func (l *Ledger) deleteUnspent(in []Unspent) (err error) {
     var keyForDel [][]byte
-    for _, ref := range tx.Input {
-        key := l.buildUnspentStorageKey(tx.Seal.SignerPublicKey, tx.Assets.getUniqueHash(), ref.Transaction, ref.OutputIndex)
+    for _, ref := range in {
+        key := l.buildUnspentStorageKey(ref.Owner, ref.AssetsHash, ref.Transaction, ref.OutputIndex)
         keyForDel = append(keyForDel, key)
     }
 
@@ -193,13 +199,14 @@ func (l *Ledger) saveUnspent(localAssets Assets, tx Transaction, in []Unspent) (
     assetsHash := localAssets.getUniqueHash()
 
     for idx, output := range tx.Output {
-        key := l.buildUnspentStorageKey(output.To, tx.Assets.getUniqueHash(), tx.Seal.Hash, uint64(idx))
+        key := l.buildUnspentStorageKey(output.To, assetsHash, tx.Seal.Hash, uint64(idx))
 
         u := Unspent{
             Owner:          output.To,
             AssetsHash:     assetsHash,
             Transaction:    tx.Seal.Hash,
             OutputIndex:    uint64(idx),
+            Singer:         tx.Seal.SignerPublicKey,
             Value:          output.Value,
         }
         data, _ := json.Marshal(u)
@@ -227,7 +234,7 @@ func (l *Ledger) saveUnspent(localAssets Assets, tx Transaction, in []Unspent) (
         return
     }
 
-    err = l.deleteUnspent(tx)
+    err = l.deleteUnspent(in)
     if err != nil {
         return
     }
@@ -307,3 +314,20 @@ func (l *Ledger) saveUnspentInsideIssueAssetsTransaction(tx Transaction) (balanc
     }
     return
 }
+
+func (l *Ledger) storeSellingData(txHash []byte, data []byte) error {
+    key := l.buildAssetsSellingKey(txHash)
+
+    return  l.Storage.Put(kvDatabase.KVItem{
+        Key:    key,
+        Data:   data,
+        Exists: true,
+    })
+}
+
+func (l *Ledger) deleteSellingData(txHash []byte) error {
+    key := l.buildAssetsSellingKey(txHash)
+
+    return  l.Storage.Delete(key)
+}
+

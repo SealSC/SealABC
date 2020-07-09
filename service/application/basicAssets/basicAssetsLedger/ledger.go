@@ -34,6 +34,7 @@ var StoragePrefixes struct{
     TransactionWithBlockInfo    enum.Element
 
     Balance                     enum.Element
+    AssetsSellingList           enum.Element
 }
 
 type txValidator func(tx Transaction) (ret interface{}, err error)
@@ -79,12 +80,20 @@ func NewLedger(storage kvDatabase.IDriver) (ledger *Ledger) {
         TransactionTypes.IssueAssets.String(): ledger.verifyIssueAssets,
         TransactionTypes.IncreaseSupply.String(): ledger.verifyIncreaseSupply,
         TransactionTypes.Transfer.String(): ledger.verifyTransfer,
+
+        TransactionTypes.StartSelling.String(): ledger.verifyStartSelling,
+        TransactionTypes.StopSelling.String(): ledger.verifyStopSelling,
+        TransactionTypes.BuyAssets.String(): ledger.verifyBuyAssets,
     }
 
     ledger.txActuators = map[string] txActuator {
         TransactionTypes.IssueAssets.String(): ledger.confirmIssueAssets,
         TransactionTypes.IncreaseSupply.String(): ledger.confirmIncreaseSupply,
         TransactionTypes.Transfer.String(): ledger.confirmTransfer,
+
+        TransactionTypes.StartSelling.String(): ledger.confirmStartSelling,
+        TransactionTypes.StopSelling.String(): ledger.confirmStopSelling,
+        TransactionTypes.BuyAssets.String(): ledger.confirmBuyAssets,
     }
 
     ledger.ledgerQueries = map[string] ledgerQuery {
@@ -92,6 +101,7 @@ func NewLedger(storage kvDatabase.IDriver) (ledger *Ledger) {
         QueryTypes.AllAssets.String(): ledger.queryAllAssets,
         QueryTypes.UnspentList.String(): ledger.queryUnspent,
         QueryTypes.Transaction.String(): ledger.queryTransaction,
+        QueryTypes.SellingList.String(): ledger.querySellingList,
     }
 
     return

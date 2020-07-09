@@ -117,3 +117,19 @@ func (l *Ledger) queryTransaction(p []string) (result interface{}, err error) {
     result, err = l.getLocalTransaction(hashBytes)
     return
 }
+
+func (l *Ledger) querySellingList(_ []string) (result interface{}, err error) {
+    list := l.Storage.Traversal([]byte(StoragePrefixes.AssetsSellingList.String()))
+
+    var sellingList []SellingData
+
+    for _, data := range list {
+        sellingData := SellingData{}
+        jsonErr := json.Unmarshal(data.Data, &sellingData)
+        if jsonErr != nil {
+            continue
+        }
+        sellingList = append(sellingList, sellingData)
+    }
+    return sellingList, nil
+}
