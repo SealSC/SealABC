@@ -27,6 +27,7 @@ type ITable interface {
     Columns() []string
     ColumnsForInsert() []string
     FieldForInsert() []string
+    FieldsToColumns([]string) []string
     NewRows() interface{}
 }
 
@@ -48,11 +49,16 @@ func (b BasicTable) Columns() (list []string) {
     }
 
     if len(b.columns) == 0 {
-        list, _ = ColumnsFromTag(b.Instance, false)
+        list, _ = ColumnsFromTag(b.Instance, false, nil)
         b.columns = list
     }
 
     return b.columns
+}
+
+func (b BasicTable) FieldsToColumns(fields []string) []string {
+    list, _ := ColumnsFromTag(b.Instance, false, fields)
+    return list
 }
 
 func (b BasicTable) ColumnsForInsert() (list []string) {
@@ -61,7 +67,7 @@ func (b BasicTable) ColumnsForInsert() (list []string) {
     }
 
     if len(b.columnsForInsert) == 0 {
-        list, _ = ColumnsFromTag(b.Instance, true)
+        list, _ = ColumnsFromTag(b.Instance, true, nil)
         b.columnsForInsert = list
     }
 

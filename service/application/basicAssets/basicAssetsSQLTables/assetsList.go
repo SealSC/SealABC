@@ -110,7 +110,7 @@ type AssetsListRows struct {
     simpleSQLDatabase.BasicRows
 }
 
-func (b *AssetsListRows) InsertAssets(issueTX basicAssetsLedger.TransactionWithBlockInfo)  {
+func (b *AssetsListRows) InsertAssets(issueTX basicAssetsLedger.TransactionWithBlockInfo) {
     newRow := AssetsListRow{}
     newRow.FromTransaction(issueTX)
     b.Rows = append(b.Rows, newRow)

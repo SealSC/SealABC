@@ -47,8 +47,22 @@ func (s *simpleMySQLDriver) exec(pSQL string, data []interface{}) (result sql.Re
     if err != nil {
         return
     }
+
     defer func() {
-        err = stmt.Close()
+        closeErr := stmt.Close()
+
+        errText := ""
+        if err != nil {
+            errText = "execute error: " + err.Error()
+        }
+
+        if closeErr != nil {
+            errText = " close error: " + closeErr.Error()
+        }
+
+        if errText != "" {
+            err = errors.New(errText)
+        }
     }()
 
     result, err = stmt.Exec(data...)
@@ -113,27 +127,23 @@ func (s *simpleMySQLDriver) Replace(rows simpleSQLDatabase.IRows) (result sql.Re
     return
 }
 
-func (s *simpleMySQLDriver) Update(rows simpleSQLDatabase.IRows, columns []string, condition string, args []interface{}) (result sql.Result, err error) {
+func (s *simpleMySQLDriver) Update(rows simpleSQLDatabase.IRows, fileds []string, condition string, args []interface{}) (result sql.Result, err error) {
     if rows.Count() == 0 {
         return
     }
 
-    pSQL := "update ? set "
+    pSQL := "update `" + rows.Table().Name() + "` set "
     var data []interface{}
 
-    columnCount := len(columns)
-    table := rows.Table()
-
-    tName := table.Name()
-
-    data = append(data, tName)
+    columnCount := len(fileds)
 
     dataSegment := make([]string, columnCount)
-    uData := rows.Data(columns)
+    uData := rows.Data(fileds)
+    columns := rows.Table().FieldsToColumns(fileds)
 
     for i:=0; i<columnCount; i++ {
-        dataSegment[i] = "?=?"
-        data = append(data, columns[i], uData[i])
+        dataSegment[i] = columns[i] + "=?"
+        data = append(data, uData[i])
     }
 
     pSQL += strings.Join(dataSegment[:], ",")

@@ -23,4 +23,5 @@ func Load()  {
     AddressRecord.load()
     AddressList.load()
     Balance.load()
+    SellingList.load()
 }

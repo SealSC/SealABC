@@ -135,6 +135,47 @@ func (b *TransfersRows) InsertTransfer(tx basicAssetsLedger.TransactionWithBlock
     b.Rows = append(b.Rows, newTransfersRow)
 }
 
+func (b *TransfersRows) InsertTransferByDetail(
+    tx basicAssetsLedger.TransactionWithBlockInfo,
+    assets []byte,
+    input  []basicAssetsLedger.Unspent,
+    output []basicAssetsLedger.UTXOOutput) {
+
+    var amount uint64 = 0
+    from := map[string] uint64 {}
+    for _, in := range input {
+        ownerKey := hex.EncodeToString(in.Owner)
+        from[ownerKey] += in.Value
+    }
+    fromJson, _ := json.Marshal(from)
+
+    to := map[string] uint64 {}
+    for _, o := range output {
+        outKey := hex.EncodeToString(o.To)
+        to[outKey] += o.Value
+        amount += o.Value
+    }
+
+    toJson, _ := json.Marshal(to)
+
+    timestamp := time.Unix(tx.CreateTime, 0)
+
+    newRow := TransfersRow {
+        Height: fmt.Sprintf("%d", tx.BlockInfo.BlockHeight),
+        ReqHash: hex.EncodeToString(tx.BlockInfo.RequestHash),
+        TxHash: hex.EncodeToString(tx.Seal.Hash),
+        From:    string(fromJson),
+        To:      string(toJson),
+        Assets:  hex.EncodeToString(assets),
+        Amount:  fmt.Sprintf("%d", amount),
+        Type:    tx.TxType,
+        Memo:    tx.Memo,
+        Time:    timestamp.Format(common.BASIC_TIME_FORMAT),
+    }
+
+    b.Rows = append(b.Rows, newRow)
+}
+
 func (b *TransfersRows) Table() simpleSQLDatabase.ITable {
     return &Transfers
 }

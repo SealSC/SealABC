@@ -28,7 +28,7 @@ const (
     IgnoreForInsertTag = "ignoreInsert"
 )
 
-func ColumnsFromTag(table interface{}, forInsert bool) (columns [] string, err error){
+func ColumnsFromTag(table interface{}, forInsert bool, requireFields []string) (columns [] string, err error){
     tType := reflect.TypeOf(table)
 
     if reflect.Struct != tType.Kind() {
@@ -38,6 +38,18 @@ func ColumnsFromTag(table interface{}, forInsert bool) (columns [] string, err e
     for i := 0; i < tType.NumField(); i++ {
         t := tType.Field(i)
 
+        col := t.Tag.Get(ColumnNameTag)
+        if len(requireFields) != 0 {
+            for _, f := range requireFields {
+                if f == t.Name {
+                    columns = append(columns, col)
+                }
+            }
+
+            continue
+        }
+
+
         if forInsert {
             ignoreForInsert := t.Tag.Get(IgnoreForInsertTag)
             if ignoreForInsert == "true" {
@@ -45,7 +57,6 @@ func ColumnsFromTag(table interface{}, forInsert bool) (columns [] string, err e
             }
         }
 
-        col := t.Tag.Get(ColumnNameTag)
         if "" == col {
             continue
         }

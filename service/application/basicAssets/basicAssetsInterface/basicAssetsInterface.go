@@ -19,7 +19,6 @@ package basicAssetsInterface
 
 import (
     "SealABC/dataStructure/enum"
-    "SealABC/log"
     "SealABC/metadata/applicationResult"
     "SealABC/metadata/block"
     "SealABC/metadata/blockchainRequest"
@@ -88,41 +87,6 @@ func (b *BasicAssetsApplication) PreExecute(req blockchainRequest.Entity, _ bloc
     return
 }
 
-func (b *BasicAssetsApplication) storeAssets(tx basicAssetsLedger.TransactionWithBlockInfo, blc interface{})  {
-    balance, ok := blc.(basicAssetsLedger.Balance)
-    if !ok {
-        log.Log.Warn("no balance")
-        return
-    }
-    err := b.SQLStorage.StoreAssets(tx)
-    if err != nil {
-        log.Log.Warn("save assets result: ", err.Error())
-    }
-
-    err = b.SQLStorage.StoreBalance(tx.BlockInfo.BlockHeight, tx.CreateTime, []basicAssetsLedger.Balance{balance})
-    if err != nil {
-        log.Log.Warn("save assets result: ", err.Error())
-    }
-}
-
-func (b *BasicAssetsApplication) storeTransfer(tx basicAssetsLedger.TransactionWithBlockInfo, list interface{})  {
-    usList, ok := list.(basicAssetsLedger.UnspentListWithBalance)
-    if !ok {
-        log.Log.Warn("transaction has no unspent")
-        return
-    }
-
-    err := b.SQLStorage.StoreUnspent(tx, usList.UnspentList)
-    if err != nil {
-        log.Log.Warn("save assets failed: ", err.Error())
-    }
-
-    err = b.SQLStorage.StoreBalance(tx.BlockInfo.BlockHeight, tx.CreateTime, usList.BalanceList)
-    if err != nil {
-        log.Log.Warn("save transfer failed: ", err.Error())
-    }
-}
-
 func (b *BasicAssetsApplication) Execute(
         req blockchainRequest.Entity,
         blk block.Entity,
@@ -165,6 +129,13 @@ func (b *BasicAssetsApplication) Execute(
 
         case txTypes.Transfer.String():
             b.storeTransfer(txWithBlk, execResult)
+
+        case txTypes.StartSelling.String():
+            fallthrough
+        case txTypes.StopSelling.String():
+            fallthrough
+        case txTypes.BuyAssets.String():
+            b.storeSelling(txWithBlk, execResult)
 
         case txTypes.IncreaseSupply.String():
             //todo: b.saveAssetsUpdate(txWithBlk)

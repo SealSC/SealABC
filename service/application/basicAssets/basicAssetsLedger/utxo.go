@@ -325,6 +325,21 @@ func (l *Ledger) storeSellingData(txHash []byte, data []byte) error {
     })
 }
 
+func (l *Ledger) getSellingData(txHash []byte) ([]byte, error) {
+    key := l.buildAssetsSellingKey(txHash)
+
+    data, err := l.Storage.Get(key)
+    if err != nil {
+        return nil, err
+    }
+
+    if !data.Exists {
+        return nil, errors.New("no such selling")
+    }
+
+    return data.Data, nil
+}
+
 func (l *Ledger) deleteSellingData(txHash []byte) error {
     key := l.buildAssetsSellingKey(txHash)
 

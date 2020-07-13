@@ -20,12 +20,16 @@ package basicAssetsLedger
 import (
 	"SealABC/log"
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 )
 
 const MarketAddress = "MarketAddress"
+
+type SellingOperationResult struct {
+	UnspentListWithBalance
+	SellingData
+}
 
 func (l *Ledger) sellingDataVerify(tx Transaction) (data SellingData, err error)  {
 	err = json.Unmarshal(tx.ExtraData, &data)
@@ -69,7 +73,6 @@ func (l *Ledger) verifyStartSelling(tx Transaction) (ret interface{}, err error)
 
 	ref := tx.Input[0]
 	key := l.buildUnspentStorageKey(tx.Seal.SignerPublicKey, tx.Assets.getUniqueHash(), ref.Transaction, ref.OutputIndex)
-	log.Log.Warn(hex.EncodeToString(key))
 	unspent, err := l.getUnspent(key)
 	if err != nil {
 		return
@@ -152,6 +155,16 @@ func (l *Ledger) verifyBuyAssets(tx Transaction) (ret interface{}, err error) {
 	return uList, nil
 }
 
+func (l *Ledger) buildSellingResult(ul UnspentListWithBalance, txExtData []byte) interface{} {
+	sellingData := SellingData{}
+	_ = json.Unmarshal(txExtData, &sellingData)
+
+	return SellingOperationResult{
+		UnspentListWithBalance: ul,
+		SellingData:            sellingData,
+	}
+}
+
 func (l *Ledger) confirmStartSelling(tx Transaction) (ret interface{}, err error) {
 	l.operateLock.Lock()
 	defer l.operateLock.Unlock()
@@ -171,7 +184,7 @@ func (l *Ledger) confirmStartSelling(tx Transaction) (ret interface{}, err error
 		},
 	}
 
-	ret, err = l.saveUnspent(localAssets, tx, usList)
+	ul, err := l.saveUnspent(localAssets, tx, usList)
 
 	if err == nil {
 		l.updateDoubleSpentCache(usList)
@@ -181,6 +194,8 @@ func (l *Ledger) confirmStartSelling(tx Transaction) (ret interface{}, err error
 	if err != nil {
 		return
 	}
+
+	ret = l.buildSellingResult(ul, tx.ExtraData)
 
 	return
 }
@@ -208,17 +223,20 @@ func (l *Ledger) confirmStopSelling(tx Transaction) (ret interface{}, err error)
 
 	uList := []Unspent{unspent}
 
-	ret, err = l.saveUnspent(localAssets, tx, uList)
+	ul, err := l.saveUnspent(localAssets, tx, uList)
 
 	if err == nil {
 		l.updateDoubleSpentCache(uList)
 	}
 
-	_ = l.deleteSellingData(inTx.Transaction)
+	sellingData, err := l.getSellingData(inTx.Transaction)
 	if err != nil {
 		return
 	}
 
+	_ = l.deleteSellingData(inTx.Transaction)
+
+	ret = l.buildSellingResult(ul, sellingData)
 	return
 }
 
@@ -265,8 +283,10 @@ func (l *Ledger) confirmBuyAssets(tx Transaction) (ret interface{}, err error) {
 		Value: sellingData.Price,
 	})
 
-	uList = append(uList, unspent)
-	ret, err = l.saveUnspent(paymentAssets, tx, uList)
+	payUl, err := l.saveUnspent(paymentAssets, tx, uList)
+	if err == nil {
+		l.updateDoubleSpentCache(uList)
+	}
 
 	sellAssets, _ := l.localAssetsFromHash(sellingData.SellingAssets)
 	tx.Input = []UTXOInput{}
@@ -275,15 +295,23 @@ func (l *Ledger) confirmBuyAssets(tx Transaction) (ret interface{}, err error) {
 		Value: sellingData.Amount,
 	}}
 
-	ret, _ = l.saveUnspent(sellAssets, tx, []Unspent{})
+	buyUl, err := l.saveUnspent(sellAssets, tx, []Unspent{unspent})
 
 	if err == nil {
 		l.updateDoubleSpentCache(uList)
 	}
 
+	payUl.BalanceList = append(payUl.BalanceList, buyUl.BalanceList...)
+	payUl.UnspentList = append(payUl.UnspentList, buyUl.UnspentList...)
+
 	_ = l.deleteSellingData(target.Transaction)
 	if err != nil {
 		return
+	}
+
+	ret = SellingOperationResult{
+		UnspentListWithBalance: payUl,
+		SellingData:            sellingData,
 	}
 
 	return

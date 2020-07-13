@@ -104,9 +104,82 @@ func (s *Storage) StoreBalance(height uint64, tm int64, balanceList []basicAsset
     rows := basicAssetsSQLTables.Balance.NewRows().(basicAssetsSQLTables.BalanceRows)
     rows.InsertBalances(height, tm, balanceList)
 
+    log.Log.Warn(rows.Rows)
     _, err = s.Driver.Replace(&rows)
     if err != nil {
         log.Log.Error("insert balance failed: ", err.Error())
     }
+    return
+}
+
+func (s *Storage) StoreSelling(tx basicAssetsLedger.TransactionWithBlockInfo, result basicAssetsLedger.SellingOperationResult) (err error) {
+    //store transfer
+    transferRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
+    var outAddress []byte
+    switch tx.TxType {
+    case basicAssetsLedger.TransactionTypes.StartSelling.String():
+        outAddress = []byte(basicAssetsLedger.MarketAddress)
+        fallthrough
+    case basicAssetsLedger.TransactionTypes.StopSelling.String():
+        assets := result.SellingAssets
+        if len(outAddress) == 0 {
+            outAddress = result.Seller
+        }
+        in := result.UnspentList
+        out := []basicAssetsLedger.UTXOOutput{{
+            To: outAddress,
+            Value: result.Amount,
+        }}
+        transferRows.InsertTransferByDetail(tx, assets, in, out)
+
+    case basicAssetsLedger.TransactionTypes.BuyAssets.String():
+        assets := result.PaymentAssets
+        unspentCount := len(result.UnspentList)
+        in := result.UnspentList[:unspentCount - 1]
+        out := append(tx.Output,basicAssetsLedger.UTXOOutput{
+                To:    result.Seller,
+                Value: result.Price,
+            })
+
+        transferRows.InsertTransferByDetail(tx, assets, in, out)
+
+        assets = result.SellingAssets
+        in = result.UnspentList[unspentCount - 1:]
+        out =  []basicAssetsLedger.UTXOOutput{
+            {
+                To:    tx.Seal.SignerPublicKey,
+                Value: result.Amount,
+            },
+        }
+        transferRows.InsertTransferByDetail(tx, assets, in, out)
+
+    }
+
+    _, err = s.Driver.Insert(&transferRows, false)
+    if err != nil {
+        log.Log.Warn("insert transfers in selling transaction failed: ", err.Error())
+    }
+
+    //store selling list
+    rows := basicAssetsSQLTables.SellingList.NewRows().(basicAssetsSQLTables.SellingListRows)
+    rows.InsertRow(tx, result.SellingData)
+
+    switch tx.TxType {
+    case basicAssetsLedger.TransactionTypes.StartSelling.String():
+        log.Log.Warn("try store start selling data")
+        _, err = s.Driver.Insert(&rows, false)
+
+    case basicAssetsLedger.TransactionTypes.StopSelling.String():
+        log.Log.Warn("try store stop selling data")
+        fallthrough
+    case basicAssetsLedger.TransactionTypes.BuyAssets.String():
+        log.Log.Warn("try store buy data")
+        fields, condition := rows.GetUpdateInfo()
+        in := tx.Input
+        target := in[len(in) - 1]
+        targetTx := hex.EncodeToString(target.Transaction)
+        _, err = s.Driver.Update(&rows, fields, condition, []interface{}{targetTx})
+    }
+
     return
 }
