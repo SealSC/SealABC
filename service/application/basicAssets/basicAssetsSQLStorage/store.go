@@ -104,7 +104,6 @@ func (s *Storage) StoreBalance(height uint64, tm int64, balanceList []basicAsset
     rows := basicAssetsSQLTables.Balance.NewRows().(basicAssetsSQLTables.BalanceRows)
     rows.InsertBalances(height, tm, balanceList)
 
-    log.Log.Warn(rows.Rows)
     _, err = s.Driver.Replace(&rows)
     if err != nil {
         log.Log.Error("insert balance failed: ", err.Error())
@@ -136,16 +135,12 @@ func (s *Storage) StoreSelling(tx basicAssetsLedger.TransactionWithBlockInfo, re
         assets := result.PaymentAssets
         unspentCount := len(result.UnspentList)
         in := result.UnspentList[:unspentCount - 1]
-        out := append(tx.Output,basicAssetsLedger.UTXOOutput{
-                To:    result.Seller,
-                Value: result.Price,
-            })
 
-        transferRows.InsertTransferByDetail(tx, assets, in, out)
+        transferRows.InsertTransferByDetail(tx, assets, in, tx.Output)
 
         assets = result.SellingAssets
         in = result.UnspentList[unspentCount - 1:]
-        out =  []basicAssetsLedger.UTXOOutput{
+        out :=  []basicAssetsLedger.UTXOOutput{
             {
                 To:    tx.Seal.SignerPublicKey,
                 Value: result.Amount,
@@ -176,9 +171,19 @@ func (s *Storage) StoreSelling(tx basicAssetsLedger.TransactionWithBlockInfo, re
         log.Log.Warn("try store buy data")
         fields, condition := rows.GetUpdateInfo()
         in := tx.Input
-        target := in[len(in) - 1]
-        targetTx := hex.EncodeToString(target.Transaction)
+        inputLen := len(in)
+        var targetTx = ""
+        if inputLen > 0 {
+            target := in[len(in) - 1]
+            targetTx = hex.EncodeToString(target.Transaction)
+        } else {
+            targetTx = hex.EncodeToString(result.Transaction)
+        }
+
         _, err = s.Driver.Update(&rows, fields, condition, []interface{}{targetTx})
+        if err != nil {
+            log.Log.Warn("update failed: ", err.Error())
+        }
     }
 
     return

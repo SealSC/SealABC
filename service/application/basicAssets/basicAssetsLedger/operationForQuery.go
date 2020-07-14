@@ -119,7 +119,7 @@ func (l *Ledger) queryTransaction(p []string) (result interface{}, err error) {
 }
 
 func (l *Ledger) querySellingList(_ []string) (result interface{}, err error) {
-    list := l.Storage.Traversal([]byte(StoragePrefixes.AssetsSellingList.String()))
+    list := l.Storage.Traversal([]byte(StoragePrefixes.SellingList.String()))
 
     var sellingList []SellingData
 

@@ -88,7 +88,7 @@ func (l *Ledger) buildUnspentQueryPrefix(addr []byte, assets []byte) (prefix []b
 }
 
 func (l *Ledger) buildAssetsSellingKey(txHash []byte) []byte {
-    baseKey := []byte(StoragePrefixes.AssetsSellingList.String())
+    baseKey := []byte(StoragePrefixes.SellingList.String())
 
     return append(baseKey, txHash...)
 }

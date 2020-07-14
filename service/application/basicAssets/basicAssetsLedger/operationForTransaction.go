@@ -28,7 +28,7 @@ import (
 
 func (l *Ledger) buildTransactionKey(txHash []byte) (key [] byte) {
     //prefix + sender + transaction hash
-    key = []byte(StoragePrefixes.Transaction.String())
+    key = []byte(StoragePrefixes.Transactions.String())
     key = append(key, txHash...)
     return
 }

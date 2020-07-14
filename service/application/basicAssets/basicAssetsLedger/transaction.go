@@ -36,11 +36,12 @@ var TransactionTypes struct{
 }
 
 type SellingData struct {
-    Price         uint64
-    Amount        uint64
+    Price         uint64 `json:",string"`
+    Amount        uint64 `json:",string"`
     Seller        []byte
     SellingAssets []byte
     PaymentAssets []byte
+    Transaction   []byte
 }
 
 type TransactionData struct {

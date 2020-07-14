@@ -28,13 +28,13 @@ import (
 )
 
 var StoragePrefixes struct{
-    Assets                      enum.Element
-    Unspent                     enum.Element
-    Transaction                 enum.Element
-    TransactionWithBlockInfo    enum.Element
+    Assets                   enum.Element
+    Unspent                  enum.Element
+    Transactions             enum.Element
+    TransactionWithBlockInfo enum.Element
 
-    Balance                     enum.Element
-    AssetsSellingList           enum.Element
+    Balance     enum.Element
+    SellingList enum.Element
 }
 
 type txValidator func(tx Transaction) (ret interface{}, err error)

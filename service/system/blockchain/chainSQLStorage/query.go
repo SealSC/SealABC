@@ -18,7 +18,6 @@
 package chainSQLStorage
 
 import (
-    "SealABC/log"
     "SealABC/metadata/httpJSONResult/rowsWithCount"
     "SealABC/service/system/blockchain/chainTables"
     "errors"
@@ -60,9 +59,6 @@ func (s *Storage) GetBlock(height uint64) (blk chainTables.BlockListRow, err err
 }
 
 func (s *Storage) GetRequestList(page uint64) (ret rowsWithCount.Entity, err error) {
-
-    log.Log.Warn("request page : ", page)
-
     table := chainTables.Requests.Name()
 
     count, err := s.Driver.RowCount(table, "", nil)
