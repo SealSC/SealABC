@@ -20,6 +20,7 @@ package basicAssetsLedger
 import (
     "SealABC/common/utility/serializer/structSerializer"
     "SealABC/crypto"
+    "SealABC/dataStructure/enum"
     "SealABC/metadata/seal"
     "SealABC/storage/db/dbInterface/kvDatabase"
     "bytes"
@@ -27,10 +28,16 @@ import (
     "errors"
 )
 
+var AssetsTypes struct{
+    General   enum.Element
+    Copyright enum.Element
+}
+
 type AssetsData struct {
     Name        string
     Symbol      string
     Supply      uint64 `json:",string"`
+    Type        uint32 `json:",string"`
     Increasable bool
     ExtraInfo   []byte
 }

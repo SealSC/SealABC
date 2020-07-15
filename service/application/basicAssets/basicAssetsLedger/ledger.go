@@ -60,6 +60,7 @@ func Load()  {
     enum.SimpleBuild(&TransactionTypes)
     enum.SimpleBuild(&StoragePrefixes)
     enum.SimpleBuild(&QueryTypes)
+    enum.SimpleBuild(&AssetsTypes)
 }
 
 func NewLedger(storage kvDatabase.IDriver) (ledger *Ledger) {
