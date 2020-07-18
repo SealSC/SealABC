@@ -25,6 +25,7 @@ var QueryTypes struct {
     UnspentList enum.Element
     Transaction enum.Element
     SellingList enum.Element
+    Copyright   enum.Element
 }
 
 type AssetsList struct {

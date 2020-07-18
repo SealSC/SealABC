@@ -29,6 +29,7 @@ import (
 
 var StoragePrefixes struct{
     Assets                   enum.Element
+    Copyright                enum.Element
     Unspent                  enum.Element
     Transactions             enum.Element
     TransactionWithBlockInfo enum.Element
@@ -103,6 +104,7 @@ func NewLedger(storage kvDatabase.IDriver) (ledger *Ledger) {
         QueryTypes.UnspentList.String(): ledger.queryUnspent,
         QueryTypes.Transaction.String(): ledger.queryTransaction,
         QueryTypes.SellingList.String(): ledger.querySellingList,
+        QueryTypes.Copyright.String(): ledger.queryCopyright,
     }
 
     return

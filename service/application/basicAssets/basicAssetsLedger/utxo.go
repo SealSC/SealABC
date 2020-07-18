@@ -93,6 +93,17 @@ func (l *Ledger) buildAssetsSellingKey(txHash []byte) []byte {
     return append(baseKey, txHash...)
 }
 
+func (l *Ledger) buildCopyrightQueryPrefix(addr []byte) (prefix []byte){
+    prefix = []byte(StoragePrefixes.Unspent.String())
+    prefix = append(prefix, addr...)
+    return
+}
+
+func (l *Ledger) buildCopyrightKey(assetsHash []byte) []byte {
+    baseKey := []byte(StoragePrefixes.Copyright.String())
+    return append(baseKey, assetsHash...)
+}
+
 func (l *Ledger) getUnspent(key []byte) (unspent Unspent, err error) {
     kv, err := l.Storage.Get(key)
     if err != nil {
@@ -345,4 +356,3 @@ func (l *Ledger) deleteSellingData(txHash []byte) error {
 
     return  l.Storage.Delete(key)
 }
-

@@ -45,8 +45,14 @@ type AssetsData struct {
 type Assets struct {
     AssetsData
 
+    DateTime   string
     IssuedSeal seal.Entity
     MetaSeal   seal.Entity
+}
+
+type Copyright struct {
+    Assets
+    Owner  []byte
 }
 
 func (a Assets) getUniqueHash() (hash []byte) {
@@ -97,7 +103,7 @@ func (l *Ledger) assetsExists(assets Assets) bool {
     return exists
 }
 
-func (l *Ledger) newAssets(assets Assets) (err error) {
+func (l *Ledger) storeAssets(assets Assets) (err error) {
     if l.assetsExists(assets) {
         err = errors.New("can't issue new assets due to the assets already exists")
         return

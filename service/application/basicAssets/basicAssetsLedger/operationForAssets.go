@@ -18,8 +18,10 @@
 package basicAssetsLedger
 
 import (
+    "SealABC/common"
     "bytes"
     "errors"
+    "time"
 )
 
 func (l *Ledger) verifyIncreaseSupply(tx Transaction) (ret interface{}, err error) {
@@ -102,9 +104,17 @@ func (l *Ledger) confirmIssueAssets(tx Transaction) (ret interface{}, err error)
         return
     }
 
-    err = l.newAssets(assets)
+    assets.DateTime = time.Now().Format(common.BASIC_TIME_FORMAT)
+    err = l.storeAssets(assets)
     if err != nil {
         return
+    }
+
+    if uint32(AssetsTypes.Copyright.Int()) == assets.Type {
+        err = l.storeCopyright(assets, tx.Seal.SignerPublicKey)
+        if err != nil {
+            return
+        }
     }
 
     ret, err = l.saveUnspentInsideIssueAssetsTransaction(tx)

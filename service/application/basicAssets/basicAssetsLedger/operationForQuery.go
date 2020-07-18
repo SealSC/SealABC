@@ -133,3 +133,19 @@ func (l *Ledger) querySellingList(_ []string) (result interface{}, err error) {
     }
     return sellingList, nil
 }
+
+func (l *Ledger) queryCopyright(_ []string) (result interface{}, err error) {
+    list := l.Storage.Traversal([]byte(StoragePrefixes.Copyright.String()))
+
+    var copyrightList []Copyright
+
+    for _, data := range list {
+        cr := Copyright{}
+        jsonErr := json.Unmarshal(data.Data, &cr)
+        if jsonErr != nil {
+            continue
+        }
+        copyrightList = append(copyrightList, cr)
+    }
+    return copyrightList, nil
+}

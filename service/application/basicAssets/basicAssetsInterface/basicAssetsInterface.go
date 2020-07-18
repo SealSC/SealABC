@@ -176,6 +176,7 @@ func (b *BasicAssetsApplication) GetActionAsRequest(req blockchainRequest.Entity
     newReq.Seal = tx.Seal
     newReq.RequestApplication = b.Name()
     newReq.RequestAction = tx.TxType
+
     newReq.Data, _ = json.Marshal(tx.TransactionData)
 
     return newReq

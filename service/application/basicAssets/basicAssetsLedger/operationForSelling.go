@@ -303,6 +303,10 @@ func (l *Ledger) confirmBuyAssets(tx Transaction) (ret interface{}, err error) {
 		return
 	}
 
+	if sellAssets.Type == uint32(AssetsTypes.Copyright.Int()) {
+		err = l.copyrightOwnerTransfer(sellAssets.getUniqueHash(), tx.Seal.SignerPublicKey)
+	}
+
 	ret = SellingOperationResult{
 		UnspentListWithBalance: payUl,
 		SellingData:            sellingData,
