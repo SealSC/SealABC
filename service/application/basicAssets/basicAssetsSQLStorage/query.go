@@ -337,3 +337,29 @@ func (s *Storage) GetAddressBalance(p []string) (ret interface{}, err error) {
 
     return list, err
 }
+
+
+func (s *Storage) GetSellingHistory(p []string) (ret interface{}, err error) {
+    table := basicAssetsSQLTables.SellingList.Name()
+    rowType := basicAssetsSQLTables.SellingListRow{}
+
+    count, err := s.Driver.RowCount(table, "", []interface{}{})
+    if err != nil {
+        return
+    }
+
+    pSQL := "select * from `" + table +"` order by `c_id` desc"
+
+    rows, err := s.Driver.Query(rowType, pSQL, []interface{}{})
+
+    if err != nil {
+        return
+    }
+
+    list := rowsWithCount.Entity {
+        Rows:  rows,
+        Total: count,
+    }
+
+    return list, err
+}

@@ -36,6 +36,8 @@ var QueryTypes struct{
     AddressList             enum.Element
     AddressActionRecord     enum.Element
     AddressBalanceList      enum.Element
+
+    SellingHistory          enum.Element
 }
 
 type queryHandler func([]string) (interface{}, error)
@@ -64,6 +66,8 @@ func NewStorage(sqlDriver simpleSQLDatabase.IDriver) (s *Storage) {
 
         QueryTypes.AddressActionRecord.String():    s.GetAddressActionRecord,
         QueryTypes.AddressBalanceList.String():     s.GetAddressBalance,
+
+        QueryTypes.SellingHistory.String():     s.GetSellingHistory,
     }
     return
 }
