@@ -17,15 +17,8 @@
 
 package basicAssets
 
-import (
-    "SealABC/storage/db/dbDrivers/levelDB"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
-)
+import "SealABC/metadata/applicationCommonConfig"
 
 type Config struct {
-    LedgerDBName    string
-    LedgerDBConfig  levelDB.Config
-
-    EnableSQLDB     bool
-    SQLStorage      simpleSQLDatabase.IDriver
+    applicationCommonConfig.Config
 }

@@ -35,7 +35,7 @@ func Load() {
 }
 
 func NewMemoApplication(config Config, tools crypto.Tools) (app chainStructure.IBlockchainExternalApplication, err error) {
-    kvDriver, err := db.NewKVDatabaseDriver(config.MemoDBName, config.MemoDBConfig)
+    kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
     if err != nil {
         log.Log.Error("can't load basic assets app for now: ", err.Error())
         return

@@ -21,18 +21,14 @@ import (
 	"SealABC/crypto"
 	"SealABC/crypto/hashes/sha3"
 	"SealABC/crypto/signers/ed25519"
+	commonCfg "SealABC/metadata/applicationCommonConfig"
 	"SealABC/service/application/smartAssets/smartAssetsLedger"
 	"SealABC/storage/db/dbDrivers/levelDB"
 	"SealABC/storage/db/dbInterface"
-	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type Config struct {
-	KVDBName   string
-	KVDBConfig levelDB.Config
-
-	EnableSQLDB bool
-	SQLStorage  simpleSQLDatabase.IDriver
+	commonCfg.Config
 
 	CryptoTools crypto.Tools
 
@@ -41,13 +37,15 @@ type Config struct {
 
 func DefaultConfig() *Config {
 	return &Config {
-		KVDBName: dbInterface.LevelDB,
-		KVDBConfig: levelDB.Config{
-			DBFilePath: "./smartAssets",
-		},
+		Config: commonCfg.Config{
+			KVDBName: dbInterface.LevelDB,
+			KVDBConfig: levelDB.Config{
+				DBFilePath: "./smartAssets",
+			},
 
-		EnableSQLDB:  false,
-		SQLStorage:   nil,
+			EnableSQLDB:  false,
+			SQLStorage:   nil,
+		},
 
 		CryptoTools:  crypto.Tools{
 			HashCalculator:  sha3.Sha256,

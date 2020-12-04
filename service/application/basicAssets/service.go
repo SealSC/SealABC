@@ -31,7 +31,7 @@ func Load() {
 }
 
 func NewBasicAssetsApplication(config Config) (app chainStructure.IBlockchainExternalApplication, err error) {
-    kvDriver, err := db.NewKVDatabaseDriver(config.LedgerDBName, config.LedgerDBConfig)
+    kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
     if err != nil {
         log.Log.Error("can't load basic assets app for now: ", err.Error())
         return

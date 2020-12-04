@@ -15,10 +15,17 @@
  *
  */
 
-package memo
+package applicationCommonConfig
 
-import "SealABC/metadata/applicationCommonConfig"
+import (
+    "SealABC/storage/db/dbDrivers/levelDB"
+    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+)
 
 type Config struct {
-    applicationCommonConfig.Config
+    KVDBName   string
+    KVDBConfig levelDB.Config
+
+    EnableSQLDB bool
+    SQLStorage  simpleSQLDatabase.IDriver
 }
