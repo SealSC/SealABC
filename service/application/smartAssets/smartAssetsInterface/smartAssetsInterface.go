@@ -112,7 +112,7 @@ func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []b
 	}
 
 	reqData, _ := structSerializer.ToMFBytes(txList)
-	packReq := blockchainRequest.Entity{
+	packedReq := blockchainRequest.Entity{
 		EntityData: blockchainRequest.EntityData{
 			RequestApplication: s.Name(),
 			RequestAction:      "",
@@ -130,7 +130,7 @@ func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []b
 		},
 	}
 
-	return []blockchainRequest.Entity{packReq}, 1
+	return []blockchainRequest.Entity{packedReq}, 1
 }
 
 func (s *SmartAssetsApplication) Information() (info service.BasicInformation) {

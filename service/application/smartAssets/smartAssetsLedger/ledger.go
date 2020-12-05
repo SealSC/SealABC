@@ -198,10 +198,6 @@ func (l Ledger) txResultCheck(orgResult TransactionResult, execResult Transactio
 		return errors.New(fmt.Sprintf("transaction %x has different error code", txHash))
 	}
 
-	if orgResult.ErrorCode != execResult.ErrorCode {
-		return errors.New(fmt.Sprintf("transaction %x has different error code",txHash))
-	}
-
 	if len(orgResult.NewState) != len(execResult.NewState) {
 		return errors.New(fmt.Sprintf("transaction %x has different count state to change", txHash))
 	}
