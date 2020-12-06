@@ -70,7 +70,6 @@ func (b *Blockchain) executeRequest(blk block.Entity) (err error) {
 
                 go b.SQLStorage.StoreAddress(blk, newReq)
             }
-
         }
         //todo: record result
     }

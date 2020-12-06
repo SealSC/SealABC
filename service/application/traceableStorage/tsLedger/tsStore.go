@@ -15,35 +15,33 @@
  *
  */
 
-package block
+package tsLedger
 
 import (
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/metadata/seal"
+	"errors"
 )
 
-type Header struct {
-    Version          string
-    Height           uint64
-    PrevBlock        []byte
-    TransactionsRoot []byte
-    Timestamp        uint64
+func (t *TSLedger)VerifyStoreRequest(data TSData) (err error) {
+	//common verify
+	_, err = t.commonDataInRequestVerify(data)
+	if err != nil {
+		return
+	}
+
+	//verify prev & next id
+	if data.PrevOnChainID != "" {
+		return errors.New("new data must has no prev or next chain id")
+	}
+
+	if !data.PrevSeal.IsPureEmpty() {
+		return errors.New("new data must has no prev seal ")
+	}
+
+	return nil
 }
 
-type Body struct {
-    RequestsCount int
-    Requests      []blockchainRequest.Entity
+func (t *TSLedger)ExecuteStoreIdentification(data TSData) (ret interface{}, err error) {
+	kvData := data.ToKVStoreItem()
+	err = t.Storage.Put(kvData)
+	return
 }
-
-type EntityData struct {
-    Header  Header
-    Body    Body
-}
-
-type Entity struct {
-    EntityData
-
-    Seal      seal.Entity
-    BlankSeal seal.Entity
-}
-

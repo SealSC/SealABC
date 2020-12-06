@@ -33,6 +33,13 @@ type Entity struct {
     SignerAlgorithm string
 }
 
+func (e *Entity) IsPureEmpty() bool {
+    return  len(e.Hash) == 0 &&
+            len(e.Signature) == 0 &&
+            len(e.SignerPublicKey) == 0 &&
+            e.SignerAlgorithm == ""
+}
+
 func (e *Entity) HexHash() string {
     return hex.EncodeToString(e.Hash)
 }
