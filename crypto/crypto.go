@@ -29,6 +29,13 @@ type Tools struct {
     SignerGenerator signers.ISignerGenerator
 }
 
+type AlgorithmDescription struct {
+    Cipher  string
+    Sign    string
+    Hash    string
+    KDF     string
+}
+
 func Load()  {
     hashes.Load()
 }
