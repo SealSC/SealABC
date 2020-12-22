@@ -19,7 +19,6 @@ package tsInterface
 
 import (
 	"SealABC/common/utility/serializer/structSerializer"
-	"SealABC/dataStructure/enum"
 	"SealABC/dataStructure/merkleTree"
 	"SealABC/metadata/applicationResult"
 	"SealABC/metadata/block"
@@ -33,11 +32,6 @@ import (
 	"encoding/json"
 	"sync"
 )
-
-var QueryDBType struct{
-	KV  enum.Element
-	SQL enum.Element
-}
 
 type TraceableStorageApplication struct {
 	reqList []string

@@ -37,7 +37,7 @@ func DefaultConfig() *Config {
 		Config: commonCfg.Config {
 			KVDBName: dbInterface.LevelDB,
 			KVDBConfig: levelDB.Config{
-				DBFilePath: "./smartAssets",
+				DBFilePath: "./traceableStorage",
 			},
 
 			EnableSQLDB:  false,
