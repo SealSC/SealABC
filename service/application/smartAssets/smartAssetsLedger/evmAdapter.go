@@ -19,11 +19,11 @@ package smartAssetsLedger
 
 import (
 	"SealABC/metadata/block"
-	"SealEVM"
-	"SealEVM/common"
-	"SealEVM/environment"
-	"SealEVM/evmInt256"
-	"SealEVM/storage"
+	"github.com/SealSC/SealEVM"
+	"github.com/SealSC/SealEVM/common"
+	"github.com/SealSC/SealEVM/environment"
+	"github.com/SealSC/SealEVM/evmInt256"
+	"github.com/SealSC/SealEVM/storage"
 	"bytes"
 	"fmt"
 	"math/big"
