@@ -18,9 +18,9 @@
 package actions
 
 import (
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/network/http"
-    "SealABC/service"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/network/http"
+    "github.com/SealSC/SealABC/service"
     "github.com/gin-gonic/gin"
 )
 

@@ -18,11 +18,11 @@
 package chainStructure
 
 import (
-    "SealABC/log"
-    "SealABC/metadata/block"
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/service/system/blockchain/chainTables"
-    "SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/block"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainTables"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
     "encoding/binary"
     "encoding/hex"
     "encoding/json"

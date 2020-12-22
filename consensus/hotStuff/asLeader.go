@@ -35,10 +35,10 @@
 package hotStuff
 
 import (
-    "SealABC/metadata/message"
-    "SealABC/log"
-    "SealABC/dataStructure/enum"
-    "SealABC/consensus"
+    "github.com/SealSC/SealABC/metadata/message"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/consensus"
 )
 
 func (b *basicService) pickHighQC() (highQC QC) {

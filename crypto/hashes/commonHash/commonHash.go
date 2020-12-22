@@ -18,7 +18,7 @@
 package commonHash
 
 import (
-	"SealABC/log"
+	"github.com/SealSC/SealABC/log"
 	"crypto/hmac"
 	"hash"
 )

@@ -35,10 +35,10 @@
 package hotStuff
 
 import (
-    "SealABC/crypto/hashes"
-    "SealABC/crypto/signers"
-    "SealABC/crypto/signers/signerCommon"
-    "SealABC/network"
+    "github.com/SealSC/SealABC/crypto/hashes"
+    "github.com/SealSC/SealABC/crypto/signers"
+    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
+    "github.com/SealSC/SealABC/network"
     "time"
 )
 

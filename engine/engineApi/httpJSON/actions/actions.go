@@ -18,8 +18,8 @@
 package actions
 
 import (
-    "SealABC/network/http"
-    "SealABC/service"
+    "github.com/SealSC/SealABC/network/http"
+    "github.com/SealSC/SealABC/service"
 )
 
 var actionList []http.IRequestHandler

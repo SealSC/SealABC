@@ -18,9 +18,9 @@
 package account
 
 import (
-	"SealABC/crypto/hashes"
-	"SealABC/crypto/hashes/sha3"
-	"SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/crypto/hashes"
+	"github.com/SealSC/SealABC/crypto/hashes/sha3"
+	"github.com/SealSC/SealABC/metadata/seal"
 	"bytes"
 )
 

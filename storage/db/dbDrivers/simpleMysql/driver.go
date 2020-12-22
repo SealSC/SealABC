@@ -18,8 +18,8 @@
 package simpleMysql
 
 import (
-    "SealABC/dataStructure/enum"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
     "database/sql"
     "errors"
     _ "github.com/go-sql-driver/mysql"

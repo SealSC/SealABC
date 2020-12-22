@@ -21,7 +21,7 @@ import (
     "net"
     "io"
     "bufio"
-    "SealABC/log"
+    "github.com/SealSC/SealABC/log"
     "sync"
 )
 

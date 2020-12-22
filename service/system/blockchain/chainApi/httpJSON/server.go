@@ -18,11 +18,11 @@
 package httpJSON
 
 import (
-    "SealABC/network/http"
-    "SealABC/service/system/blockchain/chainApi/httpJSON/actions"
-    "SealABC/service/system/blockchain/chainSQLStorage"
-    "SealABC/service/system/blockchain/chainStructure"
-    "SealABC/service/system/blockchain/chainNetwork"
+    "github.com/SealSC/SealABC/network/http"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON/actions"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
 )
 
 type ApiServer struct {

@@ -35,11 +35,11 @@
 package hotStuff
 
 import (
-    "SealABC/consensus"
-    "SealABC/dataStructure/enum"
-    "SealABC/log"
-    "SealABC/metadata/message"
-    "SealABC/network"
+    "github.com/SealSC/SealABC/consensus"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/message"
+    "github.com/SealSC/SealABC/network"
     "bytes"
     "encoding/json"
     "errors"

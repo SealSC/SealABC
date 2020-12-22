@@ -18,7 +18,7 @@
 package blockchainRequest
 
 import (
-    "SealABC/metadata/seal"
+    "github.com/SealSC/SealABC/metadata/seal"
 )
 
 type EntityData struct {

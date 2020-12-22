@@ -18,8 +18,8 @@
 package chainSQLStorage
 
 import (
-    "SealABC/service/system/blockchain/chainTables"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainTables"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type Storage struct {

@@ -35,8 +35,8 @@
 package hotStuff
 
 import (
-    "SealABC/metadata/message"
-    "SealABC/log"
+    "github.com/SealSC/SealABC/metadata/message"
+    "github.com/SealSC/SealABC/log"
 )
 
 func (b *basicService) sendMessageToLeader(msg message.Message) {

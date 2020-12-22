@@ -18,8 +18,8 @@
 package applicationCommonConfig
 
 import (
-    "SealABC/storage/db/dbDrivers/levelDB"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type Config struct {

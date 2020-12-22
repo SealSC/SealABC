@@ -18,14 +18,14 @@
 package memo
 
 import (
-    "SealABC/service/application/memo/memoSQLStorage"
-    "SealABC/service/application/memo/memoTables"
-    "SealABC/storage/db"
-    "SealABC/log"
-    "SealABC/service/system/blockchain/chainStructure"
-    "SealABC/service/application/memo/memoInterface"
-    "SealABC/crypto"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/service/application/memo/memoSQLStorage"
+    "github.com/SealSC/SealABC/service/application/memo/memoTables"
+    "github.com/SealSC/SealABC/storage/db"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/service/application/memo/memoInterface"
+    "github.com/SealSC/SealABC/crypto"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 func Load() {

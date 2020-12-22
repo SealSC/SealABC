@@ -18,8 +18,8 @@
 package smartAssetsLedger
 
 import (
-	"SealABC/common/utility/serializer/structSerializer"
-	"SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealEVM/environment"
 	"github.com/SealSC/SealEVM/evmInt256"
 	"errors"

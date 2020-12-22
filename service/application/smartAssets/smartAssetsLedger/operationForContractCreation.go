@@ -18,7 +18,7 @@
 package smartAssetsLedger
 
 import (
-	"SealABC/metadata/block"
+	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealEVM/evmInt256"
 	"github.com/SealSC/SealEVM/opcodes"
 )

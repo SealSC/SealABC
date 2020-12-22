@@ -35,10 +35,10 @@
 package hotStuff
 
 import (
-    "SealABC/common/utility/serializer/structSerializer"
-    "SealABC/crypto/hashes/sha3"
-    "SealABC/log"
-    "SealABC/metadata/seal"
+    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+    "github.com/SealSC/SealABC/crypto/hashes/sha3"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/seal"
     "bytes"
 )
 

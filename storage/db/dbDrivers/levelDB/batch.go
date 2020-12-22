@@ -20,7 +20,7 @@ package levelDB
 import (
     "github.com/syndtr/goleveldb/leveldb"
     "github.com/syndtr/goleveldb/leveldb/util"
-    "SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
 func (l *levelDBDriver)batchRead(kList [][]byte, needData bool) (kvList []kvDatabase.KVItem, err error) {

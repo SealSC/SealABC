@@ -18,13 +18,13 @@
 package smartAssets
 
 import (
-	"SealABC/crypto"
-	"SealABC/crypto/hashes/sha3"
-	"SealABC/crypto/signers/ed25519"
-	commonCfg "SealABC/metadata/applicationCommonConfig"
-	"SealABC/service/application/smartAssets/smartAssetsLedger"
-	"SealABC/storage/db/dbDrivers/levelDB"
-	"SealABC/storage/db/dbInterface"
+	"github.com/SealSC/SealABC/crypto"
+	"github.com/SealSC/SealABC/crypto/hashes/sha3"
+	"github.com/SealSC/SealABC/crypto/signers/ed25519"
+	commonCfg "github.com/SealSC/SealABC/metadata/applicationCommonConfig"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
+	"github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
+	"github.com/SealSC/SealABC/storage/db/dbInterface"
 )
 
 type Config struct {

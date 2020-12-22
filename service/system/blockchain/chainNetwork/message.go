@@ -18,12 +18,12 @@
 package chainNetwork
 
 import (
-    "SealABC/metadata/message"
-    "SealABC/dataStructure/enum"
-    "SealABC/metadata/block"
+    "github.com/SealSC/SealABC/metadata/message"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/metadata/block"
     "encoding/json"
     "errors"
-    "SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
 )
 
 const messageFamily = "seal-chain-message"

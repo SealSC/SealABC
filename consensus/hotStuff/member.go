@@ -35,8 +35,8 @@
 package hotStuff
 
 import (
-    "SealABC/crypto/signers/signerCommon"
-    "SealABC/network"
+    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
+    "github.com/SealSC/SealABC/network"
 )
 
 type Member struct {

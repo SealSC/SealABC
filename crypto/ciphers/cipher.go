@@ -18,8 +18,8 @@
 package ciphers
 
 import (
-    "SealABC/crypto/ciphers/aes"
-    "SealABC/crypto/ciphers/cipherCommon"
+    "github.com/SealSC/SealABC/crypto/ciphers/aes"
+    "github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
 )
 
 var ciphers = map[string] ICipher {

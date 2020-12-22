@@ -35,9 +35,9 @@
 package hotStuff
 
 import (
-    "SealABC/consensus"
-    "SealABC/log"
-    "SealABC/metadata/message"
+    "github.com/SealSC/SealABC/consensus"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/message"
     "time"
 )
 

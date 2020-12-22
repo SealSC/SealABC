@@ -18,7 +18,7 @@
 package basicAssetsLedger
 
 import (
-	"SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"bytes"
 	"encoding/json"
 	"errors"

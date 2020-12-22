@@ -18,8 +18,8 @@
 package block
 
 import (
-    "SealABC/common/utility/serializer/structSerializer"
-    "SealABC/crypto"
+    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+    "github.com/SealSC/SealABC/crypto"
 )
 
 func (e *Entity) Sign(tools crypto.Tools, privateKey []byte) (err error) {

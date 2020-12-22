@@ -18,7 +18,7 @@
 package chainApi
 
 import (
-    "SealABC/network/http"
+    "github.com/SealSC/SealABC/network/http"
 )
 
 type Config struct {

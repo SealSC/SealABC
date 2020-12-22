@@ -17,7 +17,7 @@
 
 package payload
 
-import "SealABC/network"
+import "github.com/SealSC/SealABC/network"
 
 type NeighborsPayload struct {
     Neighbors   []network.Node

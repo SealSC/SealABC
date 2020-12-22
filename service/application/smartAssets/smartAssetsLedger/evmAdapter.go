@@ -18,7 +18,7 @@
 package smartAssetsLedger
 
 import (
-	"SealABC/metadata/block"
+	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealEVM"
 	"github.com/SealSC/SealEVM/common"
 	"github.com/SealSC/SealEVM/environment"

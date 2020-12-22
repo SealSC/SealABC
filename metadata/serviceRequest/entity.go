@@ -17,7 +17,7 @@
 
 package serviceRequest
 
-import "SealABC/metadata/seal"
+import "github.com/SealSC/SealABC/metadata/seal"
 
 type EntityData struct {
     Sender          string

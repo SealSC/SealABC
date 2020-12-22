@@ -18,7 +18,7 @@
 package structSerializer
 
 import (
-    "SealABC/dataStructure/mfb"
+    "github.com/SealSC/SealABC/dataStructure/mfb"
     "encoding/binary"
     "errors"
     "reflect"

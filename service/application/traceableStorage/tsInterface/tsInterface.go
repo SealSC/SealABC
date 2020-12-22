@@ -18,17 +18,17 @@
 package tsInterface
 
 import (
-	"SealABC/common/utility/serializer/structSerializer"
-	"SealABC/dataStructure/merkleTree"
-	"SealABC/metadata/applicationResult"
-	"SealABC/metadata/block"
-	"SealABC/metadata/blockchainRequest"
-	"SealABC/metadata/seal"
-	"SealABC/service"
-	"SealABC/service/application/traceableStorage/tsLedger"
-	"SealABC/service/system/blockchain/chainStructure"
-	"SealABC/storage/db/dbInterface/kvDatabase"
-	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+	"github.com/SealSC/SealABC/dataStructure/merkleTree"
+	"github.com/SealSC/SealABC/metadata/applicationResult"
+	"github.com/SealSC/SealABC/metadata/block"
+	"github.com/SealSC/SealABC/metadata/blockchainRequest"
+	"github.com/SealSC/SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/service/application/traceableStorage/tsLedger"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 	"encoding/json"
 	"sync"
 )

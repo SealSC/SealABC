@@ -18,7 +18,7 @@
 package basicAssetsLedger
 
 import (
-    "SealABC/common"
+    "github.com/SealSC/SealABC/common"
     "bytes"
     "errors"
     "time"

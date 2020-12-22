@@ -18,14 +18,14 @@
 package blockchain
 
 import (
-    "SealABC/engine/engineService"
-    "SealABC/log"
-    "SealABC/service"
-    "SealABC/service/system/blockchain/chainApi"
-    "SealABC/service/system/blockchain/chainNetwork"
-    "SealABC/service/system/blockchain/chainSQLStorage"
-    "SealABC/service/system/blockchain/chainStructure"
-    "SealABC/service/system/blockchain/serviceInterface"
+    "github.com/SealSC/SealABC/engine/engineService"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/service"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainApi"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/service/system/blockchain/serviceInterface"
 )
 
 func Load()  {

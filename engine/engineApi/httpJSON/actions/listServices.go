@@ -19,9 +19,9 @@ package actions
 
 import (
     "github.com/gin-gonic/gin"
-    "SealABC/engine/engineService"
-    "SealABC/network/http"
-    "SealABC/service"
+    "github.com/SealSC/SealABC/engine/engineService"
+    "github.com/SealSC/SealABC/network/http"
+    "github.com/SealSC/SealABC/service"
 )
 
 type listServices struct{

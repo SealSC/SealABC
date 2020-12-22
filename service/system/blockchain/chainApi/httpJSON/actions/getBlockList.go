@@ -18,9 +18,9 @@
 package actions
 
 import (
-    "SealABC/network/http"
-    "SealABC/service"
-    "SealABC/service/system/blockchain/chainTables"
+    "github.com/SealSC/SealABC/network/http"
+    "github.com/SealSC/SealABC/service"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainTables"
     "errors"
     "github.com/gin-gonic/gin"
     "strconv"

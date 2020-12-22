@@ -18,7 +18,7 @@
 package engineStartup
 
 import (
-    "SealABC/storage/db"
+    "github.com/SealSC/SealABC/storage/db"
 )
 
 func loadStorage() {

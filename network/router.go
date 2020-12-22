@@ -19,8 +19,8 @@ package network
 
 import (
     "net"
-    "SealABC/log"
-    "SealABC/metadata/message"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/message"
     "sync"
 )
 

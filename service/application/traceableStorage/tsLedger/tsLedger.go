@@ -18,12 +18,12 @@
 package tsLedger
 
 import (
-	"SealABC/crypto"
-	"SealABC/crypto/hashes/sha3"
-	"SealABC/crypto/signers/ed25519"
-	"SealABC/dataStructure/enum"
-	"SealABC/storage/db/dbInterface/kvDatabase"
-	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/crypto"
+	"github.com/SealSC/SealABC/crypto/hashes/sha3"
+	"github.com/SealSC/SealABC/crypto/signers/ed25519"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 	"errors"
 )
 

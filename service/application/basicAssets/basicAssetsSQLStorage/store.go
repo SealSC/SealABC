@@ -18,9 +18,9 @@
 package basicAssetsSQLStorage
 
 import (
-    "SealABC/log"
-    "SealABC/service/application/basicAssets/basicAssetsLedger"
-    "SealABC/service/application/basicAssets/basicAssetsSQLTables"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
+    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsSQLTables"
     "encoding/hex"
 )
 

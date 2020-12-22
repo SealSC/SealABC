@@ -18,14 +18,14 @@
 package actions
 
 import (
-    "SealABC/network/http"
-    "SealABC/service"
-    "SealABC/service/system/blockchain/chainSQLStorage"
-    "SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/network/http"
+    "github.com/SealSC/SealABC/service"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
     "github.com/gin-gonic/gin"
-    "SealABC/log"
-    "SealABC/dataStructure/enum"
-    "SealABC/service/system/blockchain/chainNetwork"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
 )
 
 var URLParameterKeys = struct {

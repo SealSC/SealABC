@@ -35,8 +35,8 @@
 package hotStuff
 
 import (
-    "SealABC/dataStructure/enum"
-    "SealABC/metadata/seal"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/metadata/seal"
 )
 
 type consensusPhase struct {

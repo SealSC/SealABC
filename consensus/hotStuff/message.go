@@ -35,12 +35,12 @@
 package hotStuff
 
 import (
-    "SealABC/common/utility/serializer/structSerializer"
-    "SealABC/crypto/hashes/sha3"
-    "SealABC/dataStructure/enum"
-    "SealABC/log"
-    "SealABC/metadata/message"
-    "SealABC/metadata/seal"
+    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+    "github.com/SealSC/SealABC/crypto/hashes/sha3"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/message"
+    "github.com/SealSC/SealABC/metadata/seal"
     "encoding/json"
 )
 

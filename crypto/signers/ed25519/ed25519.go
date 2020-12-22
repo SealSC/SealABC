@@ -18,7 +18,7 @@
 package ed25519
 
 import (
-    "SealABC/crypto/signers/signerCommon"
+    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
     "bytes"
     "crypto/ed25519"
     "encoding/hex"

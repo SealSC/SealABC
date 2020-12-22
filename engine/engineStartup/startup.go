@@ -18,11 +18,11 @@
 package engineStartup
 
 import (
-    "SealABC/log"
-    "SealABC/consensus/hotStuff"
-    "SealABC/engine/engineApi"
-    "SealABC/engine/engineService"
-    //"SealABC/service/system"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/consensus/hotStuff"
+    "github.com/SealSC/SealABC/engine/engineApi"
+    "github.com/SealSC/SealABC/engine/engineService"
+    //"github.com/SealSC/SealABC/service/system"
 )
 
 func Start(cfg Config) (err error) {

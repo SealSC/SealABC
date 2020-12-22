@@ -18,9 +18,9 @@
 package seal
 
 import (
-    "SealABC/crypto"
-    "SealABC/crypto/hashes"
-    "SealABC/crypto/signers"
+    "github.com/SealSC/SealABC/crypto"
+    "github.com/SealSC/SealABC/crypto/hashes"
+    "github.com/SealSC/SealABC/crypto/signers"
     "bytes"
     "encoding/hex"
     "errors"

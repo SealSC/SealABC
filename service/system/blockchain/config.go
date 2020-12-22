@@ -18,10 +18,10 @@
 package blockchain
 
 import (
-    "SealABC/network"
-    "SealABC/service/system/blockchain/chainApi"
-    "SealABC/service/system/blockchain/chainStructure"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/network"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainApi"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type Config struct {

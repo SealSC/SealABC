@@ -18,11 +18,11 @@
 package basicAssetsLedger
 
 import (
-    "SealABC/metadata/seal"
+    "github.com/SealSC/SealABC/metadata/seal"
     "encoding/hex"
-    "SealABC/common/utility/serializer/structSerializer"
-    "SealABC/crypto"
-    "SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+    "github.com/SealSC/SealABC/crypto"
+    "github.com/SealSC/SealABC/dataStructure/enum"
 )
 
 var TransactionTypes struct{

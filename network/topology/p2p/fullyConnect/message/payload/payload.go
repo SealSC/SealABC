@@ -18,7 +18,7 @@
 package payload
 
 import (
-    "SealABC/network"
+    "github.com/SealSC/SealABC/network"
     "encoding/json"
 )
 

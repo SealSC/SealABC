@@ -18,8 +18,8 @@
 package copyrightLedger
 
 import (
-	"SealABC/crypto"
-	"SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/crypto"
+	"github.com/SealSC/SealABC/metadata/seal"
 )
 
 type CopyrightResource struct {

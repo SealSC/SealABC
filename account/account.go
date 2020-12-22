@@ -18,9 +18,9 @@
 package account
 
 import (
-    "SealABC/crypto/ciphers/cipherCommon"
-    "SealABC/crypto/signers"
-    "SealABC/crypto/signers/signerCommon"
+    "github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
+    "github.com/SealSC/SealABC/crypto/signers"
+    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
 )
 
 const encryptedKeyLen = 32

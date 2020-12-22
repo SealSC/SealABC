@@ -18,10 +18,10 @@
 package chainStructure
 
 import (
-    "SealABC/dataStructure/merkleTree"
-    "SealABC/log"
-    "SealABC/metadata/block"
-    "SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/dataStructure/merkleTree"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/block"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
     "time"
 )
 

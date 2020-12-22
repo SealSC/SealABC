@@ -18,10 +18,10 @@
 package smartAssetsSQLStorage
 
 import (
-	"SealABC/log"
-	"SealABC/metadata/block"
-	"SealABC/service/application/smartAssets/smartAssetsLedger"
-	"SealABC/service/application/smartAssets/smartAssetsSQLTables"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/block"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 	"bytes"
 	"math/big"
 )

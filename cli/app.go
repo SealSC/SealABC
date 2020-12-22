@@ -18,7 +18,7 @@
 package cli
 
 import (
-    "SealABC/cli/cliFlags"
+    "github.com/SealSC/SealABC/cli/cliFlags"
     cliV2 "github.com/urfave/cli/v2"
     "io"
     "os"
@@ -39,11 +39,11 @@ func Run() (app *cliV2.App) {
     }
 
     app = cliV2.NewApp()
-    app.Name = "SealABC"
+    app.Name = "github.com/SealSC/SealABC"
     app.Version = "0.1.0"
-    app.HelpName = "SealABC"
-    app.Usage = "SealABC"
-    app.UsageText = "SealABC [options] [args]"
+    app.HelpName = "github.com/SealSC/SealABC"
+    app.Usage = "github.com/SealSC/SealABC"
+    app.UsageText = "github.com/SealSC/SealABC [options] [args]"
     app.HideHelp = false
     app.HideVersion = false
 

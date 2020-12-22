@@ -18,7 +18,7 @@
 package basicAssetsLedger
 
 import (
-    "SealABC/log"
+    "github.com/SealSC/SealABC/log"
     "encoding/base64"
     "encoding/json"
     "errors"

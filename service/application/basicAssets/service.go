@@ -18,11 +18,11 @@
 package basicAssets
 
 import (
-	"SealABC/service/application/basicAssets/basicAssetsSQLTables"
-    "SealABC/storage/db"
-    "SealABC/log"
-    "SealABC/service/application/basicAssets/basicAssetsInterface"
-    "SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsSQLTables"
+    "github.com/SealSC/SealABC/storage/db"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsInterface"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 )
 
 func Load() {

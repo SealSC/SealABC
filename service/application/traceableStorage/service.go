@@ -18,11 +18,11 @@
 package traceableStorage
 
 import (
-	"SealABC/log"
-	"SealABC/service/application/traceableStorage/tsInterface"
-	"SealABC/service/system/blockchain/chainStructure"
-	"SealABC/storage/db"
-	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/service/application/traceableStorage/tsInterface"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/storage/db"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 func Load() {

@@ -18,9 +18,9 @@
 package smartAssetsSQLTables
 
 import (
-	"SealABC/metadata/block"
-	"SealABC/service/application/smartAssets/smartAssetsLedger"
-	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/metadata/block"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type ISQLRows interface {

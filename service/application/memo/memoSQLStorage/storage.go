@@ -18,9 +18,9 @@
 package memoSQLStorage
 
 import (
-    "SealABC/dataStructure/enum"
-    "SealABC/service/application/memo/memoSpace"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/service/application/memo/memoSpace"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
     "errors"
 )
 

@@ -18,8 +18,8 @@
 package basicAssetsSQLStorage
 
 import (
-    "SealABC/metadata/httpJSONResult/rowsWithCount"
-    "SealABC/service/application/basicAssets/basicAssetsSQLTables"
+    "github.com/SealSC/SealABC/metadata/httpJSONResult/rowsWithCount"
+    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsSQLTables"
     "errors"
 )
 

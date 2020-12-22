@@ -18,7 +18,7 @@
 package http
 
 import (
-    "SealABC/log"
+    "github.com/SealSC/SealABC/log"
     "errors"
     "github.com/gin-gonic/gin"
     "net/http"

@@ -17,7 +17,7 @@
 
 package basicAssets
 
-import "SealABC/metadata/applicationCommonConfig"
+import "github.com/SealSC/SealABC/metadata/applicationCommonConfig"
 
 type Config struct {
     applicationCommonConfig.Config

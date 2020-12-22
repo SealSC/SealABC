@@ -18,8 +18,8 @@
 package fullyConnect
 
 import (
-    "SealABC/network"
-    "SealABC/network/topology/p2p/fullyConnect/topology"
+    "github.com/SealSC/SealABC/network"
+    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/topology"
 )
 
 func NewTopology() network.ITopology {

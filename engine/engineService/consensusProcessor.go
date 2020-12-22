@@ -18,10 +18,10 @@
 package engineService
 
 import (
-    "SealABC/consensus"
-    "SealABC/dataStructure/enum"
-    "SealABC/log"
-    "SealABC/metadata/serviceRequest"
+    "github.com/SealSC/SealABC/consensus"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/serviceRequest"
     "encoding/json"
 )
 

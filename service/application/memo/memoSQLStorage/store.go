@@ -18,10 +18,10 @@
 package memoSQLStorage
 
 import (
-    "SealABC/log"
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/service/application/memo/memoSpace"
-    "SealABC/service/application/memo/memoTables"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/service/application/memo/memoSpace"
+    "github.com/SealSC/SealABC/service/application/memo/memoTables"
 )
 
 func (s *Storage) StoreMemo(height uint64, tm int64, req blockchainRequest.Entity, memo memoSpace.Memo) (err error) {

@@ -18,7 +18,7 @@
 package aes
 
 import (
-    "SealABC/crypto/ciphers/cipherCommon"
+    "github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
     "bytes"
     "crypto/aes"
     "crypto/cipher"

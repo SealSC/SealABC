@@ -18,9 +18,9 @@
 package smartAssetsSQLStorage
 
 import (
-	"SealABC/dataStructure/enum"
-	"SealABC/service/application/smartAssets/smartAssetsLedger"
-	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 	"errors"
 )
 

@@ -18,8 +18,8 @@
 package block
 
 import (
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/metadata/seal"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/metadata/seal"
 )
 
 type Header struct {

@@ -18,7 +18,7 @@
 package hashes
 
 import (
-    "SealABC/crypto/hashes/sha3"
+    "github.com/SealSC/SealABC/crypto/hashes/sha3"
     "hash"
 )
 

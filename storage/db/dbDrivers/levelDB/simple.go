@@ -18,7 +18,7 @@
 package levelDB
 
 import (
-    "SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
     "github.com/syndtr/goleveldb/leveldb"
 )
 

@@ -18,8 +18,8 @@
 package chainSQLStorage
 
 import (
-    "SealABC/metadata/httpJSONResult/rowsWithCount"
-    "SealABC/service/system/blockchain/chainTables"
+    "github.com/SealSC/SealABC/metadata/httpJSONResult/rowsWithCount"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainTables"
     "errors"
     "strings"
 )

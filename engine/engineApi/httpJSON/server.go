@@ -18,8 +18,8 @@
 package httpJSON
 
 import (
-    "SealABC/network/http"
-    "SealABC/engine/engineApi/httpJSON/actions"
+    "github.com/SealSC/SealABC/network/http"
+    "github.com/SealSC/SealABC/engine/engineApi/httpJSON/actions"
 )
 
 func Start(cfg http.Config) {

@@ -18,8 +18,8 @@
 package signers
 
 import (
-    "SealABC/crypto/signers/ed25519"
-    "SealABC/crypto/signers/signerCommon"
+    "github.com/SealSC/SealABC/crypto/signers/ed25519"
+    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
 )
 
 var signerGenerators = map[string] ISignerGenerator{

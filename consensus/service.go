@@ -18,9 +18,9 @@
 package consensus
 
 import (
-    "SealABC/dataStructure/enum"
-    "SealABC/network"
-    "SealABC/metadata/message"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/network"
+    "github.com/SealSC/SealABC/metadata/message"
 )
 
 

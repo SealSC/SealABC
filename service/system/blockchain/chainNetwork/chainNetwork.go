@@ -18,12 +18,12 @@
 package chainNetwork
 
 import (
-    "SealABC/network"
-    "SealABC/dataStructure/enum"
-    "SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/network"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
     "errors"
     "sync"
-    "SealABC/log"
+    "github.com/SealSC/SealABC/log"
 )
 
 type P2PService struct{

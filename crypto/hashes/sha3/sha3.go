@@ -18,7 +18,7 @@
 package sha3
 
 import (
-    "SealABC/crypto/hashes/commonHash"
+    "github.com/SealSC/SealABC/crypto/hashes/commonHash"
     "golang.org/x/crypto/sha3"
 )
 

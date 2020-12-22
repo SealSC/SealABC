@@ -22,7 +22,7 @@ import (
     "github.com/syndtr/goleveldb/leveldb/errors"
     "github.com/syndtr/goleveldb/leveldb/opt"
     "github.com/syndtr/goleveldb/leveldb/filter"
-    "SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
 type levelDBDriver struct {

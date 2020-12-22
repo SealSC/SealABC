@@ -17,7 +17,7 @@
 
 package engineApi
 
-import "SealABC/network/http"
+import "github.com/SealSC/SealABC/network/http"
 
 type Config struct {
     HttpJSON http.Config

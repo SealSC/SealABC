@@ -18,9 +18,9 @@
 package memoTables
 
 import (
-    "SealABC/common"
-    "SealABC/dataStructure/enum"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/common"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
     "fmt"
     "time"
 )

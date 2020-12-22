@@ -18,7 +18,7 @@
 package smartAssetsLedger
 
 import (
-	"SealABC/metadata/block"
+	"github.com/SealSC/SealABC/metadata/block"
 	"math/big"
 )
 

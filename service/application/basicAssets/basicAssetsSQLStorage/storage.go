@@ -18,9 +18,9 @@
 package basicAssetsSQLStorage
 
 import (
-    "SealABC/dataStructure/enum"
-    "SealABC/service/application/basicAssets/basicAssetsLedger"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
     "errors"
 )
 

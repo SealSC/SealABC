@@ -18,8 +18,8 @@
 package engineStartup
 
 import (
-    "SealABC/service/system"
-    "SealABC/service"
+    "github.com/SealSC/SealABC/service/system"
+    "github.com/SealSC/SealABC/service"
 )
 
 func startSystemService() {

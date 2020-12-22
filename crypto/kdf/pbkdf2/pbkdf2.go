@@ -18,8 +18,8 @@
 package pbkdf2
 
 import (
-    "SealABC/crypto/hashes"
-    "SealABC/crypto/hashes/sha3"
+    "github.com/SealSC/SealABC/crypto/hashes"
+    "github.com/SealSC/SealABC/crypto/hashes/sha3"
     "encoding/json"
     "errors"
     "golang.org/x/crypto/bcrypt"

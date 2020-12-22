@@ -1,4 +1,4 @@
-module SealABC
+module github.com/SealSC/SealABC
 
 go 1.15
 

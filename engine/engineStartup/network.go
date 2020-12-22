@@ -18,7 +18,7 @@
 package engineStartup
 
 import (
-    "SealABC/network"
+    "github.com/SealSC/SealABC/network"
 )
 
 func startConsensusNetwork() (networkService network.IService, err error) {

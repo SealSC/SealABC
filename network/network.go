@@ -18,8 +18,8 @@
 package network
 
 import (
-    "SealABC/log"
-    "SealABC/metadata/message"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/message"
 )
 
 type StaticInformation struct {

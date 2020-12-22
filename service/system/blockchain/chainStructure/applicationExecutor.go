@@ -18,10 +18,10 @@
 package chainStructure
 
 import (
-    "SealABC/metadata/applicationResult"
-    "SealABC/metadata/block"
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/service"
+    "github.com/SealSC/SealABC/metadata/applicationResult"
+    "github.com/SealSC/SealABC/metadata/block"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/service"
     "errors"
     "sync"
 )

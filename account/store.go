@@ -18,10 +18,10 @@
 package account
 
 import (
-	"SealABC/crypto/ciphers"
-	"SealABC/crypto/ciphers/cipherCommon"
-	"SealABC/crypto/kdf/pbkdf2"
-	"SealABC/crypto/signers"
+	"github.com/SealSC/SealABC/crypto/ciphers"
+	"github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
+	"github.com/SealSC/SealABC/crypto/kdf/pbkdf2"
+	"github.com/SealSC/SealABC/crypto/signers"
 	"encoding/json"
 	"errors"
 	"io/ioutil"

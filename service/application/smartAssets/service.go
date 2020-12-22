@@ -18,14 +18,14 @@
 package smartAssets
 
 import (
-	"SealABC/log"
-	"SealABC/service/application/smartAssets/smartAssetsInterface"
-	"SealABC/service/application/smartAssets/smartAssetsLedger"
-	"SealABC/service/application/smartAssets/smartAssetsSQLStorage"
-	"SealABC/service/application/smartAssets/smartAssetsSQLTables"
-	"SealABC/service/system/blockchain/chainStructure"
-	"SealABC/storage/db"
-	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsInterface"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLStorage"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/storage/db"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 func Load() {

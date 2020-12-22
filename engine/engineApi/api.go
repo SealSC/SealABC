@@ -18,7 +18,7 @@
 package engineApi
 
 import (
-    "SealABC/engine/engineApi/httpJSON"
+    "github.com/SealSC/SealABC/engine/engineApi/httpJSON"
 )
 
 func Start(cfg Config) {

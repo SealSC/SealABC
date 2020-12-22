@@ -19,9 +19,9 @@ package topology
 
 import (
     "encoding/json"
-    "SealABC/network"
-    "SealABC/network/topology/p2p/fullyConnect/message"
-    "SealABC/network/topology/p2p/fullyConnect/message/payload"
+    "github.com/SealSC/SealABC/network"
+    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message"
+    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message/payload"
     "time"
 )
 

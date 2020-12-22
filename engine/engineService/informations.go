@@ -18,8 +18,8 @@
 package engineService
 
 import (
-    "SealABC/consensus"
-    "SealABC/service"
+    "github.com/SealSC/SealABC/consensus"
+    "github.com/SealSC/SealABC/service"
 )
 
 var consensusService consensus.IConsensusService

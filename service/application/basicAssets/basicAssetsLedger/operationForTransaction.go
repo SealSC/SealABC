@@ -18,9 +18,9 @@
 package basicAssetsLedger
 
 import (
-    "SealABC/log"
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
     "encoding/json"
     "errors"
     "time"

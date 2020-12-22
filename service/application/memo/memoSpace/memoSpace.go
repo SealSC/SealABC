@@ -17,7 +17,7 @@
 
 package memoSpace
 
-import "SealABC/metadata/seal"
+import "github.com/SealSC/SealABC/metadata/seal"
 
 const MaxMemoSize = 2 * 1024 * 1024
 

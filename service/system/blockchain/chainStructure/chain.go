@@ -18,9 +18,9 @@
 package chainStructure
 
 import (
-    "SealABC/log"
-    "SealABC/metadata/block"
-    "SealABC/service/system/blockchain/chainSQLStorage"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/block"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
     "sync"
 )
 

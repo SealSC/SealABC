@@ -19,8 +19,8 @@ package service
 
 import (
     "errors"
-    "SealABC/dataStructure/enum"
-    "SealABC/network/http"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/network/http"
 )
 
 type Parameters http.Parameters

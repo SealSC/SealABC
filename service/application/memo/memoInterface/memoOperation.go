@@ -18,11 +18,11 @@
 package memoInterface
 
 import (
-    "SealABC/common/utility/serializer/structSerializer"
-    "SealABC/service/application/memo/memoSpace"
+    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+    "github.com/SealSC/SealABC/service/application/memo/memoSpace"
     "encoding/json"
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/log"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/log"
     "errors"
     "encoding/hex"
 )

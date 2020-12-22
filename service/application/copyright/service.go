@@ -18,7 +18,7 @@
 package copyright
 
 import (
-	"SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 )
 
 func Load() {

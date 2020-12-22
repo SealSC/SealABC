@@ -17,7 +17,7 @@
 
 package smartAssetsLedger
 
-import "SealABC/dataStructure/enum"
+import "github.com/SealSC/SealABC/dataStructure/enum"
 
 var QueryTypes struct {
 	BaseAssets   enum.Element

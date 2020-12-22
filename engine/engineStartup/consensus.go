@@ -18,8 +18,8 @@
 package engineStartup
 
 import (
-    "SealABC/consensus"
-    "SealABC/network"
+    "github.com/SealSC/SealABC/consensus"
+    "github.com/SealSC/SealABC/network"
 )
 
 func startConsensus(service consensus.IConsensusService, ns network.IService, processor consensus.ExternalProcessor) (err error) {

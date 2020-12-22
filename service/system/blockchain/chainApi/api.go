@@ -18,12 +18,12 @@
 package chainApi
 
 import (
-    "SealABC/service/system/blockchain/chainApi/httpJSON"
-    "SealABC/service/system/blockchain/chainApi/httpJSON/actions"
-    "SealABC/service/system/blockchain/chainSQLStorage"
-    "SealABC/service/system/blockchain/chainStructure"
-    "SealABC/dataStructure/enum"
-    "SealABC/service/system/blockchain/chainNetwork"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON/actions"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
 )
 
 type ApiServers struct {

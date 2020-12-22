@@ -18,11 +18,11 @@
 package smartAssetsLedger
 
 import (
-	"SealABC/common/utility/serializer/structSerializer"
-	"SealABC/crypto/hashes"
-	"SealABC/dataStructure/enum"
-	"SealABC/metadata/block"
-	"SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+	"github.com/SealSC/SealABC/crypto/hashes"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/metadata/block"
+	"github.com/SealSC/SealABC/metadata/seal"
 	"bytes"
 	"errors"
 	"math/big"

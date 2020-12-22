@@ -18,14 +18,14 @@
 package serviceInterface
 
 import (
-    "SealABC/common/utility/serializer/structSerializer"
-    "SealABC/log"
-    "SealABC/metadata/block"
-    "SealABC/metadata/serviceRequest"
-    "SealABC/service"
-    "SealABC/service/system/blockchain/chainApi"
-    "SealABC/service/system/blockchain/chainNetwork"
-    "SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/block"
+    "github.com/SealSC/SealABC/metadata/serviceRequest"
+    "github.com/SealSC/SealABC/service"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainApi"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
     "bytes"
     "encoding/json"
     "errors"

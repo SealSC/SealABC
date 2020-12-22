@@ -18,10 +18,10 @@
 package chainStructure
 
 import (
-    "SealABC/crypto"
-    "SealABC/crypto/signers/signerCommon"
-    "SealABC/service/system/blockchain/chainSQLStorage"
-    "SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/SealSC/SealABC/crypto"
+    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
 type Config struct {

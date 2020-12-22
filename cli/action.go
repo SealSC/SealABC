@@ -18,7 +18,7 @@
 package cli
 
 import (
-	"SealABC/cli/cliFlags"
+	"github.com/SealSC/SealABC/cli/cliFlags"
 	"errors"
 	cliV2 "github.com/urfave/cli/v2"
 )

@@ -18,8 +18,8 @@
 package memoSQLStorage
 
 import (
-    "SealABC/metadata/httpJSONResult/rowsWithCount"
-    "SealABC/service/application/memo/memoTables"
+    "github.com/SealSC/SealABC/metadata/httpJSONResult/rowsWithCount"
+    "github.com/SealSC/SealABC/service/application/memo/memoTables"
     "errors"
 )
 

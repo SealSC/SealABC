@@ -18,8 +18,8 @@
 package message
 
 import (
-    "SealABC/dataStructure/enum"
-    "SealABC/network"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/network"
 )
 
 type messageTypes struct {

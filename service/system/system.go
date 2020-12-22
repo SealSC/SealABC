@@ -18,8 +18,8 @@
 package system
 
 import (
-    "SealABC/service/system/blockchain"
-    "SealABC/service"
+    "github.com/SealSC/SealABC/service/system/blockchain"
+    "github.com/SealSC/SealABC/service"
 )
 
 func Load() {

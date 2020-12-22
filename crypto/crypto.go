@@ -18,9 +18,9 @@
 package crypto
 
 import (
-    "SealABC/crypto/ciphers"
-    "SealABC/crypto/signers"
-    "SealABC/crypto/hashes"
+    "github.com/SealSC/SealABC/crypto/ciphers"
+    "github.com/SealSC/SealABC/crypto/signers"
+    "github.com/SealSC/SealABC/crypto/hashes"
 )
 
 type Tools struct {

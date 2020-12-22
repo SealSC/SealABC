@@ -18,8 +18,8 @@
 package basicAssetsInterface
 
 import (
-	"SealABC/log"
-	"SealABC/service/application/basicAssets/basicAssetsLedger"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
 )
 
 func (b *BasicAssetsApplication) storeAssets(tx basicAssetsLedger.TransactionWithBlockInfo, blc interface{})  {

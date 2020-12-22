@@ -18,9 +18,9 @@
 package chainNetwork
 
 import (
-    "SealABC/network"
-    "SealABC/log"
-    "SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/network"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
 )
 
 type p2pMessageHandler func(msg network.Message) *network.Message

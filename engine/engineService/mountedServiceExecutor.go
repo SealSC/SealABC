@@ -18,8 +18,8 @@
 package engineService
 
 import (
-    "SealABC/metadata/serviceRequest"
-    "SealABC/service"
+    "github.com/SealSC/SealABC/metadata/serviceRequest"
+    "github.com/SealSC/SealABC/service"
     "errors"
     "sync"
 )

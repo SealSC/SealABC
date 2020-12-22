@@ -17,7 +17,7 @@
 
 package basicAssetsLedger
 
-import "SealABC/dataStructure/enum"
+import "github.com/SealSC/SealABC/dataStructure/enum"
 
 var QueryTypes struct {
     Assets      enum.Element

@@ -18,11 +18,11 @@
 package topology
 
 import (
-    "SealABC/crypto/signers/ed25519"
-    "SealABC/log"
-    "SealABC/network"
-    "SealABC/network/topology/p2p/fullyConnect/message"
-    "SealABC/network/topology/p2p/fullyConnect/message/payload"
+    "github.com/SealSC/SealABC/crypto/signers/ed25519"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/network"
+    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message"
+    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message/payload"
     "encoding/json"
     "errors"
 )

@@ -18,7 +18,7 @@
 package topology
 
 import (
-    "SealABC/network"
+    "github.com/SealSC/SealABC/network"
 )
 
 type iMessageProcessor interface {

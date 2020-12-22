@@ -18,12 +18,12 @@
 package engineStartup
 
 import (
-    "SealABC/crypto"
-    "SealABC/crypto/signers/signerCommon"
-    "SealABC/engine/engineApi"
-    "SealABC/log"
-    "SealABC/network"
-    "SealABC/service/system"
+    "github.com/SealSC/SealABC/crypto"
+    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
+    "github.com/SealSC/SealABC/engine/engineApi"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/network"
+    "github.com/SealSC/SealABC/service/system"
 )
 
 type Config struct {

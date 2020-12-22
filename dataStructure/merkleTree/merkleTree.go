@@ -18,7 +18,7 @@
 package merkleTree
 
 import (
-    "SealABC/crypto/hashes/sha3"
+    "github.com/SealSC/SealABC/crypto/hashes/sha3"
     "bytes"
     "errors"
     "github.com/cbergoon/merkletree"

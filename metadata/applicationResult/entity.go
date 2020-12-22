@@ -17,7 +17,7 @@
 
 package applicationResult
 
-import "SealABC/metadata/seal"
+import "github.com/SealSC/SealABC/metadata/seal"
 
 type Entity struct {
     Data interface{}

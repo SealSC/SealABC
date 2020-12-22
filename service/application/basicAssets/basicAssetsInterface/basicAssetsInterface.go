@@ -18,16 +18,16 @@
 package basicAssetsInterface
 
 import (
-    "SealABC/dataStructure/enum"
-    "SealABC/metadata/applicationResult"
-    "SealABC/metadata/block"
-    "SealABC/metadata/blockchainRequest"
-    "SealABC/service"
-    "SealABC/service/application/basicAssets/basicAssetsLedger"
-    "SealABC/service/application/basicAssets/basicAssetsSQLStorage"
-    "SealABC/service/system/blockchain/chainStructure"
-    "SealABC/storage/db/dbInterface/kvDatabase"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/metadata/applicationResult"
+    "github.com/SealSC/SealABC/metadata/block"
+    "github.com/SealSC/SealABC/metadata/blockchainRequest"
+    "github.com/SealSC/SealABC/service"
+    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
+    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsSQLStorage"
+    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
     "encoding/json"
     "errors"
 )

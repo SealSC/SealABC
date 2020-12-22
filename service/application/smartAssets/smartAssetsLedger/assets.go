@@ -18,8 +18,8 @@
 package smartAssetsLedger
 
 import (
-	"SealABC/metadata/seal"
-	"SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/SealSC/SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"encoding/json"
 	"math/big"
 )

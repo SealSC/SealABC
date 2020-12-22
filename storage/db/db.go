@@ -18,11 +18,11 @@
 package db
 
 import (
-    "SealABC/storage/db/dbDrivers/levelDB"
-    "SealABC/storage/db/dbDrivers/simpleMysql"
-    "SealABC/storage/db/dbInterface"
-    "SealABC/storage/db/dbInterface/kvDatabase"
-    "SealABC/storage/db/dbInterface/simpleSQLDatabase"
+    "github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
+    "github.com/SealSC/SealABC/storage/db/dbDrivers/simpleMysql"
+    "github.com/SealSC/SealABC/storage/db/dbInterface"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type kvDriverLoader func(cfg interface{}) (engine kvDatabase.IDriver, err error)

@@ -19,9 +19,9 @@ package chainNetwork
 
 import (
     "sync"
-    "SealABC/network"
+    "github.com/SealSC/SealABC/network"
     "time"
-    "SealABC/log"
+    "github.com/SealSC/SealABC/log"
 )
 
 var syncBlockWait sync.WaitGroup

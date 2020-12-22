@@ -18,7 +18,7 @@
 package consensus
 
 import (
-    "SealABC/network"
+    "github.com/SealSC/SealABC/network"
 )
 
 type driver struct {

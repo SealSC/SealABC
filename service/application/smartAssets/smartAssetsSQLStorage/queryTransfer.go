@@ -18,7 +18,7 @@
 package smartAssetsSQLStorage
 
 import (
-	"SealABC/service/application/smartAssets/smartAssetsSQLTables"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 )
 
 var transferRowType = smartAssetsSQLTables.TransferRow{}
