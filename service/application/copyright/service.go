@@ -18,33 +18,29 @@
 package copyright
 
 import (
-	"SealABC/log"
-	"SealABC/service/application/smartAssets/smartAssetsInterface"
 	"SealABC/service/system/blockchain/chainStructure"
-	"SealABC/storage/db"
-	"SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 func Load() {
 
 }
 
-func NewSmartAssetsApplication(config *Config) (app chainStructure.IBlockchainExternalApplication, err error) {
+func NewCopyrightApplication(config *Config) (app chainStructure.IBlockchainExternalApplication, err error) {
 	if config == nil {
 		config = DefaultConfig()
 	}
+	//
+	//kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
+	//if err != nil {
+	//	log.Log.Error("can't load basic assets app for now: ", err.Error())
+	//	return
+	//}
+	//
+	//var sqlDriver simpleSQLDatabase.IDriver = nil
+	//if config.EnableSQLDB {
+	//	sqlDriver = config.SQLStorage
+	//}
 
-	kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
-	if err != nil {
-		log.Log.Error("can't load basic assets app for now: ", err.Error())
-		return
-	}
-
-	var sqlDriver simpleSQLDatabase.IDriver = nil
-	if config.EnableSQLDB {
-		sqlDriver = config.SQLStorage
-	}
-
-	app, err = smartAssetsInterface.NewApplicationInterface(kvDriver, sqlDriver, config.CryptoTools, config.BaseAssets)
+	//app, err = smartAssetsInterface.NewApplicationInterface(kvDriver, sqlDriver, config.CryptoTools, config.BaseAssets)
 	return
 }
