@@ -48,6 +48,16 @@ func (u *UIDLedger) verifyUIDCreation(tx uidData.UIDTransactionCreation) (ret in
 		return nil, errors.New("invalid signature of transaction: " + err.Error())
 	}
 
+	for _, key := range uid.Keys {
+		if key.KeyType == uidData.UIDKeyTypes.OracleProof.Int() {
+			return nil, errors.New("type of oracle proof key was not supported for now")
+		}
+
+		if len(key.KeyProof) != 0 {
+			return nil, errors.New("self proof was in seal field, key proof field must be empty")
+		}
+	}
+
 	rawUIDData, _ := structSerializer.ToMFBytes(uid.UniversalIdentificationData)
 	_, err = uid.Seal.Verify(rawUIDData, u.CryptoTools.HashCalculator)
 	if err != nil {

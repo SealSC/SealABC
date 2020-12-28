@@ -26,9 +26,15 @@ type UIDTransactionCreation struct {
 	Seal    seal.Entity
 }
 
+type UIDAppendKeysTransactionData struct {
+	Identification string
+	Keys           []UIDKey
+	NewUIDSeal     seal.Entity
+}
+
 type UIDAppendKeysTransaction struct {
-	UID  string
-	Keys []UIDKey
+	UIDAppendKeysTransactionData
+
 	Seal seal.Entity
 }
 

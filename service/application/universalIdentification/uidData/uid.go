@@ -23,8 +23,8 @@ import (
 )
 
 var UIDKeyTypes struct {
-	SelfSignature   enum.Element
-	OracleSignature enum.Element
+	SelfProof   enum.Element
+	OracleProof enum.Element
 }
 
 type UIDKey struct {
