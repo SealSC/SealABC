@@ -35,6 +35,7 @@ type UIDKey struct {
 
 type UniversalIdentificationData struct {
 	Identification string
+	Namespace      string
 	Keys           []UIDKey
 }
 

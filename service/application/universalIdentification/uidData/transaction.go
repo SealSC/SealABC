@@ -21,9 +21,9 @@ import (
 	"github.com/SealSC/SealABC/metadata/seal"
 )
 
-type UIDCreateTransaction struct {
-	Keys []UIDKey
-	Seal seal.Entity
+type UIDTransactionCreation struct {
+	UID     UniversalIdentification
+	Seal    seal.Entity
 }
 
 type UIDAppendKeysTransaction struct {

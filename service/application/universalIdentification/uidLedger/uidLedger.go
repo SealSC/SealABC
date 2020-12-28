@@ -18,10 +18,17 @@
 package uidLedger
 
 import (
+	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/service/application/universalIdentification/uidData"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
 func Load()  {
 	enum.SimpleBuild(&uidData.UIDKeyTypes)
+}
+
+type UIDLedger struct {
+	CryptoTools crypto.Tools
+	KVStorage   kvDatabase.IDriver
 }
