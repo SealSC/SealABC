@@ -32,7 +32,9 @@ var AllHash = map[string] IHashCalculator {
 type IHashCalculator interface {
     Name() string
     Sum([]byte) []byte
+    SumHex([]byte) string
     HMAC([]byte, []byte) []byte
+    HMACHex([]byte, []byte)string
     OriginalHash() func() hash.Hash
 }
 

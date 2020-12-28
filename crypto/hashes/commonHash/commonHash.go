@@ -18,6 +18,7 @@
 package commonHash
 
 import (
+	"encoding/hex"
 	"github.com/SealSC/SealABC/log"
 	"crypto/hmac"
 	"hash"
@@ -54,8 +55,18 @@ func (c CommonHash)Sum(data []byte) []byte {
 	return calcHash(hashMethodMap[c.HashType], data)
 }
 
+func (c CommonHash)SumHex(data []byte) string {
+	result := calcHash(hashMethodMap[c.HashType], data)
+	return hex.EncodeToString(result)
+}
+
 func (c CommonHash) HMAC(data []byte, key []byte) []byte {
 	return calcHMAC(hashMethodMap[c.HashType], data, key)
+}
+
+func (c CommonHash) HMACHex(data []byte, key []byte) string {
+	result := calcHMAC(hashMethodMap[c.HashType], data, key)
+	return hex.EncodeToString(result)
 }
 
 func (c CommonHash) OriginalHash() func() hash.Hash {
