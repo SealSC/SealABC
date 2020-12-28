@@ -43,10 +43,16 @@ type UIDKeyToUpdate struct {
 	UIDKey
 }
 
+type UIDUpdateKeysTransactionData struct {
+	Identification string
+	NewKeys        []UIDKeyToUpdate
+	NewUIDSeal     seal.Entity
+}
+
 type UIDUpdateKeysTransaction struct {
-	UID     string
-	NewKeys []UIDKeyToUpdate
-	Seal    seal.Entity
+	UIDUpdateKeysTransactionData
+
+	Seal seal.Entity
 }
 
 type UIDQuery struct {
