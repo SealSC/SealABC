@@ -25,13 +25,13 @@ import (
 )
 
 func Load() {
-
+	uidInterface.Load()
 }
 
-func NewBasicAssetsApplication(config Config) (app chainStructure.IBlockchainExternalApplication, err error) {
+func NewUniversalIdentificationApplication(config Config) (app chainStructure.IBlockchainExternalApplication, err error) {
 	kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
 	if err != nil {
-		log.Log.Error("can't load basic assets app for now: ", err.Error())
+		log.Log.Error("can't load universal identification app for now: ", err.Error())
 		return
 	}
 
