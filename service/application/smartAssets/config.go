@@ -29,9 +29,6 @@ import (
 
 type Config struct {
 	commonCfg.Config
-
-	CryptoTools crypto.Tools
-
 	BaseAssets smartAssetsLedger.BaseAssetsData
 }
 
@@ -45,11 +42,11 @@ func DefaultConfig() *Config {
 
 			EnableSQLDB:  false,
 			SQLStorage:   nil,
-		},
 
-		CryptoTools:  crypto.Tools{
-			HashCalculator:  sha3.Sha256,
-			SignerGenerator: ed25519.SignerGenerator,
+			CryptoTools:  crypto.Tools{
+				HashCalculator:  sha3.Sha256,
+				SignerGenerator: ed25519.SignerGenerator,
+			},
 		},
 
 		BaseAssets: smartAssetsLedger.BaseAssetsData{

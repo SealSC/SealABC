@@ -18,6 +18,7 @@
 package applicationCommonConfig
 
 import (
+    "github.com/SealSC/SealABC/crypto"
     "github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
     "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
@@ -28,4 +29,6 @@ type Config struct {
 
     EnableSQLDB bool
     SQLStorage  simpleSQLDatabase.IDriver
+
+    CryptoTools crypto.Tools
 }
