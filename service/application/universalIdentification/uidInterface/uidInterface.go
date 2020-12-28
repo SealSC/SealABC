@@ -18,22 +18,15 @@
 package uidInterface
 
 import (
-	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/applicationResult"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/metadata/blockchainRequest"
 	"github.com/SealSC/SealABC/service"
-	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
-	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsSQLStorage"
+	"github.com/SealSC/SealABC/service/application/universalIdentification/uidLedger"
 	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
-
-var QueryDBType struct{
-	KV  enum.Element
-	SQL enum.Element
-}
 
 type UniversalIdentification struct {
 
@@ -82,9 +75,7 @@ func (u *UniversalIdentification) GetActionAsRequest(req blockchainRequest.Entit
 }
 
 func Load()  {
-	enum.SimpleBuild(&QueryDBType)
-	basicAssetsLedger.Load()
-	basicAssetsSQLStorage.Load()
+	uidLedger.Load()
 }
 
 func NewApplicationInterface(kvDriver kvDatabase.IDriver, sqlDriver simpleSQLDatabase.IDriver) (app chainStructure.IBlockchainExternalApplication) {
