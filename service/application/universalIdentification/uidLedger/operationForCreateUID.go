@@ -27,8 +27,7 @@ import (
 
 func (u *UIDLedger) verifyUIDCreation(tx uidData.UIDTransactionCreation) (ret interface{}, err error){
 	uid := tx.UID
-	var newRawID = string(uid.Seal.SignerPublicKey) + uid.Namespace
-	newHashedID := u.CryptoTools.HashCalculator.SumHex([]byte(newRawID))
+	newHashedID := u.calcIdentification(uid.Seal.SignerPublicKey, uid.Namespace)
 
 	if newHashedID != uid.Identification {
 		return nil, errors.New("identification not equal")

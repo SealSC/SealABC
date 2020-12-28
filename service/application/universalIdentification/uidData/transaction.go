@@ -42,3 +42,12 @@ type UIDUpdateKeysTransaction struct {
 	NewKeys []UIDKeyToUpdate
 	Seal    seal.Entity
 }
+
+type UIDQuery struct {
+	PublicKey []byte
+	Namespace string
+}
+
+type QueryResult struct {
+	UIDList []UniversalIdentification
+}

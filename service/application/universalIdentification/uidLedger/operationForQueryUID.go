@@ -18,22 +18,20 @@
 package uidLedger
 
 import (
-	"github.com/SealSC/SealABC/crypto"
-	"github.com/SealSC/SealABC/dataStructure/enum"
+	"encoding/json"
 	"github.com/SealSC/SealABC/service/application/universalIdentification/uidData"
-	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
-func Load()  {
-	enum.SimpleBuild(&uidData.UIDKeyTypes)
-}
+func (u *UIDLedger)QueryUID(queryData uidData.UIDQuery) (ret uidData.QueryResult, err error){
+	identification := u.calcIdentification(queryData.PublicKey, queryData.Namespace)
+	dataList := u.KVStorage.Traversal([]byte(identification))
 
-type UIDLedger struct {
-	CryptoTools crypto.Tools
-	KVStorage   kvDatabase.IDriver
-}
+	for _, uData := range dataList {
+		uid := uidData.UniversalIdentification{}
+		_ = json.Unmarshal(uData.Data, &uid)
 
-func (u *UIDLedger) calcIdentification(pubKey []byte, namespace string) string {
-	rawID := string(pubKey) + namespace
-	return u.CryptoTools.HashCalculator.SumHex([]byte(rawID))
+		ret.UIDList = append(ret.UIDList, uid)
+	}
+
+	return
 }
