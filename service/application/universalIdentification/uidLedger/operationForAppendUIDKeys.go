@@ -25,8 +25,14 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
-func (u *UIDLedger) verifyUIDKeysAppend(tx uidData.UIDAppendKeys) (ret interface{}, err error){
-	uData, err := u.KVStorage.Get([]byte(tx.Identification))
+func (u *UIDLedger) verifyUIDKeysAppend(reqData []byte) (ret interface{}, err error){
+	actionData := uidData.UIDAppendKeys{}
+	err = json.Unmarshal(reqData, &actionData)
+	if err != nil {
+		return nil, errors.New("invalid append action data: " + err.Error())
+	}
+
+	uData, err := u.KVStorage.Get([]byte(actionData.Identification))
 	if err != nil {
 		return nil, errors.New("can't get data from db: " + err.Error())
 	}
@@ -35,14 +41,14 @@ func (u *UIDLedger) verifyUIDKeysAppend(tx uidData.UIDAppendKeys) (ret interface
 		return nil, errors.New("universal identification not exist")
 	}
 
-	rawData, _ := structSerializer.ToMFBytes(tx.UIDAppendKeysData)
-	_, err = tx.Seal.Verify(rawData, u.CryptoTools.HashCalculator)
+	rawData, _ := structSerializer.ToMFBytes(actionData.UIDAppendKeysData)
+	_, err = actionData.Seal.Verify(rawData, u.CryptoTools.HashCalculator)
 	if err != nil {
 		return nil, errors.New("invalid signature of append: " + err.Error())
 	}
 
 
-	for _, newKey := range tx.Keys {
+	for _, newKey := range actionData.Keys {
 		if newKey.KeyType == uidData.UIDKeyTypes.OracleProof.Int() {
 			return nil, errors.New("type of oracle proof key was not supported for now")
 		}
@@ -56,10 +62,10 @@ func (u *UIDLedger) verifyUIDKeysAppend(tx uidData.UIDAppendKeys) (ret interface
 	uid := uidData.UniversalIdentification{}
 	_ = json.Unmarshal(uData.Data, &uid)
 
-	uid.Keys = append(uid.Keys, tx.Keys...)
+	uid.Keys = append(uid.Keys, actionData.Keys...)
 	newUIDRawData, _ := structSerializer.ToMFBytes(uid.UniversalIdentificationData)
 
-	_, err = tx.NewUIDSeal.Verify(newUIDRawData, u.CryptoTools.HashCalculator)
+	_, err = actionData.NewUIDSeal.Verify(newUIDRawData, u.CryptoTools.HashCalculator)
 	if err != nil {
 		return nil, errors.New("invalid signature of new uid: " + err.Error())
 	}
@@ -67,13 +73,16 @@ func (u *UIDLedger) verifyUIDKeysAppend(tx uidData.UIDAppendKeys) (ret interface
 	return nil, nil
 }
 
-func (u* UIDLedger) appendUIDKeys(tx uidData.UIDAppendKeys) (err error) {
-	uData, _ := u.KVStorage.Get([]byte(tx.Identification))
+func (u* UIDLedger) appendUIDKeys(reqData []byte) (err error) {
+	actionData := uidData.UIDAppendKeys{}
+	_ = json.Unmarshal(reqData, &actionData)
+
+	uData, _ := u.KVStorage.Get([]byte(actionData.Identification))
 	uid := uidData.UniversalIdentification{}
 	_ = json.Unmarshal(uData.Data, &uid)
 
-	uid.Keys = append(uid.Keys, tx.Keys...)
-	uid.Seal = tx.NewUIDSeal
+	uid.Keys = append(uid.Keys, actionData.Keys...)
+	uid.Seal = actionData.NewUIDSeal
 
 	newData, _ := json.Marshal(&uid)
 

@@ -20,12 +20,14 @@ package universalIdentification
 import (
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/service/application/universalIdentification/uidInterface"
+	"github.com/SealSC/SealABC/service/application/universalIdentification/uidLedger"
 	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 	"github.com/SealSC/SealABC/storage/db"
 )
 
 func Load() {
 	uidInterface.Load()
+	uidLedger.Load()
 }
 
 func NewUniversalIdentificationApplication(config Config) (app chainStructure.IBlockchainExternalApplication, err error) {

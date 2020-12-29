@@ -25,8 +25,14 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
-func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeys) (ret interface{}, err error){
-	uData, err := u.KVStorage.Get([]byte(tx.Identification))
+func (u *UIDLedger) verifyUIDKeysUpdate(reqData []byte) (ret interface{}, err error){
+	actionData := uidData.UIDUpdateKeys{}
+	err = json.Unmarshal(reqData, &actionData)
+	if err != nil {
+		return nil, errors.New("invalid uid key update data: " + err.Error())
+	}
+
+	uData, err := u.KVStorage.Get([]byte(actionData.Identification))
 	if err != nil {
 		return nil, errors.New("can't get data from db: " + err.Error())
 	}
@@ -35,8 +41,8 @@ func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeys) (ret interface{},
 		return nil, errors.New("universal identification not exist")
 	}
 
-	rawData, _ := structSerializer.ToMFBytes(tx.UIDUpdateKeysData)
-	_, err = tx.Seal.Verify(rawData, u.CryptoTools.HashCalculator)
+	rawData, _ := structSerializer.ToMFBytes(actionData.UIDUpdateKeysData)
+	_, err = actionData.Seal.Verify(rawData, u.CryptoTools.HashCalculator)
 	if err != nil {
 		return nil, errors.New("invalid signature of append: " + err.Error())
 	}
@@ -44,7 +50,7 @@ func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeys) (ret interface{},
 	uid := uidData.UniversalIdentification{}
 	_ = json.Unmarshal(uData.Data, &uid)
 
-	for _, newKey := range tx.NewKeys {
+	for _, newKey := range actionData.NewKeys {
 		if newKey.KeyType == uidData.UIDKeyTypes.OracleProof.Int() {
 			return nil, errors.New("type of oracle proof key was not supported for now")
 		}
@@ -63,7 +69,7 @@ func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeys) (ret interface{},
 
 	newUIDRawData, _ := structSerializer.ToMFBytes(uid.UniversalIdentificationData)
 
-	_, err = tx.NewUIDSeal.Verify(newUIDRawData, u.CryptoTools.HashCalculator)
+	_, err = actionData.NewUIDSeal.Verify(newUIDRawData, u.CryptoTools.HashCalculator)
 	if err != nil {
 		return nil, errors.New("invalid signature of new uid: " + err.Error())
 	}
@@ -71,15 +77,18 @@ func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeys) (ret interface{},
 	return nil, nil
 }
 
-func (u* UIDLedger) updateUIDKeys(tx uidData.UIDUpdateKeys) (err error) {
-	uData, _ := u.KVStorage.Get([]byte(tx.Identification))
+func (u* UIDLedger) updateUIDKeys(reqData []byte) (err error) {
+	actionData := uidData.UIDUpdateKeys{}
+	_ = json.Unmarshal(reqData, &actionData)
+
+	uData, _ := u.KVStorage.Get([]byte(actionData.Identification))
 	uid := uidData.UniversalIdentification{}
 	_ = json.Unmarshal(uData.Data, &uid)
 
-	for _, newKey := range tx.NewKeys {
+	for _, newKey := range actionData.NewKeys {
 		uid.Keys[newKey.KeyIndex] = newKey.UIDKey
 	}
-	uid.Seal = tx.NewUIDSeal
+	uid.Seal = actionData.NewUIDSeal
 
 	newData, _ := json.Marshal(&uid)
 

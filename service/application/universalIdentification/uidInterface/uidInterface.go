@@ -26,10 +26,20 @@ import (
 	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"sync"
 )
 
-type UniversalIdentificationApplication struct {
+type ActionList struct {
+	Actions []blockchainRequest.Entity
+}
 
+type UniversalIdentificationApplication struct {
+	reqPool map[string] blockchainRequest.Entity
+	reqList [] blockchainRequest.Entity
+
+	poolLock sync.Mutex
+
+	ledger uidLedger.UIDLedger
 }
 
 func (u *UniversalIdentificationApplication) Name() (name string) {
@@ -71,13 +81,16 @@ func (u *UniversalIdentificationApplication) Information() (info service.BasicIn
 func (u *UniversalIdentificationApplication) SetBlockchainService(_ interface{}) {}
 func (u *UniversalIdentificationApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
 func (u *UniversalIdentificationApplication) GetActionAsRequest(req blockchainRequest.Entity) (newReq blockchainRequest.Entity) {
+
 	return
 }
 
-func Load()  {
-	uidLedger.Load()
-}
+func Load()  {}
 
 func NewApplicationInterface(kvDriver kvDatabase.IDriver, sqlDriver simpleSQLDatabase.IDriver) (app chainStructure.IBlockchainExternalApplication) {
-	return &UniversalIdentificationApplication{}
+	uidApp := UniversalIdentificationApplication{}
+
+	uidApp.ledger = uidLedger.NewLedger(kvDriver, sqlDriver)
+
+	return &uidApp
 }

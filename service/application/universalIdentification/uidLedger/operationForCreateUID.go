@@ -25,8 +25,14 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
-func (u *UIDLedger) verifyUIDCreation(tx uidData.UIDCreation) (ret interface{}, err error){
-	uid := tx.UID
+func (u *UIDLedger) verifyUIDCreation(reqData []byte) (ret interface{}, err error){
+	actionData := uidData.UIDCreation{}
+	err = json.Unmarshal(reqData, &actionData)
+	if err != nil {
+		return nil, errors.New("invalid uid creation data: " + err.Error())
+	}
+
+	uid := actionData.UID
 	newHashedID := u.calcIdentification(uid.Seal.SignerPublicKey, uid.Namespace)
 
 	if newHashedID != uid.Identification {
@@ -43,7 +49,7 @@ func (u *UIDLedger) verifyUIDCreation(tx uidData.UIDCreation) (ret interface{}, 
 	}
 
 	rawTxData, _ := structSerializer.ToMFBytes(uid)
-	_, err = tx.Seal.Verify(rawTxData, u.CryptoTools.HashCalculator)
+	_, err = actionData.Seal.Verify(rawTxData, u.CryptoTools.HashCalculator)
 	if err != nil {
 		return nil, errors.New("invalid signature of transaction: " + err.Error())
 	}
@@ -67,11 +73,14 @@ func (u *UIDLedger) verifyUIDCreation(tx uidData.UIDCreation) (ret interface{}, 
 	return nil, nil
 }
 
-func (u* UIDLedger) createUID(tx uidData.UIDCreation) (err error) {
-	dataToStore, _ := json.Marshal(tx.UID)
+func (u* UIDLedger) createUID(reqData []byte) (err error) {
+	actionData := uidData.UIDCreation{}
+	_ = json.Unmarshal(reqData, &actionData)
+
+	dataToStore, _ := json.Marshal(actionData.UID)
 
 	err = u.KVStorage.Put(kvDatabase.KVItem{
-		Key:    []byte(tx.UID.Identification),
+		Key:    []byte(actionData.UID.Identification),
 		Data:   dataToStore,
 		Exists: true,
 	})
