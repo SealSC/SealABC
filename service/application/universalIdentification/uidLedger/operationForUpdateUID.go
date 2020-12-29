@@ -25,7 +25,7 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
-func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeysTransaction) (ret interface{}, err error){
+func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeys) (ret interface{}, err error){
 	uData, err := u.KVStorage.Get([]byte(tx.Identification))
 	if err != nil {
 		return nil, errors.New("can't get data from db: " + err.Error())
@@ -35,7 +35,7 @@ func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeysTransaction) (ret i
 		return nil, errors.New("universal identification not exist")
 	}
 
-	rawData, _ := structSerializer.ToMFBytes(tx.UIDUpdateKeysTransactionData)
+	rawData, _ := structSerializer.ToMFBytes(tx.UIDUpdateKeysData)
 	_, err = tx.Seal.Verify(rawData, u.CryptoTools.HashCalculator)
 	if err != nil {
 		return nil, errors.New("invalid signature of append: " + err.Error())
@@ -71,7 +71,7 @@ func (u *UIDLedger) verifyKeysModify(tx uidData.UIDUpdateKeysTransaction) (ret i
 	return nil, nil
 }
 
-func (u* UIDLedger) updateUIDKeys(tx uidData.UIDUpdateKeysTransaction) (err error) {
+func (u* UIDLedger) updateUIDKeys(tx uidData.UIDUpdateKeys) (err error) {
 	uData, _ := u.KVStorage.Get([]byte(tx.Identification))
 	uid := uidData.UniversalIdentification{}
 	_ = json.Unmarshal(uData.Data, &uid)

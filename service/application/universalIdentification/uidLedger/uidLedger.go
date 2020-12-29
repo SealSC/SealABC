@@ -26,6 +26,7 @@ import (
 
 func Load()  {
 	enum.SimpleBuild(&uidData.UIDKeyTypes)
+	enum.SimpleBuild(&uidData.UIDActionTypes)
 }
 
 type UIDLedger struct {

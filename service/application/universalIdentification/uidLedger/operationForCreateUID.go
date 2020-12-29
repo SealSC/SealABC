@@ -25,7 +25,7 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
-func (u *UIDLedger) verifyUIDCreation(tx uidData.UIDTransactionCreation) (ret interface{}, err error){
+func (u *UIDLedger) verifyUIDCreation(tx uidData.UIDCreation) (ret interface{}, err error){
 	uid := tx.UID
 	newHashedID := u.calcIdentification(uid.Seal.SignerPublicKey, uid.Namespace)
 
@@ -67,7 +67,7 @@ func (u *UIDLedger) verifyUIDCreation(tx uidData.UIDTransactionCreation) (ret in
 	return nil, nil
 }
 
-func (u* UIDLedger) createUID(tx uidData.UIDTransactionCreation) (err error) {
+func (u* UIDLedger) createUID(tx uidData.UIDCreation) (err error) {
 	dataToStore, _ := json.Marshal(tx.UID)
 
 	err = u.KVStorage.Put(kvDatabase.KVItem{

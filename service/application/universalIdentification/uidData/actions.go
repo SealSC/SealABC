@@ -18,39 +18,40 @@
 package uidData
 
 import (
+	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/seal"
 )
 
-type UIDTransactionCreation struct {
+type UIDCreation struct {
 	UID     UniversalIdentification
 	Seal    seal.Entity
 }
 
-type UIDAppendKeysTransactionData struct {
+type UIDAppendKeysData struct {
 	Identification string
 	Keys           []UIDKey
 	NewUIDSeal     seal.Entity
 }
 
-type UIDAppendKeysTransaction struct {
-	UIDAppendKeysTransactionData
+type UIDAppendKeys struct {
+	UIDAppendKeysData
 
 	Seal seal.Entity
 }
 
-type UIDKeyToUpdate struct {
+type UIDKeyWithIndex struct {
 	KeyIndex int
 	UIDKey
 }
 
-type UIDUpdateKeysTransactionData struct {
+type UIDUpdateKeysData struct {
 	Identification string
-	NewKeys        []UIDKeyToUpdate
+	NewKeys        []UIDKeyWithIndex
 	NewUIDSeal     seal.Entity
 }
 
-type UIDUpdateKeysTransaction struct {
-	UIDUpdateKeysTransactionData
+type UIDUpdateKeys struct {
+	UIDUpdateKeysData
 
 	Seal seal.Entity
 }
@@ -62,4 +63,10 @@ type UIDQuery struct {
 
 type QueryResult struct {
 	UIDList []UniversalIdentification
+}
+
+var UIDActionTypes struct{
+	Create enum.Element
+	Append enum.Element
+	Update enum.Element
 }
