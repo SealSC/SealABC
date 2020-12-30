@@ -55,7 +55,7 @@ type IBlockchainExternalApplication interface {
     RequestsForBlock(block block.Entity) (entity []blockchainRequest.Entity, cnt uint32)
 
     //support one application call another inside blockchain execute
-    ApplicationInternalCall(callData []byte) (ret interface{}, err error)
+    ApplicationInternalCall(src string, callData []byte) (ret interface{}, err error)
 
     //external service information
     Information() (info service.BasicInformation)
@@ -74,7 +74,7 @@ func (BlankApplication) PreExecute(req blockchainRequest.Entity, header block.En
 func (BlankApplication) Execute(req blockchainRequest.Entity, header block.Entity, actIndex uint32) (result applicationResult.Entity, err error) {return }
 func (BlankApplication) Cancel(req blockchainRequest.Entity) (err error) {return }
 func (BlankApplication) RequestsForBlock(block block.Entity) (entity []blockchainRequest.Entity, cnt uint32) {return }
-func (BlankApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return }
+func (BlankApplication) ApplicationInternalCall(src string, callData []byte) (ret interface{}, err error) {return }
 func (BlankApplication) Information() (info service.BasicInformation) {return }
 func (BlankApplication) SetChainInterface(ci IChainInterface) {return }
 func (BlankApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (reqList []blockchainRequest.Entity, err error) {return }

@@ -77,6 +77,15 @@ func (b *Blockchain) executeRequest(blk block.Entity) (err error) {
     return
 }
 
+func (b *Blockchain) InternalCall(src string, dst string, data []byte) (ret interface{}, err error) {
+    app, err := b.Executor.getExternalExecutor(dst)
+    if err != nil {
+        return
+    }
+
+    return app.ApplicationInternalCall(src, data)
+}
+
 func (b *Blockchain) AddBlock(blk block.Entity) (err error) {
     err = b.executeRequest(blk)
     if err != nil {

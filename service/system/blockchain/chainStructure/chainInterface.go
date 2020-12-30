@@ -25,4 +25,5 @@ type IChainInterface interface {
 	GetBlockByHeight(height uint64) (blk block.Entity, err error)
 	GetLastBlock() (last *block.Entity)
 	CurrentHeight() (height uint64)
+	InternalCall(src string, dst string, data []byte) (ret interface{}, err error)
 }
