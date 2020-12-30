@@ -63,8 +63,22 @@ type IBlockchainExternalApplication interface {
     SetChainInterface(ci IChainInterface)
 
     UnpackingActionsAsRequests(req blockchainRequest.Entity) (reqList []blockchainRequest.Entity, err error)
-    GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity
+    GetActionAsRequest(req blockchainRequest.Entity) (ret blockchainRequest.Entity)
 }
+
+type BlankApplication struct {}
+func (BlankApplication) Name() (name string) {return }
+func (BlankApplication) PushClientRequest(req blockchainRequest.Entity) (result interface{}, err error) {return }
+func (BlankApplication) Query(req []byte) (result interface{}, err error) {return }
+func (BlankApplication) PreExecute(req blockchainRequest.Entity, header block.Entity) (result []byte, err error) {return }
+func (BlankApplication) Execute(req blockchainRequest.Entity, header block.Entity, actIndex uint32) (result applicationResult.Entity, err error) {return }
+func (BlankApplication) Cancel(req blockchainRequest.Entity) (err error) {return }
+func (BlankApplication) RequestsForBlock(block block.Entity) (entity []blockchainRequest.Entity, cnt uint32) {return }
+func (BlankApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return }
+func (BlankApplication) Information() (info service.BasicInformation) {return }
+func (BlankApplication) SetChainInterface(ci IChainInterface) {return }
+func (BlankApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (reqList []blockchainRequest.Entity, err error) {return }
+func (BlankApplication) GetActionAsRequest(req blockchainRequest.Entity) (ret blockchainRequest.Entity) {return }
 
 func (a *applicationExecutor)getExternalExecutor(name string) (exe IBlockchainExternalApplication, err error) {
     exe, exists := a.ExternalExecutors[name]

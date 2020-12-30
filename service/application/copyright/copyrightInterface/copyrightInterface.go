@@ -18,8 +18,8 @@
 package tsInterface
 
 import (
+	"encoding/json"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
-	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/dataStructure/merkleTree"
 	"github.com/SealSC/SealABC/metadata/applicationResult"
 	"github.com/SealSC/SealABC/metadata/block"
@@ -30,16 +30,12 @@ import (
 	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/json"
 	"sync"
 )
 
-var QueryDBType struct{
-	KV  enum.Element
-	SQL enum.Element
-}
-
 type CopyrightStorageApplication struct {
+	chainStructure.BlankApplication
+
 	reqList []string
 	reqMap  map[string] blockchainRequest.Entity
 
@@ -156,10 +152,6 @@ func (t *CopyrightStorageApplication) Execute (
 	return
 }
 
-func (t *CopyrightStorageApplication) Cancel(req blockchainRequest.Entity) (err error) {
-	return
-}
-
 func (t *CopyrightStorageApplication) Information() (info service.BasicInformation) {
 	info.Name = t.Name()
 	info.Description = "this is an traceableStorage application"
@@ -215,15 +207,6 @@ func (t *CopyrightStorageApplication) RequestsForBlock(_ block.Entity) (reqList 
 	}
 
 	return []blockchainRequest.Entity{packedReq}, 1
-}
-
-
-func (t *CopyrightStorageApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
-func (t *CopyrightStorageApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return}
-func (t *CopyrightStorageApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
-
-func (t *CopyrightStorageApplication) GetActionAsRequest(req blockchainRequest.Entity) (newReq blockchainRequest.Entity) {
-	return 
 }
 
 func Load()  {

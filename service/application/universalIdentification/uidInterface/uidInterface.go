@@ -38,6 +38,8 @@ type ActionList struct {
 }
 
 type UniversalIdentificationApplication struct {
+	chainStructure.BlankApplication
+
 	reqPool map[string] blockchainRequest.Entity
 	reqList [] blockchainRequest.Entity
 
@@ -63,10 +65,6 @@ func (u *UniversalIdentificationApplication) PushClientRequest(req blockchainReq
 	u.reqList = append(u.reqList, req)
 	u.poolLock.Unlock()
 
-	return
-}
-
-func (u *UniversalIdentificationApplication) Query(req []byte) (result interface{}, err error) {
 	return
 }
 
@@ -162,8 +160,6 @@ func (u *UniversalIdentificationApplication) Execute(
 	return
 }
 
-func (u *UniversalIdentificationApplication) Cancel(req blockchainRequest.Entity) (err error) {return}
-
 func (u *UniversalIdentificationApplication) RequestsForBlock(_ block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
 	u.poolLock.Lock()
 
@@ -207,14 +203,6 @@ func (u *UniversalIdentificationApplication) Information() (info service.BasicIn
 	info.Api.Protocol = service.ApiProtocols.INTERNAL.String()
 	info.Api.Address = ""
 	info.Api.ApiList = []service.ApiInterface {}
-	return
-}
-
-func (u *UniversalIdentificationApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
-func (u *UniversalIdentificationApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return}
-func (u *UniversalIdentificationApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
-func (u *UniversalIdentificationApplication) GetActionAsRequest(req blockchainRequest.Entity) (newReq blockchainRequest.Entity) {
-
 	return
 }
 

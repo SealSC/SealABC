@@ -36,6 +36,7 @@ import (
 )
 
 type SmartAssetsApplication struct {
+	chainStructure.BlankApplication
 	ledger *smartAssetsLedger.Ledger
 	sqlStorage *smartAssetsSQLStorage.Storage
 }
@@ -101,10 +102,6 @@ func (s *SmartAssetsApplication) Execute(
 	return
 }
 
-func (s *SmartAssetsApplication) Cancel(req blockchainRequest.Entity) (err error) {
-	return
-}
-
 func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
 	txList, cnt, txRoot := s.ledger.GetTransactionsFromPool(blk)
 	if cnt == 0 {
@@ -147,7 +144,6 @@ func (s *SmartAssetsApplication) SetChainInterface(ci chainStructure.IChainInter
 	s.ledger.SetChain(ci)
 }
 
-func (s *SmartAssetsApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return}
 func (s *SmartAssetsApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (list []blockchainRequest.Entity, err error){
 	if !req.Packed {
 		list = []blockchainRequest.Entity {req}

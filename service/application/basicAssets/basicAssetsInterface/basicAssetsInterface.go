@@ -38,6 +38,8 @@ var QueryDBType struct{
 }
 
 type BasicAssetsApplication struct {
+    chainStructure.BlankApplication
+
     Ledger *basicAssetsLedger.Ledger
     SQLStorage *basicAssetsSQLStorage.Storage
 }
@@ -147,10 +149,6 @@ func (b *BasicAssetsApplication) Execute(
     return
 }
 
-func (b *BasicAssetsApplication) Cancel(req blockchainRequest.Entity) (err error) {
-    return
-}
-
 func (b *BasicAssetsApplication) RequestsForBlock(_ block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
     return b.Ledger.GetTransactionsFromPool()
 }
@@ -164,10 +162,6 @@ func (b *BasicAssetsApplication) Information() (info service.BasicInformation) {
     info.Api.ApiList = []service.ApiInterface {}
     return
 }
-
-func (b *BasicAssetsApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
-func (b *BasicAssetsApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return}
-func (b *BasicAssetsApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
 
 func (b *BasicAssetsApplication) GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity {
     tx := basicAssetsLedger.Transaction{}

@@ -37,6 +37,8 @@ import (
 )
 
 type MemoApplication struct {
+    chainStructure.BlankApplication
+
     operateLock sync.RWMutex
     poolLock    sync.Mutex
 
@@ -150,10 +152,6 @@ func (m *MemoApplication) Execute(
     return
 }
 
-func (m *MemoApplication) Cancel(req blockchainRequest.Entity) (err error) {
-    return
-}
-
 func (m *MemoApplication) RequestsForBlock(_ block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
     m.operateLock.Lock()
     defer m.operateLock.Unlock()
@@ -178,10 +176,6 @@ func (m *MemoApplication) Information() (info service.BasicInformation) {
     info.Api.ApiList = []service.ApiInterface {}
     return
 }
-
-func (m *MemoApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
-func (m *MemoApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return}
-func (m *MemoApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
 
 func (m *MemoApplication) GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity {
     memo := memoSpace.Memo{}

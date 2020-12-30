@@ -34,6 +34,8 @@ import (
 )
 
 type TraceableStorageApplication struct {
+	chainStructure.BlankApplication
+
 	reqList []string
 	reqMap  map[string] blockchainRequest.Entity
 
@@ -150,10 +152,6 @@ func (t *TraceableStorageApplication) Execute (
 	return
 }
 
-func (t *TraceableStorageApplication) Cancel(req blockchainRequest.Entity) (err error) {
-	return
-}
-
 func (t *TraceableStorageApplication) Information() (info service.BasicInformation) {
 	info.Name = t.Name()
 	info.Description = "this is an traceableStorage application"
@@ -209,15 +207,6 @@ func (t *TraceableStorageApplication) RequestsForBlock(_ block.Entity) (reqList 
 	}
 
 	return []blockchainRequest.Entity{packedReq}, 1
-}
-
-
-func (t *TraceableStorageApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
-func (t *TraceableStorageApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return}
-func (t *TraceableStorageApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
-
-func (t *TraceableStorageApplication) GetActionAsRequest(req blockchainRequest.Entity) (newReq blockchainRequest.Entity) {
-	return 
 }
 
 func Load()  {
