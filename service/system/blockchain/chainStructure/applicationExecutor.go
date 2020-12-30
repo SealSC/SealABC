@@ -54,10 +54,13 @@ type IBlockchainExternalApplication interface {
     //build request list for new block
     RequestsForBlock(block block.Entity) (entity []blockchainRequest.Entity, cnt uint32)
 
+    //support one application call another inside blockchain execute
+    ApplicationInternalCall(callData []byte) (ret interface{}, err error)
+
     //external service information
     Information() (info service.BasicInformation)
 
-    SetChainInterface(bs IChainInterface)
+    SetChainInterface(ci IChainInterface)
 
     UnpackingActionsAsRequests(req blockchainRequest.Entity) (reqList []blockchainRequest.Entity, err error)
     GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity

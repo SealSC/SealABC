@@ -147,6 +147,7 @@ func (s *SmartAssetsApplication) SetChainInterface(ci chainStructure.IChainInter
 	s.ledger.SetChain(ci)
 }
 
+func (s *SmartAssetsApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return}
 func (s *SmartAssetsApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (list []blockchainRequest.Entity, err error){
 	if !req.Packed {
 		list = []blockchainRequest.Entity {req}

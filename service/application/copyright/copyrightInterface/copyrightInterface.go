@@ -219,6 +219,7 @@ func (t *CopyrightStorageApplication) RequestsForBlock(_ block.Entity) (reqList 
 
 
 func (t *CopyrightStorageApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
+func (t *CopyrightStorageApplication) ApplicationInternalCall(callData []byte) (ret interface{}, err error) {return}
 func (t *CopyrightStorageApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
 
 func (t *CopyrightStorageApplication) GetActionAsRequest(req blockchainRequest.Entity) (newReq blockchainRequest.Entity) {
