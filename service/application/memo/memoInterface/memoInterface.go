@@ -179,7 +179,7 @@ func (m *MemoApplication) Information() (info service.BasicInformation) {
     return
 }
 
-func (m *MemoApplication) SetBlockchainService(_ interface{}){}
+func (m *MemoApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
 func (m *MemoApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
 
 func (m *MemoApplication) GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity {

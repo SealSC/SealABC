@@ -210,7 +210,7 @@ func (u *UniversalIdentificationApplication) Information() (info service.BasicIn
 	return
 }
 
-func (u *UniversalIdentificationApplication) SetBlockchainService(_ interface{}) {}
+func (u *UniversalIdentificationApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
 func (u *UniversalIdentificationApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
 func (u *UniversalIdentificationApplication) GetActionAsRequest(req blockchainRequest.Entity) (newReq blockchainRequest.Entity) {
 

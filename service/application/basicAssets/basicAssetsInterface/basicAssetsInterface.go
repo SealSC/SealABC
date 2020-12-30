@@ -165,7 +165,7 @@ func (b *BasicAssetsApplication) Information() (info service.BasicInformation) {
     return
 }
 
-func (b *BasicAssetsApplication) SetBlockchainService(_ interface{}) {}
+func (b *BasicAssetsApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
 func (b *BasicAssetsApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
 
 func (b *BasicAssetsApplication) GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity {

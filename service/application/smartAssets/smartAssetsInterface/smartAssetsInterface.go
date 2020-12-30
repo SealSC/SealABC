@@ -143,12 +143,8 @@ func (s *SmartAssetsApplication) Information() (info service.BasicInformation) {
 	return
 }
 
-func (s *SmartAssetsApplication) SetBlockchainService(bs interface{}) {
-	chain, ok := bs.(*chainStructure.Blockchain)
-	if !ok {
-		return
-	}
-	s.ledger.SetChain(chain)
+func (s *SmartAssetsApplication) SetChainInterface(ci chainStructure.IChainInterface) {
+	s.ledger.SetChain(ci)
 }
 
 func (s *SmartAssetsApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (list []blockchainRequest.Entity, err error){

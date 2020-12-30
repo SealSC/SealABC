@@ -212,7 +212,7 @@ func (t *TraceableStorageApplication) RequestsForBlock(_ block.Entity) (reqList 
 }
 
 
-func (t *TraceableStorageApplication) SetBlockchainService(_ interface{}) {}
+func (t *TraceableStorageApplication) SetChainInterface(_ chainStructure.IChainInterface) {}
 func (t *TraceableStorageApplication) UnpackingActionsAsRequests(_ blockchainRequest.Entity) ([]blockchainRequest.Entity, error) {return nil, nil}
 
 func (t *TraceableStorageApplication) GetActionAsRequest(req blockchainRequest.Entity) (newReq blockchainRequest.Entity) {

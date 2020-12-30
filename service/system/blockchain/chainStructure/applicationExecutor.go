@@ -57,7 +57,7 @@ type IBlockchainExternalApplication interface {
     //external service information
     Information() (info service.BasicInformation)
 
-    SetBlockchainService(bs interface{})
+    SetChainInterface(bs IChainInterface)
 
     UnpackingActionsAsRequests(req blockchainRequest.Entity) (reqList []blockchainRequest.Entity, err error)
     GetActionAsRequest(req blockchainRequest.Entity) blockchainRequest.Entity
@@ -73,7 +73,7 @@ func (a *applicationExecutor)getExternalExecutor(name string) (exe IBlockchainEx
     return
 }
 
-func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalApplication, bs interface{}) (err error)  {
+func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalApplication, ci IChainInterface) (err error)  {
     a.externalExeLock.Lock()
     defer a.externalExeLock.Unlock()
 
@@ -85,7 +85,7 @@ func (a *applicationExecutor) RegisterApplicationExecutor(s IBlockchainExternalA
         return
     }
 
-    s.SetBlockchainService(bs)
+    s.SetChainInterface(ci)
     a.ExternalExecutors[s.Name()] = s
     return
 }

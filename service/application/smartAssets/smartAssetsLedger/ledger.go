@@ -50,7 +50,7 @@ type Ledger struct {
 	preActuators   map[string] txPreActuator
 	queryActuators map[string] queryActuator
 
-	chain         *chainStructure.Blockchain
+	chain         chainStructure.IChainInterface
 	CryptoTools   crypto.Tools
 	Storage       kvDatabase.IDriver
 
@@ -65,7 +65,7 @@ func Load() {
 	enum.BuildErrorEnum(&Errors, 1000)
 }
 
-func (l *Ledger) SetChain(chain *chainStructure.Blockchain)  {
+func (l *Ledger) SetChain(chain chainStructure.IChainInterface)  {
 	l.chain = chain
 }
 
