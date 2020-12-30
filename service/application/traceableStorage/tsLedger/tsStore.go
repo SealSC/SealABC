@@ -19,9 +19,10 @@ package tsLedger
 
 import (
 	"errors"
+	"github.com/SealSC/SealABC/service/application/traceableStorage/tsData"
 )
 
-func (t *TSLedger)VerifyStoreRequest(data TSData) (err error) {
+func (t *TSLedger)VerifyStoreRequest(data tsData.TSData) (err error) {
 	//common verify
 	_, err = t.commonDataInRequestVerify(data)
 	if err != nil {
@@ -40,7 +41,7 @@ func (t *TSLedger)VerifyStoreRequest(data TSData) (err error) {
 	return nil
 }
 
-func (t *TSLedger)ExecuteStoreIdentification(data TSData) (ret interface{}, err error) {
+func (t *TSLedger)ExecuteStoreIdentification(data tsData.TSData) (ret interface{}, err error) {
 	kvData := data.ToKVStoreItem()
 	err = t.Storage.Put(kvData)
 	return

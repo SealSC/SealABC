@@ -15,7 +15,7 @@
  *
  */
 
-package tsLedger
+package tsData
 
 import (
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
@@ -33,7 +33,7 @@ import (
 type TSMetaData struct {
 	Namespace   string
 	ExternalID  string
-	RawData     string
+	RawData     []byte
 	CompleteKey string
 }
 
@@ -57,7 +57,7 @@ func (i *TSData) GetMetaDataBytes() (data []byte) {
 	var buff bytes.Buffer
 	buff.Write([]byte(i.Namespace))
 	buff.Write([]byte(i.ExternalID))
-	buff.Write([]byte(i.RawData))
+	buff.Write(i.RawData)
 	buff.Write([]byte(i.CompleteKey))
 	return buff.Bytes()
 }
@@ -157,3 +157,5 @@ type TSServiceRequest struct {
 	ReqType string
 	Data    TSData
 }
+
+const APPName = "Traceable Storage"

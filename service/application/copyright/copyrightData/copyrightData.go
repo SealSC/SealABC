@@ -15,7 +15,7 @@
  *
  */
 
-package copyrightLedger
+package copyrightData
 
 import (
 	"github.com/SealSC/SealABC/crypto"
@@ -52,3 +52,5 @@ type CopyrightCertificate struct {
 type CopyrightTrading struct {
 
 }
+
+const APPName = "Traceable Storage"

@@ -18,22 +18,23 @@
 package tsLedger
 
 import (
+	"errors"
 	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/crypto/hashes/sha3"
 	"github.com/SealSC/SealABC/crypto/signers/ed25519"
 	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/application/traceableStorage/tsData"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"errors"
 )
 
 
-type tsServiceValidator func(data TSData) (err error)
-type tsServiceActuator func(data TSData) (ret interface{}, err error)
+type tsServiceValidator func(data tsData.TSData) (err error)
+type tsServiceActuator func(data tsData.TSData) (ret interface{}, err error)
 type tsQuery func(param []string) (ret interface{}, err error)
 
 type TSLedger struct {
-	reqPool []TSServiceRequest
+	reqPool []tsData.TSServiceRequest
 
 	validators  map[string] tsServiceValidator
 	actuators   map[string] tsServiceActuator
@@ -43,10 +44,10 @@ type TSLedger struct {
 }
 
 func Load()  {
-	enum.SimpleBuild(&RequestTypes)
+	enum.SimpleBuild(&tsData.RequestTypes)
 }
 
-func (t *TSLedger)VerifyRequest(req TSServiceRequest) (err error) {
+func (t *TSLedger)VerifyRequest(req tsData.TSServiceRequest) (err error) {
 	if validator, exists := t.validators[req.ReqType]; exists {
 		return validator(req.Data)
 	} else {
@@ -54,7 +55,7 @@ func (t *TSLedger)VerifyRequest(req TSServiceRequest) (err error) {
 	}
 }
 
-func (t *TSLedger)ExecuteRequest(req TSServiceRequest) (ret interface{}, err error) {
+func (t *TSLedger)ExecuteRequest(req tsData.TSServiceRequest) (ret interface{}, err error) {
 	if actuator, exists := t.actuators[req.ReqType]; exists {
 		return actuator(req.Data)
 	} else {
@@ -72,13 +73,13 @@ func NewTraceableStorage(kvDriver kvDatabase.IDriver, sqlDriver simpleSQLDatabas
 	}
 
 	t.validators = map[string] tsServiceValidator {
-		RequestTypes.Store.String(): t.VerifyStoreRequest,
-		RequestTypes.Modify.String(): t.VerifyModifyRequest,
+		tsData.RequestTypes.Store.String():  t.VerifyStoreRequest,
+		tsData.RequestTypes.Modify.String(): t.VerifyModifyRequest,
 	}
 
 	t.actuators = map[string] tsServiceActuator {
-		RequestTypes.Store.String(): t.ExecuteStoreIdentification,
-		RequestTypes.Modify.String(): t.ExecuteModifyIdentification,
+		tsData.RequestTypes.Store.String():  t.ExecuteStoreIdentification,
+		tsData.RequestTypes.Modify.String(): t.ExecuteModifyIdentification,
 	}
 
 	return t

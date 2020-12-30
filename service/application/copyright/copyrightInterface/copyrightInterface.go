@@ -26,6 +26,8 @@ import (
 	"github.com/SealSC/SealABC/metadata/blockchainRequest"
 	"github.com/SealSC/SealABC/metadata/seal"
 	"github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/service/application/copyright/copyrightData"
+	"github.com/SealSC/SealABC/service/application/traceableStorage/tsData"
 	"github.com/SealSC/SealABC/service/application/traceableStorage/tsLedger"
 	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
@@ -50,7 +52,7 @@ type RequestList struct {
 }
 
 func (t *CopyrightStorageApplication) Name() (name string) {
-	return "Traceable Storage"
+	return copyrightData.APPName
 }
 
 func (t *CopyrightStorageApplication) PushClientRequest(req blockchainRequest.Entity) (result interface{}, err error) {
@@ -59,7 +61,7 @@ func (t *CopyrightStorageApplication) PushClientRequest(req blockchainRequest.En
 		return
 	}
 
-	tsReq := tsLedger.TSServiceRequest{}
+	tsReq := tsData.TSServiceRequest{}
 	err = json.Unmarshal(req.Data, &tsReq)
 	if err != nil {
 		return
@@ -134,7 +136,7 @@ func (t *CopyrightStorageApplication) Execute (
 			break
 		}
 
-		tsReq := tsLedger.TSServiceRequest{}
+		tsReq := tsData.TSServiceRequest{}
 		err = json.Unmarshal(req.Data, &tsReq)
 		if err != nil {
 			break

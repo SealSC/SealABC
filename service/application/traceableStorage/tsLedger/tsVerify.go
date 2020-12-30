@@ -17,9 +17,12 @@
 
 package tsLedger
 
-import "errors"
+import (
+	"errors"
+	"github.com/SealSC/SealABC/service/application/traceableStorage/tsData"
+)
 
-func (t *TSLedger) commonDataInRequestVerify(data TSData) (passed bool, err error) {
+func (t *TSLedger) commonDataInRequestVerify(data tsData.TSData) (passed bool, err error) {
 	//verify chain id
 	_, err = data.Verify(t.CryptoTools.HashCalculator)
 	if err != nil {
