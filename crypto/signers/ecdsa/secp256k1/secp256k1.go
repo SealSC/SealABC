@@ -18,6 +18,8 @@
 package secp256k1
 
 import (
+	"bytes"
+	"encoding/hex"
 	"errors"
 	"github.com/SealSC/SealABC/crypto/signers/signerCommon"
 	"github.com/btcsuite/btcd/btcec"
@@ -91,31 +93,46 @@ func (k keyPair)Verify(data []byte, signature []byte) (passed bool, err error) {
 }
 
 func (k keyPair)RawKeyPair() (kp interface{}) {
-	return
+	return nil
 }
 
 func (k keyPair)KeyPairData() (keyData []byte) {
-	return
+	return nil
 }
 
 func (k keyPair)PublicKeyString() (key string) {
-	return
+	keyBytes := k.PublicKeyBytes()
+	return hex.EncodeToString(keyBytes)
 }
 
 func (k keyPair)PrivateKeyString() (key string) {
-	return
+	keyBytes := k.PrivateKeyBytes()
+	return hex.EncodeToString(keyBytes)
 }
 
 func (k keyPair)PublicKeyBytes() (key [] byte) {
-	return
+	if k.PublicKey == nil {
+		return
+	}
+
+	return k.PublicKey.SerializeCompressed()
 }
 
 func (k keyPair)PrivateKeyBytes() (key []byte) {
-	return
+	if k.PrivateKey == nil {
+		return
+	}
+
+	return k.PrivateKey.Serialize()
 }
 
 func (k keyPair)PublicKeyCompare(pub interface{}) (equal bool) {
-	return
+	pubBytes, ok := pub.([]byte)
+	if !ok {
+		return false
+	}
+
+	return bytes.Equal(k.PublicKeyBytes(), pubBytes)
 }
 
 type keyGenerator struct {}
