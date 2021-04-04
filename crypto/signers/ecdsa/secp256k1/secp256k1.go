@@ -25,40 +25,12 @@ import (
 	"github.com/btcsuite/btcd/btcec"
 )
 
-//
-//
-//type ISignerGenerator interface {
-//	Type() string
-//	NewSigner(param interface{}) (signer signerCommon.ISigner, err error)
-//	FromKeyPairData(kpData []byte) (kp signerCommon.ISigner, err error)
-//	FromRawPrivateKey(key interface{}) (signer signerCommon.ISigner, err error)
-//	FromRawPublicKey(key interface{}) (signer signerCommon.ISigner, err error)
-//	FromRawKeyPair(kp interface{}) (signer signerCommon.ISigner, err error)
-//}
-
 const algorithmName = "secp256k1"
 
 type keyPair struct {
 	PrivateKey *btcec.PrivateKey
 	PublicKey  *btcec.PublicKey
 }
-
-
-//type ISigner interface {
-//	Type() string
-//	Sign(data []byte) (signature []byte)
-//	Verify(data []byte, signature []byte) (passed bool)
-//	RawKeyPair() (kp interface{})
-//	KeyPairData() (keyData []byte)
-//
-//	PublicKeyString() (key string)
-//	PrivateKeyString() (key string)
-//
-//	PublicKeyBytes() (key [] byte)
-//	PrivateKeyBytes() (key []byte)
-//
-//	PublicKeyCompare(k interface{}) (equal bool)
-//}
 
 func (k keyPair)Type() string {
 	return algorithmName
