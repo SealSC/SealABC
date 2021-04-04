@@ -18,38 +18,42 @@
 package account
 
 import (
+	"errors"
 	"github.com/SealSC/SealABC/crypto/hashes"
 	"github.com/SealSC/SealABC/crypto/hashes/sha3"
 	"github.com/SealSC/SealABC/metadata/seal"
 	"bytes"
 )
 
-func (s SealAccount) Sign(data []byte) []byte {
+func (s SealAccount) Sign(data []byte) ([]byte, error) {
 	return s.Signer.Sign(data)
 }
 
-func (s SealAccount) Seal(data []byte, hashCalculator hashes.IHashCalculator) seal.Entity {
+func (s SealAccount) Seal(data []byte, hashCalculator hashes.IHashCalculator) (s seal.Entity, err error) {
 	if hashCalculator == nil {
 		hashCalculator = sha3.Sha256
 	}
 
 	dataHash := hashCalculator.Sum(data)
-	sig := s.Signer.Sign(dataHash)
+	sig, err := s.Signer.Sign(dataHash)
+	if err != nil {
+		return
+	}
 
 	return seal.Entity{
 		Hash:            dataHash,
 		Signature:       sig,
 		SignerPublicKey: s.Signer.PrivateKeyBytes(),
-	}
+	}, nil
 }
 
-func (s SealAccount) VerifySignature(data []byte, sig []byte) bool {
+func (s SealAccount) VerifySignature(data []byte, sig []byte) (bool, error) {
 	return s.Signer.Verify(data, sig)
 }
 
-func (s SealAccount) VerifySeal(data []byte, sl seal.Entity, hashCalculator hashes.IHashCalculator) bool {
+func (s SealAccount) VerifySeal(data []byte, sl seal.Entity, hashCalculator hashes.IHashCalculator) (bool, error) {
 	if !bytes.Equal(s.Signer.PublicKeyBytes(), sl.SignerPublicKey) {
-		return false
+		return false, nil
 	}
 
 	if hashCalculator == nil {
@@ -58,7 +62,7 @@ func (s SealAccount) VerifySeal(data []byte, sl seal.Entity, hashCalculator hash
 
 	dataHash := hashCalculator.Sum(data)
 	if !bytes.Equal(dataHash, sl.Hash) {
-		return false
+		return false, nil
 	}
 
 	return s.Signer.Verify(dataHash, sl.Signature)
