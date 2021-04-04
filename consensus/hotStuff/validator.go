@@ -58,7 +58,7 @@ func (b *basicService) verifyQCVotes(qc QC) (passed bool)  {
 
         signer, _ := b.config.SingerGenerator.FromRawPublicKey(v.SignerPublicKey)
         qcHash := sha3.Sha256.Sum(payloadBytes)
-        if signer.Verify(qcHash, v.Signature) {
+        if passed, _ =signer.Verify(qcHash, v.Signature); passed {
             voteCounter[signer.PublicKeyString()] = true
         } else {
             log.Log.Error("invalid signature")
@@ -108,7 +108,7 @@ func (b *basicService) verifySignature(data interface{}, sig seal.Entity) (passe
 
     hash := sha3.Sha256.Sum(dataBytes)
     signer, _ := b.config.SingerGenerator.FromRawPublicKey(sig.SignerPublicKey)
-    passed = signer.Verify(hash, sig.Signature)
+    passed, _ = signer.Verify(hash, sig.Signature)
     return
 }
 

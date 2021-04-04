@@ -59,7 +59,10 @@ func (e *Entity) Sign(orgData []byte, tools crypto.Tools, privateKey interface{}
     }
 
     e.Hash = tools.HashCalculator.Sum(orgData)
-    e.Signature = s.Sign(e.Hash)
+    e.Signature, err = s.Sign(e.Hash)
+    if err != nil {
+        return
+    }
 
     e.SignerAlgorithm = tools.SignerGenerator.Type()
     e.SignerPublicKey = s.PublicKeyBytes()
@@ -88,7 +91,7 @@ func (e Entity) Verify(orgData []byte, hashCalc hashes.IHashCalculator) (passed 
         return 
     }
 
-    passed = signer.Verify(hash, e.Signature)
+    passed, err = signer.Verify(hash, e.Signature)
     if !passed {
         err = errors.New("invalid seal signature")
     }

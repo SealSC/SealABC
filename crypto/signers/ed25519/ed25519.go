@@ -18,12 +18,12 @@
 package ed25519
 
 import (
-    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
     "bytes"
     "crypto/ed25519"
     "encoding/hex"
     "encoding/json"
     "errors"
+    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
 )
 
 const algorithmName = "ED25519"
@@ -37,17 +37,18 @@ func (k keyPair) Type() string {
     return algorithmName
 }
 
-func (k keyPair) Verify(data []byte, signature []byte) (passed bool) {
+func (k keyPair) Verify(data []byte, signature []byte) (passed bool, err error) {
     if len(k.PublicKey) != ed25519.PublicKeySize {
-        return false
+        return false, errors.New("no public key")
     }
     passed = ed25519.Verify(k.PublicKey, data, signature)
     return
 }
 
-func (k keyPair) Sign(data []byte) (signature []byte)  {
+func (k keyPair) Sign(data []byte) (signature []byte, err error)  {
     if len(k.PrivateKey) != ed25519.PrivateKeySize {
-        return
+        return nil, errors.New("no private key")
+
     }
 
     signature = ed25519.Sign(k.PrivateKey, data)

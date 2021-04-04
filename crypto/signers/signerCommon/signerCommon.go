@@ -7,8 +7,8 @@ type KeyPair struct{
 
 type ISigner interface {
 	Type() string
-	Sign(data []byte) (signature []byte)
-	Verify(data []byte, signature []byte) (passed bool)
+	Sign(data []byte) (signature []byte, err error)
+	Verify(data []byte, signature []byte) (passed bool, err error)
 	RawKeyPair() (kp interface{})
 	KeyPairData() (keyData []byte)
 

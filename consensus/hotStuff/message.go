@@ -77,7 +77,10 @@ func (b *basicService) buildVote(payload ConsensusPayload) (vote seal.Entity, er
     }
 
     qcHash := sha3.Sha256.Sum(qcBytes)
-    sig := b.config.SelfSigner.Sign(qcHash)
+    sig, err := b.config.SelfSigner.Sign(qcHash)
+    if err != nil {
+        return
+    }
 
     vote = seal.Entity {
         Hash: qcHash,
@@ -112,7 +115,10 @@ func (b *basicService) buildConsensusMessage(phase string, payload ConsensusPayl
     //sign
     consensusMsg.Seal.Hash = sha3.Sha256.Sum(consensusBytes)
     consensusMsg.Seal.SignerPublicKey = b.config.SelfSigner.PublicKeyBytes()
-    consensusMsg.Seal.Signature = b.config.SelfSigner.Sign(consensusMsg.Seal.Hash)
+    consensusMsg.Seal.Signature, err = b.config.SelfSigner.Sign(consensusMsg.Seal.Hash)
+    if err != nil {
+        return
+    }
 
     //marshal data to json
     msgPayload, err = json.Marshal(consensusMsg)

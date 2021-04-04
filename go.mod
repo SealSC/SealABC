@@ -1,9 +1,10 @@
 module github.com/SealSC/SealABC
 
-go 1.15
+go 1.16
 
 require (
 	github.com/SealSC/SealEVM v0.0.0-20201222102010-7455bc1355ac
+	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/cbergoon/merkletree v0.2.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-sql-driver/mysql v1.5.0
