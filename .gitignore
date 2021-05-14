@@ -53,3 +53,4 @@ localPlay
 *.json
 *.log
 SealABCTest
+instance/**
