@@ -52,6 +52,7 @@ func (b *basicService) broadCastMessage(msg message.Message) {
 
     //todo: modular log system
     //log.Log.Println("broadcast message: ", msg.Type)
+    b.network.Broadcast(msg)
     for _, m := range b.config.Members {
         if m.Signer.PublicKeyString() == b.config.SelfSigner.PublicKeyString() {
             continue
