@@ -122,6 +122,28 @@ func (keyGenerator) NewSigner(_ interface{}) (s signerCommon.ISigner, err error)
     return
 }
 
+func (k *keyGenerator) FromSeed(seed interface{})  (s signerCommon.ISigner, err error) {
+    seedBytes, ok := seed.([]byte)
+    if !ok {
+        err = errors.New("only support bytes type key")
+        return
+    }
+    if len(seedBytes) != ed25519.SeedSize {
+        err = errors.New("invalid key size")
+        return
+    }
+
+    priv := ed25519.NewKeyFromSeed(seedBytes)
+    pub := calcPublicKey(priv)
+
+    s = &keyPair{
+        PrivateKey: priv,
+        PublicKey:  pub,
+    }
+
+    return
+}
+
 func (k *keyGenerator) FromRawPrivateKey(key interface{}) (s signerCommon.ISigner, err error) {
     keyBytes, ok := key.([]byte)
     if !ok {
