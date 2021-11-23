@@ -34,6 +34,7 @@ type Config struct {
 
     StorageConfig           interface{}
     ConsensusNetwork        network.Config
+    ConsensusDisabled       bool
 
     Consensus        interface{}
     SystemService   system.Config

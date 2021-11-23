@@ -47,10 +47,11 @@ func Start(cfg Config) (err error) {
 
 
     //start consensus
-    //todo: load consensus by config
-    err = startConsensus(&hotStuff.Basic, consensusNetwork, &engineService.ConsensusProcessor)
-    if err != nil {
-        return
+    if !config.ConsensusDisabled {
+        err = startConsensus(&hotStuff.Basic, consensusNetwork, &engineService.ConsensusProcessor)
+        if err != nil {
+            return
+        }
     }
 
     engineService.SetConsensusInformation(&hotStuff.Basic)
