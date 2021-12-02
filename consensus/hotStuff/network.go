@@ -36,7 +36,6 @@ package hotStuff
 
 import (
     "github.com/SealSC/SealABC/metadata/message"
-    "github.com/SealSC/SealABC/log"
 )
 
 func (b *basicService) sendMessageToLeader(msg message.Message) {
@@ -52,18 +51,5 @@ func (b *basicService) broadCastMessage(msg message.Message) {
 
     //todo: modular log system
     //log.Log.Println("broadcast message: ", msg.Type)
-    b.network.Broadcast(msg)
-    for _, m := range b.config.Members {
-        if m.Signer.PublicKeyString() == b.config.SelfSigner.PublicKeyString() {
-            continue
-        }
-
-        n := m.FromNode
-        go func() {
-            _, err := b.network.SendTo(n, msg)
-            if err != nil {
-                log.Log.Error("send message to member failed: ", msg.Type, " ",n.ServeAddress)
-            }
-        }()
-    }
+    go b.network.Broadcast(msg)
 }
