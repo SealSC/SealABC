@@ -141,6 +141,9 @@ func (o *OracleApplication) Query(req []byte) (interface{}, error) {
 	if cached {
 		return queryResultSaving(), nil
 	}
+	if o.blockchainDriver == nil {
+		return queryResultNotfound(), nil
+	}
 
 	table := chainTables.RequestsTable{}
 	tag, err := simpleSQLDatabase.ColumnsFromTag(table, false, nil)
