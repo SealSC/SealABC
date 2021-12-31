@@ -18,144 +18,148 @@
 package actions
 
 import (
-    "github.com/SealSC/SealABC/network/http"
-    "github.com/SealSC/SealABC/service"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
-    "github.com/gin-gonic/gin"
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
+	"github.com/SealSC/SealABC/network/http"
+	"github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/gin-gonic/gin"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
 )
 
 var URLParameterKeys = struct {
-    HexHash  enum.Element
-    Height   enum.Element
+	HexHash enum.Element
+	Height  enum.Element
 
-    Page    enum.Element
-    Count   enum.Element
+	Page  enum.Element
+	Count enum.Element
 
-    App     enum.Element
-    Action  enum.Element
+	App    enum.Element
+	Action enum.Element
 
-    Type    enum.Element
-    Param   enum.Element
+	Type  enum.Element
+	Param enum.Element
 }{}
 
+func init() {
+	enum.SimpleBuild(&URLParameterKeys)
+}
+
 type apiHandler interface {
-    http.IRequestHandler
-    buildUrlPath() string
-    setServerInfo(basePath string,
-        chain *chainStructure.Blockchain,
-        p2p *chainNetwork.P2PService,
-        sqlStorage *chainSQLStorage.Storage,
-        queryHandler map[string] applicationQueryHandler)
+	http.IRequestHandler
+	buildUrlPath() string
+	setServerInfo(basePath string,
+		chain *chainStructure.Blockchain,
+		p2p *chainNetwork.P2PService,
+		sqlStorage *chainSQLStorage.Storage,
+		queryHandler map[string]applicationQueryHandler)
 }
 
 type baseHandler struct {
-    serverBasePath  string
-    chain           *chainStructure.Blockchain
-    p2p             *chainNetwork.P2PService
-    sqlStorage      *chainSQLStorage.Storage
-    appQueryHandler map[string] applicationQueryHandler
+	serverBasePath  string
+	chain           *chainStructure.Blockchain
+	p2p             *chainNetwork.P2PService
+	sqlStorage      *chainSQLStorage.Storage
+	appQueryHandler map[string]applicationQueryHandler
 }
 
 func (b *baseHandler) setServerInfo(basePath string,
-    chain *chainStructure.Blockchain,
-    p2p *chainNetwork.P2PService,
-    sqlStorage *chainSQLStorage.Storage,
-    queryHandler map[string] applicationQueryHandler) {
+	chain *chainStructure.Blockchain,
+	p2p *chainNetwork.P2PService,
+	sqlStorage *chainSQLStorage.Storage,
+	queryHandler map[string]applicationQueryHandler) {
 
-    b.serverBasePath = basePath
-    b.chain = chain
-    b.p2p = p2p
-    b.sqlStorage = sqlStorage
-    b.appQueryHandler = queryHandler
+	b.serverBasePath = basePath
+	b.chain = chain
+	b.p2p = p2p
+	b.sqlStorage = sqlStorage
+	b.appQueryHandler = queryHandler
 }
 
 type applicationQueryHandler func([]byte) (interface{}, error)
 type ChainApiActions struct {
-    serverBase          string
-    actionList          []apiHandler
-    appQueryHandler     map[string] applicationQueryHandler
+	serverBase      string
+	actionList      []apiHandler
+	appQueryHandler map[string]applicationQueryHandler
 
-    chain           *chainStructure.Blockchain
-    p2p             *chainNetwork.P2PService
+	chain *chainStructure.Blockchain
+	p2p   *chainNetwork.P2PService
 
-    apiInformation  []service.ApiInterface
-    sqlStorage      *chainSQLStorage.Storage
+	apiInformation []service.ApiInterface
+	sqlStorage     *chainSQLStorage.Storage
 }
 
 func (c *ChainApiActions) RouteRegister(router gin.IRouter) {
-    c.serverBase = "/api/v1"
-    gr := router.Group(c.serverBase)
-    {
-        for _, h := range c.actionList {
-            h.setServerInfo(c.serverBase, c.chain, c.p2p, c.sqlStorage, c.appQueryHandler)
-            h.RouteRegister(gr)
-        }
-    }
+	c.serverBase = "/api/v1"
+	gr := router.Group(c.serverBase)
+	{
+		for _, h := range c.actionList {
+			h.setServerInfo(c.serverBase, c.chain, c.p2p, c.sqlStorage, c.appQueryHandler)
+			h.RouteRegister(gr)
+		}
+	}
 }
 
 func (c *ChainApiActions) BasicInformation() (info http.HandlerBasicInformation) {
-    log.Log.Println("this is placeholder for BasicInformation method.")
-    return
+	log.Log.Println("this is placeholder for BasicInformation method.")
+	return
 }
 
 func (c *ChainApiActions) Handle(_ *gin.Context) {
-    log.Log.Println("this is placeholder for Handle method.")
-    return
+	log.Log.Println("this is placeholder for Handle method.")
+	return
 }
 
 func NewActions(basePath string, chain *chainStructure.Blockchain, p2p *chainNetwork.P2PService, sqlStorage *chainSQLStorage.Storage) *ChainApiActions {
-    action := ChainApiActions{}
+	action := ChainApiActions{}
 
-    action.serverBase = basePath
-    action.chain = chain
-    action.p2p = p2p
-    action.sqlStorage = sqlStorage
+	action.serverBase = basePath
+	action.chain = chain
+	action.p2p = p2p
+	action.sqlStorage = sqlStorage
 
-    action.actionList = []apiHandler {
-        &callApplication{},
-        &getBlockByHash{},
-        &getBlockByHeight{},
-        &getTransactions{},
-        &queryApplication{},
-    }
-    action.appQueryHandler = map[string] applicationQueryHandler {}
+	action.actionList = []apiHandler{
+		&callApplication{},
+		&getBlockByHash{},
+		&getBlockByHeight{},
+		&getTransactions{},
+		&queryApplication{},
+	}
+	action.appQueryHandler = map[string]applicationQueryHandler{}
 
-    if sqlStorage != nil {
-        action.actionList = append(action.actionList,
-            &getBlockList{},
-            &getTransactionByHash{},
-            &getTransactionByApplicationAndAction{},
-            &getAddressList{},
-            &getTransactionByHeight{})
-    }
+	if sqlStorage != nil {
+		action.actionList = append(action.actionList,
+			&getBlockList{},
+			&getTransactionByHash{},
+			&getTransactionByApplicationAndAction{},
+			&getAddressList{},
+			&getTransactionByHeight{})
+	}
 
-    return &action
+	return &action
 }
 
-func (c *ChainApiActions) RegisterApplicationQueryHandler(exeName string, handler applicationQueryHandler)  {
-    c.appQueryHandler[exeName] = handler
+func (c *ChainApiActions) RegisterApplicationQueryHandler(exeName string, handler applicationQueryHandler) {
+	c.appQueryHandler[exeName] = handler
 }
 
-func (c *ChainApiActions)Information() []service.ApiInterface {
-    if len(c.apiInformation) != 0 {
-        return c.apiInformation
-    }
+func (c *ChainApiActions) Information() []service.ApiInterface {
+	if len(c.apiInformation) != 0 {
+		return c.apiInformation
+	}
 
-    for _, act := range c.actionList {
-        actInfo := act.BasicInformation()
-        ai := service.ApiInterface{}
+	for _, act := range c.actionList {
+		actInfo := act.BasicInformation()
+		ai := service.ApiInterface{}
 
-        ai.Description = actInfo.Description
-        ai.Path = actInfo.Path
-        ai.Method = actInfo.Method
-        ai.Parameters = (service.Parameters)(actInfo.Parameters)
+		ai.Description = actInfo.Description
+		ai.Path = actInfo.Path
+		ai.Method = actInfo.Method
+		ai.Parameters = (service.Parameters)(actInfo.Parameters)
 
-        c.apiInformation = append(c.apiInformation, ai)
-    }
+		c.apiInformation = append(c.apiInformation, ai)
+	}
 
-    return c.apiInformation
+	return c.apiInformation
 }
