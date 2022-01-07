@@ -132,6 +132,9 @@ func (o *OracleApplication) Query(req []byte) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	if strings.TrimSpace(str.RequestAction) == "" {
+		return nil, errors.New("action not found")
+	}
 	//cache   DB
 	//yes     no,    Saving
 	//no      no,    Notfound
@@ -185,6 +188,7 @@ func (o *OracleApplication) PreExecute(req blockchainRequest.Entity, header bloc
 
 	a := o.functions[req.RequestAction]
 	if a == nil {
+		err = errors.New("action not found")
 		return
 	}
 	err = a.VerifyReq(req.Data)
@@ -197,6 +201,7 @@ func (o *OracleApplication) Execute(req blockchainRequest.Entity, header block.E
 	o.PoolDelete(req)
 	a := o.functions[req.RequestAction]
 	if a == nil {
+		err = errors.New("action not found")
 		return
 	}
 	if err = a.VerifyReq(req.Data); err != nil {
