@@ -30,6 +30,7 @@ type OracleApplication struct {
 type Action interface {
 	Name() string
 	VerifyReq(req []byte) error
+	FormatResult(req blockchainRequest.Entity) (applicationResult.Entity, error)
 }
 
 var defVerifyConnection = func(state tls.ConnectionState) error { return errors.New("empty Verify Connection") }
@@ -208,8 +209,17 @@ func (o *OracleApplication) Execute(req blockchainRequest.Entity, header block.E
 		return
 	}
 
-	result.Data = req.Data
-	result.Seal = &req.Seal
+	result, err = a.FormatResult(req)
+	if err != nil {
+		return
+	}
+	if result.Seal != nil {
+		header.EntityData.Body.RequestsCount += 1
+		data := blockchainRequest.Entity{}
+		data.Data, _ = json.Marshal(result.Data)
+		data.Seal = *result.Seal
+		header.EntityData.Body.Requests = append(header.EntityData.Body.Requests, data)
+	}
 	return
 }
 
