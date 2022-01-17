@@ -19,6 +19,34 @@ import (
 	"strings"
 )
 
+type queryResult struct {
+	Status    int         `json:"status"`
+	StatusMSG string      `json:"statusMSG"`
+	Data      interface{} `json:"data"`
+}
+
+func queryResultSaving() *queryResult {
+	return &queryResult{
+		Status:    3,
+		StatusMSG: "Saving",
+		Data:      nil,
+	}
+}
+func queryResultSaved(data interface{}) *queryResult {
+	return &queryResult{
+		Status:    2,
+		StatusMSG: "Saved",
+		Data:      data,
+	}
+}
+func queryResultNotfound() *queryResult {
+	return &queryResult{
+		Status:    4,
+		StatusMSG: "Notfound",
+		Data:      nil,
+	}
+}
+
 type OracleApplication struct {
 	sync.Mutex
 	c                http.Client
@@ -94,34 +122,6 @@ func (o *OracleApplication) PushClientRequest(req blockchainRequest.Entity) (res
 	}
 	o.PoolAdd(req)
 	return
-}
-
-type queryResult struct {
-	Status    int         `json:"status"`
-	StatusMSG string      `json:"statusMSG"`
-	Data      interface{} `json:"data"`
-}
-
-func queryResultSaving() *queryResult {
-	return &queryResult{
-		Status:    3,
-		StatusMSG: "Saving",
-		Data:      nil,
-	}
-}
-func queryResultSaved(data interface{}) *queryResult {
-	return &queryResult{
-		Status:    2,
-		StatusMSG: "Saved",
-		Data:      data,
-	}
-}
-func queryResultNotfound() *queryResult {
-	return &queryResult{
-		Status:    4,
-		StatusMSG: "Notfound",
-		Data:      nil,
-	}
 }
 
 func (o *OracleApplication) Query(req []byte) (interface{}, error) {
