@@ -35,282 +35,282 @@
 package hotStuff
 
 import (
-    "github.com/SealSC/SealABC/consensus"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/metadata/message"
-    "github.com/SealSC/SealABC/network"
-    "bytes"
-    "encoding/json"
-    "errors"
-    "sync"
-    "time"
+	"github.com/SealSC/SealABC/consensus"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/message"
+	"github.com/SealSC/SealABC/network"
+	"bytes"
+	"encoding/json"
+	"errors"
+	"sync"
+	"time"
 )
 
 type consensusProcessor func(consensusData SignedConsensusData) (reply *message.Message)
 
 type basicHotStuffInformation struct {
-    Network             network.StaticInformation
-    Members             []string
-    ConsensusInterval   time.Duration
-    ConsensusTimeout    time.Duration
+	Network           network.StaticInformation
+	Members           []string
+	ConsensusInterval time.Duration
+	ConsensusTimeout  time.Duration
 }
 
 type basicService struct {
-    config              Config
+	config Config
 
-    currentState        enum.Element
-    currentPhase        enum.Element
-    phaseLock           sync.Mutex
+	currentState enum.Element
+	currentPhase enum.Element
+	phaseLock    sync.Mutex
 
-    newViews          map[string]SignedConsensusData
-    votedMessage      map[string]SignedConsensusData
-    prepareQC         *QC
-    lockedQC          *QC
-    viewChangeTrigger *time.Timer
-    currentView       uint64
+	newViews          map[string]SignedConsensusData
+	votedMessage      map[string]SignedConsensusData
+	prepareQC         *QC
+	lockedQC          *QC
+	viewChangeTrigger *time.Timer
+	currentView       uint64
 
-    consensusProcessor  map[string] consensusProcessor
-    externalProcessor   consensus.ExternalProcessor
+	consensusProcessor map[string]consensusProcessor
+	externalProcessor  consensus.ExternalProcessor
 
-    network             network.IService
+	network network.IService
 
-    information         *basicHotStuffInformation
+	information *basicHotStuffInformation
 }
 
 var Basic basicService
 
 func (b *basicService) isCurrentLeader() (isLeader bool) {
-    selfKey := b.config.SelfSigner.PublicKeyBytes()
-    leader := b.getLeader()
+	selfKey := b.config.SelfSigner.PublicKeyBytes()
+	leader := b.getLeader()
 
-    return bytes.Equal(selfKey, leader.Signer.PublicKeyBytes())
+	return bytes.Equal(selfKey, leader.Signer.PublicKeyBytes())
 }
 
 func (b *basicService) isViewLeader(viewNumber uint64, key []byte) (isLeader bool) {
-    leaderIndex := (viewNumber + 1) % uint64(len(b.config.Members))
-    leader := b.config.Members[leaderIndex]
-    return bytes.Equal(key, leader.Signer.PublicKeyBytes())
+	leaderIndex := (viewNumber + 1) % uint64(len(b.config.Members))
+	leader := b.config.Members[leaderIndex]
+	return bytes.Equal(key, leader.Signer.PublicKeyBytes())
 }
 
 func (b *basicService) getLeader() (leader Member) {
-    leaderIndex := (b.currentView + 1) % uint64(len(b.config.Members))
-    leader = b.config.Members[leaderIndex]
-    return
+	leaderIndex := (b.currentView + 1) % uint64(len(b.config.Members))
+	leader = b.config.Members[leaderIndex]
+	return
 }
 
 func (b *basicService) clearNewView() {
-    var keyForDel []string
-    for k, v := range b.newViews {
-        if b.currentView != v.ViewNumber {
-            keyForDel = append(keyForDel, k)
-        }
-    }
+	var keyForDel []string
+	for k, v := range b.newViews {
+		if b.currentView != v.ViewNumber {
+			keyForDel = append(keyForDel, k)
+		}
+	}
 
-    for _, k := range keyForDel {
-        delete(b.newViews, k)
-    }
+	for _, k := range keyForDel {
+		delete(b.newViews, k)
+	}
 }
 
 func (b *basicService) newRound() {
-    b.viewChangeTrigger.Reset(b.config.ConsensusTimeout)
-    b.clearNewView()
+	b.viewChangeTrigger.Reset(b.config.ConsensusTimeout)
+	b.clearNewView()
 
-    if !b.isCurrentLeader() {
-        newViewMsg, err := b.buildNewViewMessage()
-        if err != nil {
-            log.Log.Error("build new view message failed.")
-            return
-        }
-        go b.sendMessageToLeader(newViewMsg)
-        return
-    } else {
-        //log.Log.Println("i am the leader @view ", b.currentView, " use public key: ", b.config.SelfSigner.PublicKeyString())
-    }
+	if !b.isCurrentLeader() {
+		newViewMsg, err := b.buildNewViewMessage()
+		if err != nil {
+			log.Log.Error("build new view message failed.")
+			return
+		}
+		go b.sendMessageToLeader(newViewMsg)
+		return
+	} else {
+		//log.Log.Println("i am the leader @view ", b.currentView, " use public key: ", b.config.SelfSigner.PublicKeyString())
+	}
 }
 
-func (b *basicService) startViewChangeMonitor()  {
-    log.Log.Println("start view change monitor : ", b.config.ConsensusTimeout)
-    b.currentState = consensus.States.Running
-    b.viewChangeTrigger = time.NewTimer(b.config.ConsensusTimeout)
+func (b *basicService) startViewChangeMonitor() {
+	log.Log.Println("start view change monitor : ", b.config.ConsensusTimeout)
+	b.currentState = consensus.States.Running
+	b.viewChangeTrigger = time.NewTimer(b.config.ConsensusTimeout)
 
-    for {
-        select {
-        case <- b.viewChangeTrigger.C:
-            //do view change
-            b.viewChange()
+	for {
+		select {
+		case <-b.viewChangeTrigger.C:
+			//do view change
+			b.viewChange()
 
-            //reset the timer
-            b.viewChangeTrigger.Reset(b.config.ConsensusTimeout)
-        }
-    }
+			//reset the timer
+			b.viewChangeTrigger.Reset(b.config.ConsensusTimeout)
+		}
+	}
 }
 
-func (b *basicService) viewChange()  {
-    b.phaseLock.Lock()
-    defer b.phaseLock.Unlock()
+func (b *basicService) viewChange() {
+	b.phaseLock.Lock()
+	defer b.phaseLock.Unlock()
 
-    b.currentView += 1
-    b.currentPhase = consensusPhases.NewView
-    log.Log.Println("view change to new view ", b.currentView)
+	b.currentView += 1
+	b.currentPhase = consensusPhases.NewView
+	log.Log.Println("view change to new view ", b.currentView)
 
-    b.newRound()
+	b.newRound()
 }
 
 func (b *basicService) initService() {
-    onlineCheck := time.NewTimer(b.config.MemberOnlineCheckInterval)
-    allMemberOnline := false
-    for {
-        if b.currentState.String() == consensus.States.Stopped.String() {
-            break
-        }
+	onlineCheck := time.NewTimer(b.config.MemberOnlineCheckInterval)
+	allMemberOnline := false
+	for {
+		if b.currentState.String() == consensus.States.Stopped.String() {
+			break
+		}
 
-        select {
-        case <- onlineCheck.C:
-            allMemberOnline = b.isAllMembersOnline()
-        }
+		select {
+		case <-onlineCheck.C:
+			allMemberOnline = b.isAllMembersOnline()
+		}
 
-        if allMemberOnline {
-            log.Log.Println("all members online now!")
-            break
-        }
+		if allMemberOnline {
+			log.Log.Println("all members online now!")
+			break
+		}
 
-        onlineCheck.Reset(b.config.MemberOnlineCheckInterval)
-    }
+		onlineCheck.Reset(b.config.MemberOnlineCheckInterval)
+	}
 
-    if b.currentState.String() == consensus.States.Stopped.String() {
-        return
-    }
+	if b.currentState.String() == consensus.States.Stopped.String() {
+		return
+	}
 
-    if !allMemberOnline {
-        return
-    }
+	if !allMemberOnline {
+		return
+	}
 
-    b.phaseLock.Lock()
-    defer b.phaseLock.Unlock()
-    time.Sleep(time.Millisecond * 100)
-    go b.startViewChangeMonitor()
+	b.phaseLock.Lock()
+	defer b.phaseLock.Unlock()
+	time.Sleep(time.Millisecond * 100)
+	go b.startViewChangeMonitor()
 
-    b.newRound()
+	b.newRound()
 }
 
 func (b *basicService) Feed(msg message.Message) (reply *message.Message) {
-    if msg.Family != MessageFamily {
-        return
-    }
+	if msg.Family != MessageFamily {
+		return
+	}
 
-    consensusData, err := b.consensusDataFromMessage(msg)
-    if err != nil {
-        return
-    }
+	consensusData, err := b.consensusDataFromMessage(msg)
+	if err != nil {
+		return
+	}
 
-    if !b.isMemberKey(consensusData.Seal.SignerPublicKey) {
-        log.Log.Error("not a member of this consensus network")
-        return
-    }
+	if !b.isMemberKey(consensusData.Seal.SignerPublicKey) {
+		log.Log.Error("not a member of this consensus network")
+		return
+	}
 
-    dataForSign := QCData {
-        Phase: consensusData.Phase,
-        ViewNumber: consensusData.ViewNumber,
-        Payload: consensusData.Payload,
-    }
+	dataForSign := QCData{
+		Phase:      consensusData.Phase,
+		ViewNumber: consensusData.ViewNumber,
+		Payload:    consensusData.Payload,
+	}
 
-    //todo: will be verify hash, not the data directly
-    if !b.verifySignature(dataForSign, consensusData.Seal) {
-        log.Log.Error("invalid vote message signature")
-        return
-    }
+	//todo: will be verify hash, not the data directly
+	if !b.verifySignature(dataForSign, consensusData.Seal) {
+		log.Log.Error("invalid vote message signature")
+		return
+	}
 
-    b.phaseLock.Lock()
-    defer b.phaseLock.Unlock()
+	b.phaseLock.Lock()
+	defer b.phaseLock.Unlock()
 
-    //todo: modular log system
-    //log.Log.Println("got message: ", msg.Type)
-    if handle, exists := b.consensusProcessor[msg.Type]; exists {
-        reply = handle(consensusData)
-    }
-    //log.Log.Println("message handle over ")
+	//todo: modular log system
+	//log.Log.Println("got message: ", msg.Type)
+	if handle, exists := b.consensusProcessor[msg.Type]; exists {
+		reply = handle(consensusData)
+	}
+	//log.Log.Println("message handle over ")
 
-    return
+	return
 }
 
 func (b *basicService) Start(cfg interface{}) (err error) {
-    config, ok := cfg.(Config)
-    if !ok {
-        errors.New("invalid config")
-        return
-    }
+	config, ok := cfg.(Config)
+	if !ok {
+		err = errors.New("invalid config")
+		return
+	}
 
-    Basic.config = config
-    Basic.currentState = consensus.States.Init
+	Basic.config = config
+	Basic.currentState = consensus.States.Init
 
-    go b.initService()
-    return
+	go b.initService()
+	return
 }
 
 func (b *basicService) Stop() (err error) {
-    return
+	return
 }
 
 func (b *basicService) RegisterExternalProcessor(processor consensus.ExternalProcessor) {
-    b.externalProcessor = processor
-    return
+	b.externalProcessor = processor
+	return
 }
 
 func (b *basicService) GetMessageFamily() (family string) {
-    family = MessageFamily
-    return
+	family = MessageFamily
+	return
 }
 
 func (b *basicService) GetExternalProcessor() (processor consensus.ExternalProcessor) {
-    processor = b.externalProcessor
-    return
+	processor = b.externalProcessor
+	return
 }
 
 func (b *basicService) GetConsensusCustomerData(msg message.Message) (data []byte, err error) {
-    consensusData := SignedConsensusData{}
-    err = json.Unmarshal(msg.Payload, &consensusData)
-    if err != nil {
-        return
-    }
-    data = consensusData.ConsensusData.Justify.Payload.CustomerData
-    return
+	consensusData := SignedConsensusData{}
+	err = json.Unmarshal(msg.Payload, &consensusData)
+	if err != nil {
+		return
+	}
+	data = consensusData.ConsensusData.Justify.Payload.CustomerData
+	return
 }
 
-func (b *basicService)Load(networkService network.IService, processor consensus.ExternalProcessor) {
-    enum.Build(&messageTypes, 0, "basic-hot-stuff-")
-    enum.Build(&consensusPhases, 0, "")
+func (b *basicService) Load(networkService network.IService, processor consensus.ExternalProcessor) {
+	enum.Build(&messageTypes, 0, "basic-hot-stuff-")
+	enum.Build(&consensusPhases, 0, "")
 
-    b.viewChangeTrigger = time.NewTimer(b.config.ConsensusTimeout)
+	b.viewChangeTrigger = time.NewTimer(b.config.ConsensusTimeout)
 
-    b.network = networkService
+	b.network = networkService
 
-    b.newViews = map[string]SignedConsensusData{}
-    b.votedMessage = map[string]SignedConsensusData{}
-    b.consensusProcessor = map[string] consensusProcessor{}
+	b.newViews = map[string]SignedConsensusData{}
+	b.votedMessage = map[string]SignedConsensusData{}
+	b.consensusProcessor = map[string]consensusProcessor{}
 
-    b.externalProcessor = processor
+	b.externalProcessor = processor
 
-    b.registerLeaderProcessor()
-    b.registerReplicaProcessor()
+	b.registerLeaderProcessor()
+	b.registerReplicaProcessor()
 }
 
 func (b *basicService) StaticInformation() interface{} {
-    if b.information != nil {
-        return b.information
-    }
+	if b.information != nil {
+		return b.information
+	}
 
-    info := basicHotStuffInformation{}
+	info := basicHotStuffInformation{}
 
-    info.Network = b.network.StaticInformation()
-    info.Members = b.allMembersKey()
-    info.ConsensusInterval = b.config.ConsensusInterval
-    info.ConsensusTimeout = b.config.ConsensusTimeout
+	info.Network = b.network.StaticInformation()
+	info.Members = b.allMembersKey()
+	info.ConsensusInterval = b.config.ConsensusInterval
+	info.ConsensusTimeout = b.config.ConsensusTimeout
 
-    if !b.isAllMembersOnline() {
-        return info
-    }
+	if !b.isAllMembersOnline() {
+		return info
+	}
 
-    b.information = &info
-    return b.information
+	b.information = &info
+	return b.information
 }
