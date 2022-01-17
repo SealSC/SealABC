@@ -88,19 +88,34 @@ func blockchainRequestEntityKey(e blockchainRequest.Entity) string {
 	return e.RequestAction + "+" + e.Seal.HexHash()
 }
 func (o *OracleApplication) PoolAdd(e blockchainRequest.Entity) {
+	o.Lock()
+	defer o.Unlock()
 	o.reqPool[blockchainRequestEntityKey(e)] = e
 }
 func (o *OracleApplication) PoolGet(e blockchainRequest.Entity) (blockchainRequest.Entity, bool) {
+	o.Lock()
+	defer o.Unlock()
 	entity, ok := o.reqPool[blockchainRequestEntityKey(e)]
 	return entity, ok
 }
 func (o *OracleApplication) PoolDelete(e blockchainRequest.Entity) {
+	o.Lock()
+	defer o.Unlock()
 	delete(o.reqPool, blockchainRequestEntityKey(e))
+}
+func (o *OracleApplication) PoolGetAll() (entity []blockchainRequest.Entity) {
+	o.Lock()
+	defer o.Unlock()
+	for s := range o.reqPool {
+		entity = append(entity, o.reqPool[s])
+	}
+	return
 }
 
 func (o *OracleApplication) Name() (name string) {
 	return "Oracle"
 }
+
 func (o *OracleApplication) reqValidate(req blockchainRequest.Entity) error {
 	if req.RequestApplication != o.Name() {
 		return errors.New("not found RequestApplication")
@@ -110,13 +125,12 @@ func (o *OracleApplication) reqValidate(req blockchainRequest.Entity) error {
 	}
 	return nil
 }
+
 func (o *OracleApplication) PushClientRequest(req blockchainRequest.Entity) (result interface{}, err error) {
 	err = o.reqValidate(req)
 	if err != nil {
 		return
 	}
-	o.Lock()
-	defer o.Unlock()
 	if len(o.reqPool) >= o.reqMaxCache {
 		return nil, errors.New("is running")
 	}
@@ -125,9 +139,6 @@ func (o *OracleApplication) PushClientRequest(req blockchainRequest.Entity) (res
 }
 
 func (o *OracleApplication) Query(req []byte) (interface{}, error) {
-	o.Lock()
-	defer o.Unlock()
-
 	str := blockchainRequest.Entity{}
 	err := json.Unmarshal(req, &str)
 	if err != nil {
@@ -197,8 +208,6 @@ func (o *OracleApplication) PreExecute(req blockchainRequest.Entity, header bloc
 }
 
 func (o *OracleApplication) Execute(req blockchainRequest.Entity, header block.Entity, actIndex uint32) (result applicationResult.Entity, err error) {
-	o.Lock()
-	defer o.Unlock()
 	o.PoolDelete(req)
 	a := o.functions[req.RequestAction]
 	if a == nil {
@@ -229,11 +238,7 @@ func (o *OracleApplication) Cancel(req blockchainRequest.Entity) (err error) {
 
 func (o *OracleApplication) RequestsForBlock(_ block.Entity) (entity []blockchainRequest.Entity, cnt uint32) {
 	//new view
-	o.Lock()
-	defer o.Unlock()
-	for s := range o.reqPool {
-		entity = append(entity, o.reqPool[s])
-	}
+	entity = o.PoolGetAll()
 	cnt = uint32(len(entity))
 	return
 }

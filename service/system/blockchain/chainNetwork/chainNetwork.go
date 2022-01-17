@@ -18,71 +18,70 @@
 package chainNetwork
 
 import (
-    "github.com/SealSC/SealABC/network"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
-    "errors"
-    "sync"
-    "github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"errors"
+	"sync"
+	"github.com/SealSC/SealABC/log"
 )
 
-type P2PService struct{
-    syncLock                sync.Mutex
-    chain                   *chainStructure.Blockchain
-    networkMessageHandler map[string] p2pMessageHandler
+type P2PService struct {
+	syncLock              sync.Mutex
+	chain                 *chainStructure.Blockchain
+	networkMessageHandler map[string]p2pMessageHandler
 
-    //export
-    NetworkService        network.IService
+	//export
+	NetworkService network.IService
 }
 
 func startChainP2PNetwork(cfg network.Config, p2p *P2PService) (networkService network.IService, err error) {
-    networkService = &network.Service{}
-    err = networkService.Create(cfg)
-    if err != nil {
-        return
-    }
+	networkService = &network.Service{}
+	err = networkService.Create(cfg)
+	if err != nil {
+		return
+	}
 
-    if len(cfg.P2PSeeds) == 0 {
-        err = errors.New("no p2p seeds")
-        return
-    }
+	if len(cfg.P2PSeeds) == 0 {
+		err = errors.New("no p2p seeds")
+		return
+	}
 
-    var seedNodes []network.Node
-    for _, seed := range cfg.P2PSeeds {
-        newP2PNode := network.Node{}
+	var seedNodes []network.Node
+	for _, seed := range cfg.P2PSeeds {
+		newP2PNode := network.Node{}
 
-        newP2PNode.ServeAddress = seed
-        newP2PNode.Protocol = cfg.ServiceProtocol
+		newP2PNode.ServeAddress = seed
+		newP2PNode.Protocol = cfg.ServiceProtocol
 
-        seedNodes = append(seedNodes, newP2PNode)
-    }
+		seedNodes = append(seedNodes, newP2PNode)
+	}
 
-    err = networkService.Join(seedNodes, nil)
+	err = networkService.Join(seedNodes, nil)
 
-    networkService.RegisterMessageProcessor(messageFamily, p2p.handleP2PMessage)
-    return
+	networkService.RegisterMessageProcessor(messageFamily, p2p.handleP2PMessage)
+	return
 }
 
 func Load() {
-    enum.SimpleBuild(&MessageTypes)
+	enum.SimpleBuild(&MessageTypes)
 }
 
-func NewNetwork(cfg network.Config, chain *chainStructure.Blockchain) (*P2PService) {
-    p2p := P2PService{}
-    p2p.networkMessageHandler = map[string] p2pMessageHandler {
-        MessageTypes.PushRequest.String():    p2p.handlePushRequest,
-        MessageTypes.SyncBlock.String():      p2p.handleSyncBlock,
-        MessageTypes.SyncBlockReply.String(): p2p.handleSyncBlockReply,
-    }
+func NewNetwork(cfg network.Config, chain *chainStructure.Blockchain) *P2PService {
+	p2p := P2PService{}
+	p2p.networkMessageHandler = map[string]p2pMessageHandler{
+		MessageTypes.PushRequest.String():    p2p.handlePushRequest,
+		MessageTypes.SyncBlock.String():      p2p.handleSyncBlock,
+		MessageTypes.SyncBlockReply.String(): p2p.handleSyncBlockReply,
+	}
 
-    ns, err := startChainP2PNetwork(cfg, &p2p)
-    if err != nil {
-        log.Log.Warn("blockchain service network started with an error: ", err.Error())
-    }
+	ns, err := startChainP2PNetwork(cfg, &p2p)
+	if err != nil {
+		log.Log.Warn("blockchain service network started with an error: ", err.Error())
+	}
 
-    p2p.chain = chain
-    p2p.NetworkService = ns
+	p2p.chain = chain
+	p2p.NetworkService = ns
 
-    return &p2p
+	return &p2p
 }
-
