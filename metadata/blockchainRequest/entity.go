@@ -18,20 +18,57 @@
 package blockchainRequest
 
 import (
-    "github.com/SealSC/SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/metadata/seal"
 )
 
 type EntityData struct {
-    RequestApplication  string
-    RequestAction       string
-    Data                []byte
-    QueryString         string
+	RequestApplication string
+	RequestAction      string
+	Data               []byte
+	QueryString        string
 }
 
 type Entity struct {
-    EntityData
+	EntityData
 
-    Packed bool
-    PackedCount uint32
-    Seal   seal.Entity
+	Packed      bool
+	PackedCount uint32
+	Seal        seal.Entity
+	From        RequestFrom
 }
+
+func (e *Entity) IsFromNull() bool {
+	return e.From == 0
+}
+
+func (e *Entity) FromRemote() {
+	e.From = RequestFromRemote
+}
+func (e *Entity) FromAPI() {
+	e.From = RequestFromAPI
+}
+
+func (e *Entity) IsFromRemote() bool {
+	return e.From == RequestFromRemote
+}
+func (e *Entity) IsFromAPI() bool {
+	return e.From == RequestFromAPI
+}
+
+func EntityFromRemote() *Entity {
+	e := &Entity{}
+	e.FromRemote()
+	return e
+}
+func EntityFromAPI() *Entity {
+	e := &Entity{}
+	e.FromAPI()
+	return e
+}
+
+type RequestFrom int
+
+const (
+	RequestFromAPI    RequestFrom = 1
+	RequestFromRemote RequestFrom = 2
+)

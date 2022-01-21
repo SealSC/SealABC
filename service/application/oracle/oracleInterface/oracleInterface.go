@@ -1,3 +1,20 @@
+/*
+ * Copyright 2020 The SealABC Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package oracleInterface
 
 import (
@@ -17,6 +34,10 @@ import (
 	"github.com/SealSC/SealABC/service/system/blockchain/chainTables"
 	"fmt"
 	"strings"
+	"github.com/robfig/cron/v3"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
 type queryResult struct {
@@ -49,67 +70,119 @@ func queryResultNotfound() *queryResult {
 
 type OracleApplication struct {
 	sync.Mutex
-	c                http.Client
+	cr               *cron.Cron
+	pullTimeOut      time.Duration
 	functions        map[string]Action
-	reqPool          map[string]blockchainRequest.Entity
+	reqPool          *SortMap
 	blockchainDriver simpleSQLDatabase.IDriver
-	reqMaxCache      int
-}
-type Action interface {
-	Name() string
-	VerifyReq(req []byte) error
-	FormatResult(req blockchainRequest.Entity) (applicationResult.Entity, error)
 }
 
-var defVerifyConnection = func(state tls.ConnectionState) error { return errors.New("empty Verify Connection") }
-
-func NewOracleApplication(reqMaxCache int, pullTimeOut time.Duration, blockchainDriver simpleSQLDatabase.IDriver) *OracleApplication {
-	return &OracleApplication{
-		blockchainDriver: blockchainDriver,
-		reqPool:          make(map[string]blockchainRequest.Entity, reqMaxCache),
-		reqMaxCache:      reqMaxCache,
-		functions:        map[string]Action{},
-		c: http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: false, VerifyConnection: defVerifyConnection},
-			},
+func (o *OracleApplication) addSchedule(cronPath string, name string) error {
+	s := o.functions[name]
+	z, ok := s.(ActionRemoteAutoPuller)
+	if !ok {
+		return nil
+	}
+	var f = func() {
+		url, contentType := z.UrlContentType()
+		client := http.Client{
+			Transport:     &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: false, VerifyConnection: z.VerifyRemoteCA}},
 			CheckRedirect: nil,
 			Jar:           nil,
-			Timeout:       pullTimeOut,
-		},
+			Timeout:       o.pullTimeOut,
+		}
+		post, err := client.Post(url, contentType, nil)
+		if err != nil {
+			log.Log.Errorln(err)
+			return
+		}
+		e, err := z.VerifyRemoteResp(post)
+		if err != nil {
+			log.Log.Errorln(err)
+			return
+		}
+		e.RequestApplication = "Oracle"
+		e.RequestAction = z.Name()
+		e.Seal.HexHash()
+		err = o.PoolAdd(e, true)
+		if err != nil {
+			log.Log.Errorln(err)
+		}
 	}
+	_, err := o.cr.AddFunc(cronPath, f)
+	return err
 }
 
-func (o *OracleApplication) RegFunction(a Action) {
+func NewOracleApplication(pullTimeOut time.Duration,
+	blockchainDriver simpleSQLDatabase.IDriver,
+	kvDB kvDatabase.IDriver) *OracleApplication {
+	o := &OracleApplication{
+		blockchainDriver: blockchainDriver,
+		reqPool:          NewSortMap(kvDB),
+		functions:        map[string]Action{},
+		cr:               cron.New(cron.WithSeconds()), //Second | Minute | Hour | Dom | Month | Dow | Descriptor
+		pullTimeOut:      pullTimeOut,
+	}
+	o.cr.Start()
+	return o
+}
+
+func (o *OracleApplication) RegFunction(a Action) error {
+	if isBaseAction(a) {
+		return errors.New("action is base action, unable to register")
+	}
+
 	o.functions[a.Name()] = a
+	puller, ok := a.(ActionRemoteAutoPuller)
+	if !ok {
+		return nil
+	}
+	paths := puller.CronPaths()
+	for _, pat := range paths {
+		err := o.addSchedule(pat, puller.Name())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func blockchainRequestEntityKey(e blockchainRequest.Entity) string {
 	return e.RequestAction + "+" + e.Seal.HexHash()
 }
-func (o *OracleApplication) PoolAdd(e blockchainRequest.Entity) {
+func (o *OracleApplication) PoolAdd(e blockchainRequest.Entity, remote bool) error {
 	o.Lock()
 	defer o.Unlock()
-	o.reqPool[blockchainRequestEntityKey(e)] = e
-}
-func (o *OracleApplication) PoolGet(e blockchainRequest.Entity) (blockchainRequest.Entity, bool) {
-	o.Lock()
-	defer o.Unlock()
-	entity, ok := o.reqPool[blockchainRequestEntityKey(e)]
-	return entity, ok
-}
-func (o *OracleApplication) PoolDelete(e blockchainRequest.Entity) {
-	o.Lock()
-	defer o.Unlock()
-	delete(o.reqPool, blockchainRequestEntityKey(e))
-}
-func (o *OracleApplication) PoolGetAll() (entity []blockchainRequest.Entity) {
-	o.Lock()
-	defer o.Unlock()
-	for s := range o.reqPool {
-		entity = append(entity, o.reqPool[s])
+	if e.IsFromNull() {
+		if remote {
+			e.FromRemote()
+		} else {
+			e.FromAPI()
+		}
 	}
-	return
+	return o.reqPool.set(blockchainRequestEntityKey(e), e)
+}
+func (o *OracleApplication) PoolGet(e blockchainRequest.Entity) (blockchainRequest.Entity, bool, error) {
+	o.Lock()
+	defer o.Unlock()
+	entity, ok, err := o.reqPool.get(blockchainRequestEntityKey(e))
+	return entity, ok, err
+}
+
+func (o *OracleApplication) PoolOne() (blockchainRequest.Entity, bool) {
+	o.Lock()
+	defer o.Unlock()
+	list := o.reqPool.list()
+	if len(list) <= 0 {
+		return blockchainRequest.Entity{}, false
+	}
+	return list[0], true
+}
+
+func (o *OracleApplication) PoolDelete(e blockchainRequest.Entity) error {
+	o.Lock()
+	defer o.Unlock()
+	return o.reqPool.del(blockchainRequestEntityKey(e))
 }
 
 func (o *OracleApplication) Name() (name string) {
@@ -117,11 +190,17 @@ func (o *OracleApplication) Name() (name string) {
 }
 
 func (o *OracleApplication) reqValidate(req blockchainRequest.Entity) error {
+	if req.IsFromRemote() {
+		_, ok, err := o.PoolGet(req)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("not found remote data")
+		}
+	}
 	if req.RequestApplication != o.Name() {
 		return errors.New("not found RequestApplication")
-	}
-	if len(req.Seal.Hash) == 0 {
-		return errors.New("Seal.Hash is empty")
 	}
 	return nil
 }
@@ -131,10 +210,7 @@ func (o *OracleApplication) PushClientRequest(req blockchainRequest.Entity) (res
 	if err != nil {
 		return
 	}
-	if len(o.reqPool) >= o.reqMaxCache {
-		return nil, errors.New("is running")
-	}
-	o.PoolAdd(req)
+	err = o.PoolAdd(req, false)
 	return
 }
 
@@ -152,7 +228,10 @@ func (o *OracleApplication) Query(req []byte) (interface{}, error) {
 	//no      no,    Notfound
 	//no      yes,   Saved
 	//yes     yes,   -
-	_, cached := o.PoolGet(str)
+	_, cached, err := o.PoolGet(str)
+	if err != nil {
+		return nil, err
+	}
 	if cached {
 		return queryResultSaving(), nil
 	}
@@ -190,7 +269,15 @@ func (o *OracleApplication) Query(req []byte) (interface{}, error) {
 	return queryResultSaved(result), nil
 }
 
-func (o *OracleApplication) PreExecute(req blockchainRequest.Entity, header block.Entity) (_ []byte, err error) {
+func (o *OracleApplication) VerifyReq(a Action, req blockchainRequest.Entity) (err error) {
+	verifier, ok := a.(RequestVerifier)
+	if !ok {
+		err = errors.New("action not support http request")
+	}
+	return verifier.VerifyReq(req)
+}
+
+func (o *OracleApplication) PreExecute(req blockchainRequest.Entity, _ block.Entity) (_ []byte, err error) {
 	//validate trusting
 	if err = o.reqValidate(req); err != nil {
 		return nil, err
@@ -203,47 +290,64 @@ func (o *OracleApplication) PreExecute(req blockchainRequest.Entity, header bloc
 		err = errors.New("action not found")
 		return
 	}
-	err = a.VerifyReq(req.Data)
+	err = o.VerifyReq(a, req)
 	return
 }
 
-func (o *OracleApplication) Execute(req blockchainRequest.Entity, header block.Entity, actIndex uint32) (result applicationResult.Entity, err error) {
-	o.PoolDelete(req)
+func (o *OracleApplication) Execute(req blockchainRequest.Entity, header block.Entity, _ uint32) (result applicationResult.Entity, err error) {
+	err = o.reqValidate(req)
+	if err != nil {
+		return
+	}
+	err = o.PoolDelete(req)
+	if err != nil {
+		return
+	}
 	a := o.functions[req.RequestAction]
 	if a == nil {
 		err = errors.New("action not found")
 		return
 	}
-	if err = a.VerifyReq(req.Data); err != nil {
+	if err = o.VerifyReq(a, req); err != nil {
 		return
 	}
 
-	result, err = a.FormatResult(req)
+	data, err := a.FormatResult(req)
 	if err != nil {
-		return
+		return result, err
 	}
-	if result.Seal != nil {
-		header.EntityData.Body.RequestsCount += 1
-		data := blockchainRequest.Entity{}
-		data.Data, _ = json.Marshal(result.Data)
-		data.Seal = *result.Seal
-		header.EntityData.Body.Requests = append(header.EntityData.Body.Requests, data)
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return result, err
 	}
+
+	pub, sig, hash := randomAddr(marshal)
+	result.Seal = &seal.Entity{Hash: hash, Signature: sig, SignerPublicKey: pub}
+
+	header.EntityData.Body.RequestsCount += 1
+	blockData := blockchainRequest.Entity{}
+	blockData.Data, _ = json.Marshal(result.Data)
+	blockData.Seal = *result.Seal
+	header.EntityData.Body.Requests = append(header.EntityData.Body.Requests, blockData)
+
 	return
 }
 
-func (o *OracleApplication) Cancel(req blockchainRequest.Entity) (err error) {
+func (o *OracleApplication) Cancel(blockchainRequest.Entity) (err error) {
 	return nil
 }
 
 func (o *OracleApplication) RequestsForBlock(_ block.Entity) (entity []blockchainRequest.Entity, cnt uint32) {
 	//new view
-	entity = o.PoolGetAll()
-	cnt = uint32(len(entity))
+	one, ok := o.PoolOne()
+	if ok {
+		cnt = 1
+		entity = append(entity, one)
+	}
 	return
 }
 
-func (o *OracleApplication) ApplicationInternalCall(src string, callData []byte) (ret interface{}, err error) {
+func (o *OracleApplication) ApplicationInternalCall(string, []byte) (ret interface{}, err error) {
 	return
 }
 
@@ -252,12 +356,12 @@ func (o *OracleApplication) Information() (info service.BasicInformation) {
 	return
 }
 
-func (o *OracleApplication) SetChainInterface(ci chainStructure.IChainInterface) {
+func (o *OracleApplication) SetChainInterface(chainStructure.IChainInterface) {
 	//new server
 	return
 }
 
-func (o *OracleApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (reqList []blockchainRequest.Entity, err error) {
+func (o *OracleApplication) UnpackingActionsAsRequests(blockchainRequest.Entity) (reqList []blockchainRequest.Entity, err error) {
 	//add block
 	return
 }

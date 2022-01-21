@@ -18,56 +18,56 @@
 package actions
 
 import (
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/metadata/blockchainRequest"
-    "github.com/SealSC/SealABC/network/http"
-    "github.com/SealSC/SealABC/service"
-    "github.com/gin-gonic/gin"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/blockchainRequest"
+	"github.com/SealSC/SealABC/network/http"
+	"github.com/SealSC/SealABC/service"
+	"github.com/gin-gonic/gin"
 )
 
-type callApplication struct{
-    baseHandler
+type callApplication struct {
+	baseHandler
 }
 
-func (c *callApplication)Handle(ctx *gin.Context) {
-    res := http.NewResponse(ctx)
+func (c *callApplication) Handle(ctx *gin.Context) {
+	res := http.NewResponse(ctx)
 
-    reqData := blockchainRequest.Entity{}
-    _, err := http.GetPostedJson(ctx, &reqData)
-    if err != nil {
-        res.BadRequest( "request error: " + err.Error())
-        return
-    }
+	reqData := *blockchainRequest.EntityFromAPI()
+	_, err := http.GetPostedJson(ctx, &reqData)
+	if err != nil {
+		res.BadRequest("request error: " + err.Error())
+		return
+	}
 
-    result, err := c.chain.Executor.PushRequest(reqData)
+	result, err := c.chain.Executor.PushRequest(reqData)
 
-    if err != nil {
-        res.BadRequest("call application error: " + err.Error())
-        return
-    }
+	if err != nil {
+		res.BadRequest("call application error: " + err.Error())
+		return
+	}
 
-    broadcastErr := c.p2p.BroadcastRequest(reqData)
-    if broadcastErr != nil{
-        log.Log.Warn("broadcast request failed: ", broadcastErr)
-    }
-    res.OK(result)
+	broadcastErr := c.p2p.BroadcastRequest(reqData)
+	if broadcastErr != nil {
+		log.Log.Warn("broadcast request failed: ", broadcastErr)
+	}
+	res.OK(result)
 }
 
-func (c *callApplication)   RouteRegister(router gin.IRouter) {
-    router.POST(c.buildUrlPath(), c.Handle)
+func (c *callApplication) RouteRegister(router gin.IRouter) {
+	router.POST(c.buildUrlPath(), c.Handle)
 }
 
-func (c *callApplication)BasicInformation() (info http.HandlerBasicInformation) {
+func (c *callApplication) BasicInformation() (info http.HandlerBasicInformation) {
 
-    info.Description = "will call application that registered on the blockchain."
-    info.Path = c.serverBasePath + c.buildUrlPath()
-    info.Method = service.ApiProtocolMethod.HttpPost.String()
+	info.Description = "will call application that registered on the blockchain."
+	info.Path = c.serverBasePath + c.buildUrlPath()
+	info.Method = service.ApiProtocolMethod.HttpPost.String()
 
-    info.Parameters.Type = service.ApiParameterType.JSON.String()
-    info.Parameters.Template = blockchainRequest.Entity{}
-    return
+	info.Parameters.Type = service.ApiParameterType.JSON.String()
+	info.Parameters.Template = blockchainRequest.Entity{}
+	return
 }
 
 func (c *callApplication) buildUrlPath() string {
-    return "/call/application"
+	return "/call/application"
 }
