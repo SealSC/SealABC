@@ -36,7 +36,6 @@ import (
 	"strings"
 	"github.com/robfig/cron/v3"
 	"github.com/SealSC/SealABC/log"
-	"github.com/SealSC/SealABC/metadata/seal"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
@@ -316,13 +315,8 @@ func (o *OracleApplication) Execute(req blockchainRequest.Entity, header block.E
 	if err != nil {
 		return result, err
 	}
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return result, err
-	}
-
-	pub, sig, hash := randomAddr(marshal)
-	result.Seal = &seal.Entity{Hash: hash, Signature: sig, SignerPublicKey: pub}
+	result.Data = data
+	result.Seal = &req.Seal
 
 	header.EntityData.Body.RequestsCount += 1
 	blockData := blockchainRequest.Entity{}
