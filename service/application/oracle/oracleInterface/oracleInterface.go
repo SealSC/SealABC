@@ -76,11 +76,17 @@ type OracleApplication struct {
 	blockchainDriver simpleSQLDatabase.IDriver
 }
 
-func (o *OracleApplication) addSchedule(cronPath string, name string) error {
+func (o *OracleApplication) removeSchedule(ids ...int) {
+	for _, id := range ids {
+		o.cr.Remove(cron.EntryID(id))
+	}
+}
+
+func (o *OracleApplication) addSchedule(cronPath string, name string) (int, error) {
 	s := o.functions[name]
 	z, ok := s.(ActionRemoteAutoPuller)
 	if !ok {
-		return nil
+		return -1, nil
 	}
 	var f = func() {
 		url, contentType := z.UrlContentType()
@@ -108,8 +114,8 @@ func (o *OracleApplication) addSchedule(cronPath string, name string) error {
 			log.Log.Errorln(err)
 		}
 	}
-	_, err := o.cr.AddFunc(cronPath, f)
-	return err
+	id, err := o.cr.AddFunc(cronPath, f)
+	return int(id), err
 }
 
 func NewOracleApplication(pullTimeOut time.Duration,
@@ -137,10 +143,15 @@ func (o *OracleApplication) RegFunction(a Action) error {
 		return nil
 	}
 	paths := puller.CronPaths()
+	var ids []int
 	for _, pat := range paths {
-		err := o.addSchedule(pat, puller.Name())
+		id, err := o.addSchedule(pat, puller.Name())
 		if err != nil {
+			o.removeSchedule(ids...)
 			return err
+		}
+		if id >= 0 {
+			ids = append(ids, id)
 		}
 	}
 	return nil
