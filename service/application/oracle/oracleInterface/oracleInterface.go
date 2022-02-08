@@ -60,7 +60,7 @@ type OracleApplication struct {
 	cr               *cron.Cron
 	pullTimeOut      time.Duration
 	functions        map[string]Action
-	reqPool          *SortMap
+	reqPool          *DBMap
 	blockchainDriver simpleSQLDatabase.IDriver
 }
 
@@ -111,7 +111,7 @@ func NewOracleApplication(pullTimeOut time.Duration,
 	kvDB kvDatabase.IDriver) *OracleApplication {
 	o := &OracleApplication{
 		blockchainDriver: blockchainDriver,
-		reqPool:          NewSortMap(kvDB),
+		reqPool:          newDBMap(kvDB),
 		functions:        map[string]Action{},
 		cr:               cron.New(cron.WithSeconds()), //Second | Minute | Hour | Dom | Month | Dow | Descriptor
 		pullTimeOut:      pullTimeOut,

@@ -25,15 +25,15 @@ import (
 
 const keyPrefix = "oracle_map_"
 
-type SortMap struct {
+type DBMap struct {
 	kvDB kvDatabase.IDriver
 }
 
-func NewSortMap(kvDB kvDatabase.IDriver) *SortMap {
-	return &SortMap{kvDB: kvDB}
+func newDBMap(kvDB kvDatabase.IDriver) *DBMap {
+	return &DBMap{kvDB: kvDB}
 }
 
-func (s *SortMap) set(k string, v blockchainRequest.Entity) error {
+func (s *DBMap) set(k string, v blockchainRequest.Entity) error {
 	marshal, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (s *SortMap) set(k string, v blockchainRequest.Entity) error {
 	return err
 }
 
-func (s *SortMap) get(k string) (result blockchainRequest.Entity, ok bool, err error) {
+func (s *DBMap) get(k string) (result blockchainRequest.Entity, ok bool, err error) {
 	var kv kvDatabase.KVItem
 	kv, err = s.kvDB.Get([]byte(keyPrefix + k))
 	if err != nil {
@@ -59,7 +59,7 @@ func (s *SortMap) get(k string) (result blockchainRequest.Entity, ok bool, err e
 	return
 }
 
-func (s *SortMap) list() (result []blockchainRequest.Entity) {
+func (s *DBMap) list() (result []blockchainRequest.Entity) {
 	bytes := []byte(keyPrefix)
 	traversal := s.kvDB.Traversal(bytes)
 	result = make([]blockchainRequest.Entity, len(traversal))
@@ -75,6 +75,6 @@ func (s *SortMap) list() (result []blockchainRequest.Entity) {
 	return result
 }
 
-func (s *SortMap) del(k string) error {
+func (s *DBMap) del(k string) error {
 	return s.kvDB.Delete([]byte(keyPrefix + k))
 }
