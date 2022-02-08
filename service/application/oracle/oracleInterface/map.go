@@ -56,9 +56,6 @@ func (s *SortMap) get(k string) (result blockchainRequest.Entity, ok bool, err e
 		return
 	}
 	err = json.Unmarshal(kv.Data, &result)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -70,12 +67,14 @@ func (s *SortMap) list() (result []blockchainRequest.Entity) {
 		if !item.Exists {
 			break
 		}
-		_ = json.Unmarshal(item.Data, &result[i])
+		err := json.Unmarshal(item.Data, &result[i])
+		if err != nil {
+			item.Data = nil
+		}
 	}
 	return result
 }
 
 func (s *SortMap) del(k string) error {
-
 	return s.kvDB.Delete([]byte(keyPrefix + k))
 }

@@ -46,25 +46,13 @@ type queryResult struct {
 }
 
 func queryResultSaving() *queryResult {
-	return &queryResult{
-		Status:    3,
-		StatusMSG: "Saving",
-		Data:      nil,
-	}
+	return &queryResult{Status: 3, StatusMSG: "Saving", Data: nil}
 }
 func queryResultSaved(data interface{}) *queryResult {
-	return &queryResult{
-		Status:    2,
-		StatusMSG: "Saved",
-		Data:      data,
-	}
+	return &queryResult{Status: 2, StatusMSG: "Saved", Data: data}
 }
 func queryResultNotfound() *queryResult {
-	return &queryResult{
-		Status:    4,
-		StatusMSG: "Notfound",
-		Data:      nil,
-	}
+	return &queryResult{Status: 4, StatusMSG: "Notfound", Data: nil}
 }
 
 type OracleApplication struct {
@@ -163,13 +151,7 @@ func blockchainRequestEntityKey(e blockchainRequest.Entity) string {
 func (o *OracleApplication) PoolAdd(e blockchainRequest.Entity, remote bool) error {
 	o.Lock()
 	defer o.Unlock()
-	if e.IsFromNull() {
-		if remote {
-			e.FromRemote()
-		} else {
-			e.FromAPI()
-		}
-	}
+	e.SetFromIfNull(remote)
 	return o.reqPool.set(blockchainRequestEntityKey(e), e)
 }
 func (o *OracleApplication) PoolGet(e blockchainRequest.Entity) (blockchainRequest.Entity, bool, error) {

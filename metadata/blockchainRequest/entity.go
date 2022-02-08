@@ -37,15 +37,15 @@ type Entity struct {
 	From        RequestFrom
 }
 
-func (e *Entity) IsFromNull() bool {
-	return e.From == 0
-}
-
-func (e *Entity) FromRemote() {
-	e.From = RequestFromRemote
-}
-func (e *Entity) FromAPI() {
-	e.From = RequestFromAPI
+func (e *Entity) SetFromIfNull(remote bool) {
+	if e.From != 0 {
+		return
+	}
+	if remote {
+		e.From = RequestFromRemote
+	} else {
+		e.From = RequestFromAPI
+	}
 }
 
 func (e *Entity) IsFromRemote() bool {
@@ -57,12 +57,12 @@ func (e *Entity) IsFromAPI() bool {
 
 func EntityFromRemote() *Entity {
 	e := &Entity{}
-	e.FromRemote()
+	e.SetFromIfNull(true)
 	return e
 }
 func EntityFromAPI() *Entity {
 	e := &Entity{}
-	e.FromAPI()
+	e.SetFromIfNull(false)
 	return e
 }
 

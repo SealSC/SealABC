@@ -65,6 +65,7 @@ type ActionRequestSaver interface {
 }
 
 type AutoFunc interface {
+	//CronPaths data format{Second | Minute | Hour | Dom | Month | Dow | Descriptor}
 	CronPaths() []string
 }
 
