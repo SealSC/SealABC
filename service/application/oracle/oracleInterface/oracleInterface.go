@@ -29,11 +29,7 @@ import (
 	"encoding/json"
 	"time"
 	"crypto/tls"
-	"encoding/hex"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"github.com/SealSC/SealABC/service/system/blockchain/chainTables"
-	"fmt"
-	"strings"
 	"github.com/robfig/cron/v3"
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
@@ -57,7 +53,7 @@ func queryResultNotfound() *queryResult {
 
 type OracleApplication struct {
 	sync.Mutex
-	cr               *cron.Cron
+	cr               *Cron
 	pullTimeOut      time.Duration
 	functions        map[string]Action
 	reqPool          *DBMap
@@ -65,9 +61,7 @@ type OracleApplication struct {
 }
 
 func (o *OracleApplication) removeSchedule(ids ...int) {
-	for _, id := range ids {
-		o.cr.Remove(cron.EntryID(id))
-	}
+	o.cr.Remove(ids...)
 }
 
 func (o *OracleApplication) addSchedule(cronPath string, name string) (int, error) {
@@ -103,7 +97,7 @@ func (o *OracleApplication) addSchedule(cronPath string, name string) (int, erro
 		}
 	}
 	id, err := o.cr.AddFunc(cronPath, f)
-	return int(id), err
+	return id, err
 }
 
 func NewOracleApplication(pullTimeOut time.Duration,
@@ -113,7 +107,7 @@ func NewOracleApplication(pullTimeOut time.Duration,
 		blockchainDriver: blockchainDriver,
 		reqPool:          newDBMap(kvDB),
 		functions:        map[string]Action{},
-		cr:               cron.New(cron.WithSeconds()), //Second | Minute | Hour | Dom | Month | Dow | Descriptor
+		cr:               newCron(cron.WithSeconds()), //Second | Minute | Hour | Dom | Month | Dow | Descriptor
 		pullTimeOut:      pullTimeOut,
 	}
 	o.cr.Start()
@@ -208,57 +202,10 @@ func (o *OracleApplication) PushClientRequest(req blockchainRequest.Entity) (res
 
 func (o *OracleApplication) Query(req []byte) (interface{}, error) {
 	str := blockchainRequest.Entity{}
-	err := json.Unmarshal(req, &str)
-	if err != nil {
+	if err := json.Unmarshal(req, &str); err != nil {
 		return nil, err
 	}
-	if strings.TrimSpace(str.RequestAction) == "" {
-		return nil, errors.New("action not found")
-	}
-	//cache   DB
-	//yes     no,    Saving
-	//no      no,    Notfound
-	//no      yes,   Saved
-	//yes     yes,   -
-	_, cached, err := o.PoolGet(str)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return queryResultSaving(), nil
-	}
-	if o.blockchainDriver == nil {
-		return queryResultNotfound(), nil
-	}
-
-	table := chainTables.RequestsTable{}
-	tag, err := simpleSQLDatabase.ColumnsFromTag(table, false, nil)
-	if err != nil {
-		return nil, err
-	}
-	sqlStr := fmt.Sprintf("SELECT `%v` FROM `%s` WHERE `c_hash`=?", strings.Join(tag, "`,`"), table.Name())
-	rows, err := o.blockchainDriver.Query(chainTables.RequestRow{}, sqlStr, []interface{}{hex.EncodeToString(str.Seal.Hash)})
-	if err != nil {
-		return nil, err
-	}
-	if len(rows) == 0 {
-		return queryResultNotfound(), nil
-	}
-	requestsTable, ok := rows[0].(chainTables.RequestRow)
-	if !ok {
-		return nil, errors.New("result not a RequestRow")
-	}
-	result := map[string]interface{}{}
-	result["hash"] = requestsTable.Hash
-	result["time"] = requestsTable.Time
-	result["height"] = requestsTable.Height
-	payload := map[string]interface{}{}
-	err = json.Unmarshal([]byte(requestsTable.Payload), &payload)
-	if err != nil {
-		return nil, err
-	}
-	result["payload"] = payload
-	return queryResultSaved(result), nil
+	return o.requestDispatch(str)
 }
 
 func (o *OracleApplication) VerifyReq(a Action, req blockchainRequest.Entity) (err error) {
