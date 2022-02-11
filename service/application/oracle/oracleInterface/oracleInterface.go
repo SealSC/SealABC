@@ -68,7 +68,7 @@ func (o *OracleApplication) addSchedule(cronPath string, name string) (int, erro
 	s := o.functions[name]
 	z, ok := s.(ActionRemoteAutoPuller)
 	if !ok {
-		return -1, nil
+		return -1, errors.New("addSchedule not found action name")
 	}
 	var f = func() {
 		url, contentType := z.UrlContentType()
