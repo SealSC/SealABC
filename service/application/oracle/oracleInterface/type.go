@@ -43,7 +43,6 @@ type ActionRemoteVerifier interface {
 	Action
 	RemoteGet
 	RequestVerifier
-	EqualSAB()
 }
 
 type ActionRemoteManualPuller interface {
