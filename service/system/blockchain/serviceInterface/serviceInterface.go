@@ -129,6 +129,10 @@ func (b *BlockchainService) verifyBlock(blk block.Entity) (err error) {
     }
 
     lastBlk := b.chain.GetLastBlock()
+    if lastBlk == nil {
+        return
+    }
+
     if blk.Header.Height != lastBlk.Header.Height + 1 {
         log.Log.Warn("unable to verify the block: local height@", b.chain.CurrentHeight(), " new block@", blk.Header.Height )
         err = errors.New("unable to verify the block because the current block cannot be aligned to the current height")
