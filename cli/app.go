@@ -39,11 +39,11 @@ func Run() (app *cliV2.App) {
     }
 
     app = cliV2.NewApp()
-    app.Name = "github.com/SealSC/SealABC"
-    app.Version = "0.1.0"
-    app.HelpName = "github.com/SealSC/SealABC"
-    app.Usage = "github.com/SealSC/SealABC"
-    app.UsageText = "github.com/SealSC/SealABC [options] [args]"
+    app.Name = "SealABC"
+    app.Version = "0.1"
+    app.HelpName = "SealABC"
+    app.Usage = "SealABC"
+    app.UsageText = "SealABC [options] [args]"
     app.HideHelp = false
     app.HideVersion = false
 
