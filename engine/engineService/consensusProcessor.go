@@ -18,11 +18,11 @@
 package engineService
 
 import (
+    "encoding/json"
     "github.com/SealSC/SealABC/consensus"
     "github.com/SealSC/SealABC/dataStructure/enum"
     "github.com/SealSC/SealABC/log"
     "github.com/SealSC/SealABC/metadata/serviceRequest"
-    "encoding/json"
 )
 
 type consensusProcessor struct {}
@@ -120,7 +120,3 @@ func (e *consensusProcessor) NewDataBasedOnConsensus(data consensus.ICustomerDat
 
 var ConsensusProcessor consensusProcessor
 
-//func Start(config engineStartup.EngineConfig) {
-//    engineStartup.EngineStart(config, &instance)
-//    return
-//}
