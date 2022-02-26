@@ -18,8 +18,6 @@
 package engineStartup
 
 import (
-    "github.com/SealSC/SealABC/crypto"
-    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
     "github.com/SealSC/SealABC/engine/engineApi"
     "github.com/SealSC/SealABC/log"
     "github.com/SealSC/SealABC/network"
@@ -29,8 +27,6 @@ import (
 type Config struct {
     Api         engineApi.Config
     Log         log.Config
-    SelfSigner  signerCommon.ISigner
-    CryptoTools crypto.Tools
 
     StorageConfig           interface{}
     ConsensusNetwork        network.Config
