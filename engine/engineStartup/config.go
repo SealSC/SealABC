@@ -27,7 +27,6 @@ type Config struct {
     Api         engineApi.Config
     Log         log.Config
 
-    StorageConfig           interface{}
     ConsensusNetwork        network.Config
     ConsensusDisabled       bool
 
