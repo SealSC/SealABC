@@ -21,7 +21,6 @@ import (
     "github.com/SealSC/SealABC/engine/engineApi"
     "github.com/SealSC/SealABC/log"
     "github.com/SealSC/SealABC/network"
-    "github.com/SealSC/SealABC/service/system"
 )
 
 type Config struct {
@@ -33,8 +32,6 @@ type Config struct {
     ConsensusDisabled       bool
 
     Consensus        interface{}
-    SystemService   system.Config
-
 }
 
 var config Config
