@@ -35,19 +35,20 @@
 package hotStuff
 
 import (
+    "bytes"
     "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
     "github.com/SealSC/SealABC/crypto/hashes/sha3"
     "github.com/SealSC/SealABC/log"
     "github.com/SealSC/SealABC/metadata/seal"
-    "bytes"
 )
 
 func (b *basicService) verifyQCVotes(qc QC) (passed bool)  {
     passed = false
-
-    payload := qc.Payload
-    payloadBytes, _ := structSerializer.ToMFBytes(payload)
+    
     voteCounter := map[string] bool{}
+
+    signedData := qc.QCData
+    signedBytes, _ := structSerializer.ToMFBytes(signedData)
 
     voterCount := len(qc.Votes)
     for _, v := range qc.Votes {
@@ -57,7 +58,7 @@ func (b *basicService) verifyQCVotes(qc QC) (passed bool)  {
         }
 
         signer, _ := b.config.SingerGenerator.FromRawPublicKey(v.SignerPublicKey)
-        qcHash := sha3.Sha256.Sum(payloadBytes)
+        qcHash := sha3.Sha256.Sum(signedBytes)
         if passed, _ =signer.Verify(qcHash, v.Signature); passed {
             voteCounter[signer.PublicKeyString()] = true
         } else {
@@ -189,7 +190,7 @@ func (b *basicService) verifyNewViewMessage(consensusData SignedConsensusData) (
 
     if len(justify.Votes) > 0 {
         passed = b.verifyQCVotes(justify)
-    } else {
+    } else if b.currentView == 0 {
         passed = true
     }
 
