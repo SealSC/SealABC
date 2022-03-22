@@ -35,13 +35,13 @@
 package hotStuff
 
 import (
+    "encoding/json"
     "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
     "github.com/SealSC/SealABC/crypto/hashes/sha3"
     "github.com/SealSC/SealABC/dataStructure/enum"
     "github.com/SealSC/SealABC/log"
     "github.com/SealSC/SealABC/metadata/message"
     "github.com/SealSC/SealABC/metadata/seal"
-    "encoding/json"
 )
 
 const MessageFamily = "basic-hot-stuff-consensus"
@@ -69,8 +69,8 @@ func (b *basicService) consensusDataFromMessage(msg message.Message) (consensusD
     return
 }
 
-func (b *basicService) buildVote(payload ConsensusPayload) (vote seal.Entity, err error) {
-    qcBytes, err := structSerializer.ToMFBytes(payload)
+func (b *basicService) buildVote(qcData QCData) (vote seal.Entity, err error) {
+    qcBytes, err := structSerializer.ToMFBytes(qcData)
     if err != nil {
         log.Log.Error("serialize QC data failed")
         return
@@ -100,9 +100,9 @@ func (b *basicService) buildConsensusMessage(phase string, payload ConsensusPayl
     consensusMsg.Payload = payload
 
     dataForSign := QCData {
-        Phase: phase,
-        ViewNumber: b.currentView,
-        Payload: payload,
+      Phase: phase,
+      ViewNumber: b.currentView,
+      Payload: payload,
     }
 
     //serialize to bytes
@@ -162,7 +162,7 @@ func (b *basicService) buildNewViewQC() (qc *QC) {
             appendPrevVotes = !b.config.SelfSigner.PublicKeyCompare(newQC.Votes[0].SignerPublicKey)
         }
         if appendPrevVotes {
-            vote, _ := b.buildVote(newQC.Payload)
+            vote, _ := b.buildVote(newQC.QCData)
             newQC.Votes = append(newQC.Votes, vote)
         }
     }
@@ -195,10 +195,10 @@ func (b *basicService) buildCommonPhaseMessage(
     votedQC *QC) (msg message.Message, err error) {
 
     for _, votedMsg := range b.votedMessage {
-        votedQC.Votes = append(votedQC.Votes, votedMsg.Justify.Votes...)
+        votedQC.Votes = append(votedQC.Votes, votedMsg.Seal)
     }
 
-    selfVote, err := b.buildVote(votedQC.Payload)
+    selfVote, err := b.buildVote(votedQC.QCData)
     if err != nil {
         return
     }
