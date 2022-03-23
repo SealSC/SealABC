@@ -35,55 +35,54 @@
 package hotStuff
 
 import (
-    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
-    "github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/crypto/signers/signerCommon"
+	"github.com/SealSC/SealABC/network"
 )
 
 type Member struct {
-    Signer   signerCommon.ISigner
-    FromNode network.Node
-    online   bool
+	Signer   signerCommon.ISigner
+	FromNode network.Node
+	online   bool
 }
 
 func (b *basicService) isMemberKey(memberKey []byte) bool {
-    ret := false
-    for _, m := range b.config.Members {
-        ret = m.Signer.PublicKeyCompare(memberKey)
-        if ret {
-            break
-        }
-    }
-    return ret
+	ret := false
+	for _, m := range b.config.Members {
+		ret = m.Signer.PublicKeyCompare(memberKey)
+		if ret {
+			break
+		}
+	}
+	return ret
 }
 
 func (b *basicService) isAllMembersOnline() bool {
-    allNodes := b.network.GetAllLinkedNode()
+	allNodes := b.network.GetAllLinkedNode()
 
-    memberCount := len(b.config.Members) - 1 //exclude self from member count
-    onlineCount := map[string] bool {}
+	memberCount := len(b.config.Members) - 1 //exclude self from member count
+	onlineCount := map[string]bool{}
 
-    for _, n := range allNodes {
+	memberMap := map[string]int{}
+	for idx, m := range b.config.Members {
+		memberMap[m.Signer.PublicKeyString()] = idx
+	}
 
-        for idx, m := range b.config.Members {
+	for _, n := range allNodes {
+		if idx, exist := memberMap[n.ID]; exist {
+			b.config.Members[idx].FromNode = n
+			b.config.Members[idx].online = true
 
-            if n.ID == m.Signer.PublicKeyString() {
-                b.config.Members[idx].FromNode = n
-                b.config.Members[idx].online = true
-            }
+			onlineCount[n.ID] = true
+		}
+	}
 
-            if n.ID == m.Signer.PublicKeyString() {
-                onlineCount[n.ID] = true
-            }
-        }
-    }
-
-    return memberCount <= len(onlineCount)
+	return memberCount <= len(onlineCount)
 }
 
 func (b *basicService) allMembersKey() (keys []string) {
-    for _, m := range b.config.Members {
-        keys = append(keys, m.Signer.PublicKeyString())
-    }
+	for _, m := range b.config.Members {
+		keys = append(keys, m.Signer.PublicKeyString())
+	}
 
-    return
+	return
 }
