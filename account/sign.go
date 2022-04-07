@@ -18,18 +18,17 @@
 package account
 
 import (
-	"errors"
+	"bytes"
 	"github.com/SealSC/SealABC/crypto/hashes"
 	"github.com/SealSC/SealABC/crypto/hashes/sha3"
 	"github.com/SealSC/SealABC/metadata/seal"
-	"bytes"
 )
 
 func (s SealAccount) Sign(data []byte) ([]byte, error) {
 	return s.Signer.Sign(data)
 }
 
-func (s SealAccount) Seal(data []byte, hashCalculator hashes.IHashCalculator) (s seal.Entity, err error) {
+func (s SealAccount) Seal(data []byte, hashCalculator hashes.IHashCalculator) (se seal.Entity, err error) {
 	if hashCalculator == nil {
 		hashCalculator = sha3.Sha256
 	}
