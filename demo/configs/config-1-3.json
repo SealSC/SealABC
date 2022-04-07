@@ -1,0 +1,38 @@
+{
+  "consensus_service_address": "127.0.0.1:10201",
+  "consensus_member": [
+    "127.0.0.1:10001",
+    "127.0.0.1:10101",
+    "127.0.0.1:10201",
+    "127.0.0.1:10301",
+    "127.0.0.1:10401"
+  ],
+  "blockchain_service_address": "127.0.0.1:10202",
+  "blockchain_service_seeds": [
+    "127.0.0.1:10002",
+    "127.0.0.1:10102",
+    "127.0.0.1:10302",
+    "127.0.0.1:10402"
+  ],
+  "blockchain_api_config": {
+    "address": ":10203",
+    "base_path": "/api/v1"
+  },
+  "chain_db": "./et/temp/nodes/n1-3/chain",
+  "ledger_db": "./et/temp/nodes/n1-3/ledger",
+  "memo_db": "./et/temp/nodes/n1-3/memo",
+  "smart_assets_db": "./et/temp/nodes/n1-3/smart_assets",
+  "traceable_storage_db": "./et/temp/nodes/n1-3/traceable_storage",
+  "engine_api_config": {
+    "address": ":10204",
+    "base_path": "/api/v1"
+  },
+  "self_key": "3c46f5cb23178e3330411ce5086476f7779d8601abae5b97092bc519b306605a",
+  "members": [
+    "039bc024533c28827c13c2df0d546283546fd2da033d7ed9b1f22d4c4906a58cbc",
+    "0201d331ddcd43d881d9f1b6865d76e27c95dc96ad61118513eaaa0cb94b86530f",
+    "029da5d3be11f43ca8d23bc13ab199ad2bda4d8aa8050b8dbe3f74afe2bf2b52a1",
+    "02452ed551c3d9e57f0ea742997d9bf3efb5c0fbe535050cce55120967233c8c57",
+    "03f75b01f91f4a7438d7c7c693b46f13f79f2b9010e1a1b77e442c2694dd85277c"
+  ]
+}
