@@ -54,3 +54,4 @@ localPlay
 *.log
 SealABCTest
 instance/**
+/node_modules/

@@ -18,25 +18,25 @@
 package sha3
 
 import (
-    "github.com/SealSC/SealABC/crypto/hashes/commonHash"
-    "golang.org/x/crypto/sha3"
+	"github.com/SealSC/SealABC/crypto/hashes/commonHash"
+	"golang.org/x/crypto/sha3"
 )
 
 const (
-    sha3_256 = "sha3_256"
-    sha3_512 = "sha3_512"
-    keccak_256 = "keccak_256"
-    keccak_512 = "keccak_512"
+	sha3_256   = "sha3_256"
+	sha3_512   = "sha3_512"
+	keccak_256 = "keccak_256"
+	keccak_512 = "keccak_512"
 )
 
 func Load() {
-    commonHash.RegisterHashMethod(sha3_256, sha3.New256)
-    commonHash.RegisterHashMethod(sha3_512, sha3.New512)
-    commonHash.RegisterHashMethod(keccak_256, sha3.NewLegacyKeccak256)
-    commonHash.RegisterHashMethod(keccak_512, sha3.NewLegacyKeccak512)
+	commonHash.RegisterHashMethod(sha3_256, sha3.New256)
+	commonHash.RegisterHashMethod(sha3_512, sha3.New512)
+	commonHash.RegisterHashMethod(keccak_256, sha3.NewLegacyKeccak256)
+	commonHash.RegisterHashMethod(keccak_512, sha3.NewLegacyKeccak512)
 }
 
-var Sha256 = &commonHash.CommonHash{sha3_256}
-var Sha512 = &commonHash.CommonHash{sha3_512}
-var Keccak256 = &commonHash.CommonHash{keccak_256}
-var Keccak512 = &commonHash.CommonHash{keccak_512}
+var Sha256 = &commonHash.CommonHash{HashType: sha3_256}
+var Sha512 = &commonHash.CommonHash{HashType: sha3_512}
+var Keccak256 = &commonHash.CommonHash{HashType: keccak_256}
+var Keccak512 = &commonHash.CommonHash{HashType: keccak_512}

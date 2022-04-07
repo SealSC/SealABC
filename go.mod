@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.25.48 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/cbergoon/merkletree v0.2.0
+	github.com/d5c5ceb0/sm_crypto_golang v0.0.0-20180712040946-248d0b0bf119
 	github.com/dvyukov/go-fuzz v0.0.0-20200318091601-be3528f3a813 // indirect
 	github.com/ethereum/go-ethereum v1.10.13 // indirect
 	github.com/gin-gonic/gin v1.7.0

@@ -18,26 +18,29 @@
 package hashes
 
 import (
-    "github.com/SealSC/SealABC/crypto/hashes/sha3"
-    "hash"
+	"github.com/SealSC/SealABC/crypto/hashes/sha3"
+	"github.com/SealSC/SealABC/crypto/hashes/sm3"
+	"hash"
 )
 
-var AllHash = map[string] IHashCalculator {
-    sha3.Sha256.Name(): sha3.Sha256,
-    sha3.Sha512.Name(): sha3.Sha512,
-    sha3.Keccak256.Name(): sha3.Keccak256,
-    sha3.Keccak512.Name(): sha3.Keccak512,
+var AllHash = map[string]IHashCalculator{
+	sha3.Sha256.Name():    sha3.Sha256,
+	sha3.Sha512.Name():    sha3.Sha512,
+	sha3.Keccak256.Name(): sha3.Keccak256,
+	sha3.Keccak512.Name(): sha3.Keccak512,
+	sm3.Sm3.Name():        sm3.Sm3,
 }
 
 type IHashCalculator interface {
-    Name() string
-    Sum([]byte) []byte
-    SumHex([]byte) string
-    HMAC([]byte, []byte) []byte
-    HMACHex([]byte, []byte)string
-    OriginalHash() func() hash.Hash
+	Name() string
+	Sum([]byte) []byte
+	SumHex([]byte) string
+	HMAC([]byte, []byte) []byte
+	HMACHex([]byte, []byte) string
+	OriginalHash() func() hash.Hash
 }
 
-func Load()  {
-    sha3.Load()
+func Load() {
+	sha3.Load()
+	sm3.Load()
 }
