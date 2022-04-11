@@ -17,10 +17,9 @@
 
 package cipherCommon
 
-
 type EncryptedData struct {
-	CipherText      []byte
-	ExternalData    []byte
+	CipherText   []byte
+	ExternalData []byte
 }
 
 const (
@@ -28,4 +27,5 @@ const (
 	CFB = "CFB"
 	OFB = "OFB"
 	CTR = "CTR"
+	ECB = "ECB"
 )

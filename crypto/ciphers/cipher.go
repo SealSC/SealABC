@@ -18,21 +18,22 @@
 package ciphers
 
 import (
-    "github.com/SealSC/SealABC/crypto/ciphers/aes"
-    "github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
+	"github.com/SealSC/SealABC/crypto/ciphers/aes"
+	"github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
+	"github.com/SealSC/SealABC/crypto/ciphers/sm4"
 )
 
-var ciphers = map[string] ICipher {
-    aes.Cipher.Type(): aes.Cipher,
+var ciphers = map[string]ICipher{
+	aes.Cipher.Type(): aes.Cipher,
+	sm4.Sm4.Type():    sm4.Sm4,
 }
 
 type ICipher interface {
-    Type() string
-    Encrypt(plainText []byte, key []byte, param interface{}) (result cipherCommon.EncryptedData, err error)
-    Decrypt(cipherText cipherCommon.EncryptedData, key []byte, param interface{}) (plaintext []byte, err error)
+	Type() string
+	Encrypt(plainText []byte, key []byte, param interface{}) (result cipherCommon.EncryptedData, err error)
+	Decrypt(cipherText cipherCommon.EncryptedData, key []byte, param interface{}) (plaintext []byte, err error)
 }
 
 func CipherByAlgorithmType(cType string) ICipher {
-    return ciphers[cType]
+	return ciphers[cType]
 }
-
