@@ -35,28 +35,27 @@
 package hotStuff
 
 import (
-    "github.com/SealSC/SealABC/metadata/message"
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/dataStructure/enum"
     "github.com/SealSC/SealABC/consensus"
+    "github.com/SealSC/SealABC/dataStructure/enum"
+    "github.com/SealSC/SealABC/log"
+    "github.com/SealSC/SealABC/metadata/message"
 )
 
 func (b *basicService) pickHighQC() (highQC QC) {
-    highView := uint64(0)
+    highView := -1
     blankNewViewQC := QC {}
 
     for _, newView := range b.newViews {
-        if highView < newView.ViewNumber {
-            highView = newView.ViewNumber
+        if highView < int(newView.ViewNumber) {
+            highView = int(newView.ViewNumber)
             highQC = newView.Justify
-        }
-
-        if newView.Justify.ViewNumber == 0 {
-            blankNewViewQC.Votes = append(blankNewViewQC.Votes, newView.Justify.Votes...)
         }
     }
 
-    if highQC.ViewNumber == 0 {
+    if highView == 0 {
+        for _, newView := range b.newViews {
+            blankNewViewQC.Votes = append(blankNewViewQC.Votes, newView.Justify.Votes...)
+        }
         highQC.Votes = blankNewViewQC.Votes
     }
 
