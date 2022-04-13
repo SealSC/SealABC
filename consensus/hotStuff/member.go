@@ -45,9 +45,9 @@ type Member struct {
 	online   bool
 }
 
-func (b *basicService) isMemberKey(memberKey []byte) bool {
+func (b *BasicService) isMemberKey(memberKey []byte) bool {
 	ret := false
-	for _, m := range b.config.Members {
+	for _, m := range b.Config.Members {
 		ret = m.Signer.PublicKeyCompare(memberKey)
 		if ret {
 			break
@@ -56,21 +56,21 @@ func (b *basicService) isMemberKey(memberKey []byte) bool {
 	return ret
 }
 
-func (b *basicService) isAllMembersOnline() bool {
+func (b *BasicService) isAllMembersOnline() bool {
 	allNodes := b.network.GetAllLinkedNode()
 
-	memberCount := len(b.config.Members) - 1 //exclude self from member count
+	memberCount := len(b.Config.Members) - 1 //exclude self from member count
 	onlineCount := map[string]bool{}
 
 	memberMap := map[string]int{}
-	for idx, m := range b.config.Members {
+	for idx, m := range b.Config.Members {
 		memberMap[m.Signer.PublicKeyString()] = idx
 	}
 
 	for _, n := range allNodes {
 		if idx, exist := memberMap[n.ID]; exist {
-			b.config.Members[idx].FromNode = n
-			b.config.Members[idx].online = true
+			b.Config.Members[idx].FromNode = n
+			b.Config.Members[idx].online = true
 
 			onlineCount[n.ID] = true
 		}
@@ -79,8 +79,8 @@ func (b *basicService) isAllMembersOnline() bool {
 	return memberCount <= len(onlineCount)
 }
 
-func (b *basicService) allMembersKey() (keys []string) {
-	for _, m := range b.config.Members {
+func (b *BasicService) allMembersKey() (keys []string) {
+	for _, m := range b.Config.Members {
 		keys = append(keys, m.Signer.PublicKeyString())
 	}
 

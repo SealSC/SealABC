@@ -35,44 +35,63 @@
 package hotStuff
 
 import (
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/metadata/seal"
+	"encoding/hex"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/metadata/seal"
+	"reflect"
 )
 
 type consensusPhase struct {
-    NewView     enum.Element
-    Prepare     enum.Element
-    PreCommit   enum.Element
-    Commit      enum.Element
-    Decide      enum.Element
+	NewView   enum.Element
+	Prepare   enum.Element
+	PreCommit enum.Element
+	Commit    enum.Element
+	Decide    enum.Element
+	Generic   enum.Element
 }
 
-var consensusPhases consensusPhase
+var ConsensusPhases consensusPhase
 
 type ConsensusPayload struct {
-    Parent       []byte
-    CustomerData []byte
+	Parent       []byte
+	CustomerData []byte
 }
 
 type QCData struct {
-    Phase      string
-    ViewNumber uint64
-    Payload    ConsensusPayload
+	Phase      string
+	ViewNumber uint64
+	Payload    ConsensusPayload
 }
 
 type QC struct {
-    QCData
-    Votes []seal.Entity
+	QCData
+	NodeId string
+	Votes  []seal.Entity
 }
 
 type ConsensusData struct {
-    ViewNumber uint64
-    Phase      string
-    Payload    ConsensusPayload
-    Justify    QC
+	Id         string
+	ParentId   string
+	ViewNumber uint64
+	Phase      string
+	Payload    ConsensusPayload
+	Justify    QC
 }
 
 type SignedConsensusData struct {
-    ConsensusData
-    Seal seal.Entity
+	ConsensusData
+	Seal seal.Entity
+}
+
+func (c ConsensusData) IsStructureEmpty() bool {
+	return reflect.DeepEqual(c, ConsensusData{})
+}
+
+func (c ConsensusData) NodeId() (nodeId string) {
+	parentNodeBytes, _ := structSerializer.ToMFBytes(c)
+
+	node := Basic.Config.HashCalc.Sum(parentNodeBytes)
+	nodeId = hex.EncodeToString(node)
+	return
 }
