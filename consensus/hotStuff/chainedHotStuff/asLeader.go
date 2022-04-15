@@ -2,37 +2,13 @@ package chainedHotStuff
 
 import (
 	"github.com/SealSC/SealABC/consensus/hotStuff"
-	"github.com/SealSC/SealABC/log"
 )
 
 func (c *ChainedHotStuff) NewView(bs *hotStuff.BasicService, consensusData hotStuff.SignedConsensusData) {
-	singer, _ := bs.Config.SingerGenerator.FromRawPublicKey(consensusData.Seal.SignerPublicKey)
-
-	bs.NewViews[singer.PublicKeyString()] = consensusData
-
-	if !bs.HasEnoughVotes(len(bs.NewViews)) {
-		return
-	}
-
-	bs.CurrentView = consensusData.ViewNumber
-	highQC := bs.PickHighQC()
-
-	highQC.NodeId = consensusData.ParentId
-	bs.PrepareQC = &highQC
-	err := bs.BroadCastPrepareMessage(highQC)
-
-	if err != nil {
-		log.Log.Error("build prepare message failed.")
-		bs.NewViews = map[string]hotStuff.SignedConsensusData{}
-		return
-	}
-
-	bs.NewViews = map[string]hotStuff.SignedConsensusData{}
-
-	return
+	c.pacemaker.OnReceiveNewView(bs, consensusData)
 }
 
-func (c *ChainedHotStuff) Proposal(bs *hotStuff.BasicService, highQC hotStuff.QC, node hotStuff.ConsensusPayload) (err error) {
+func (c *ChainedHotStuff) OnProposal(bs *hotStuff.BasicService, highQC hotStuff.QC, node hotStuff.ConsensusPayload) (err error) {
 
 	parentId := highQC.NodeId
 	parentNode, exist := c.getNode(parentId)

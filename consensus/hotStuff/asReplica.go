@@ -46,7 +46,7 @@ func (b *BasicService) GotPrepare(consensusData SignedConsensusData) (reply *mes
 		return
 	}
 
-	b.hotStuff.OnProposal(b, consensusData)
+	b.hotStuff.OnReceiveProposal(b, consensusData)
 
 	return
 }
@@ -56,25 +56,9 @@ func (b *BasicService) GotGeneric(consensusData SignedConsensusData) (reply *mes
 		return
 	}
 
-	b.hotStuff.OnProposal(b, consensusData)
+	b.hotStuff.OnReceiveProposal(b, consensusData)
 
 	return
-}
-
-func (b *BasicService) processCommonPhaseMessage(consensusData ConsensusData) {
-	allPhases := ConsensusPhases
-	switch consensusData.Phase {
-	case allPhases.PreCommit.String():
-		b.PrepareQC = &consensusData.Justify
-		b.CurrentPhase = allPhases.PreCommit
-
-	case allPhases.Commit.String():
-		b.LockedQC = &consensusData.Justify
-		b.CurrentPhase = allPhases.Commit
-
-	case allPhases.Decide.String():
-		b.CurrentPhase = allPhases.Decide
-	}
 }
 
 func (b *BasicService) GotCommonPhaseMessage(consensusData SignedConsensusData) (reply *message.Message) {
@@ -83,7 +67,7 @@ func (b *BasicService) GotCommonPhaseMessage(consensusData SignedConsensusData) 
 		return
 	}
 
-	b.processCommonPhaseMessage(consensusData.ConsensusData)
+	b.hotStuff.ProcessCommonPhaseMessage(b, consensusData.ConsensusData)
 
 	if b.CurrentPhase == ConsensusPhases.Decide {
 		if b.ExternalProcessor != nil {

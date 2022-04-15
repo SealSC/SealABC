@@ -78,7 +78,7 @@ func (b *BasicHotStuff) VerifyProposal(bs *hotStuff.BasicService, consensusData 
 	return
 }
 
-func (b *BasicHotStuff) OnProposal(bs *hotStuff.BasicService, consensusData hotStuff.SignedConsensusData) {
+func (b *BasicHotStuff) OnReceiveProposal(bs *hotStuff.BasicService, consensusData hotStuff.SignedConsensusData) {
 	voteMsg, err := bs.BuildVoteMessage(consensusData.Phase, consensusData.Payload, consensusData.Id, bs.CurrentView)
 	if err != nil {
 		log.Log.Error("build vote message failed")
@@ -103,4 +103,20 @@ func (b *BasicHotStuff) BuildNewViewMessage(bs *hotStuff.BasicService, newViewQC
 		"",
 		bs.CurrentView)
 	return
+}
+
+func (b *BasicHotStuff) ProcessCommonPhaseMessage(bs *hotStuff.BasicService, consensusData hotStuff.ConsensusData) {
+	allPhases := hotStuff.ConsensusPhases
+	switch consensusData.Phase {
+	case allPhases.PreCommit.String():
+		bs.PrepareQC = &consensusData.Justify
+		bs.CurrentPhase = allPhases.PreCommit
+
+	case allPhases.Commit.String():
+		bs.LockedQC = &consensusData.Justify
+		bs.CurrentPhase = allPhases.Commit
+
+	case allPhases.Decide.String():
+		bs.CurrentPhase = allPhases.Decide
+	}
 }

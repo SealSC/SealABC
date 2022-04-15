@@ -35,7 +35,6 @@
 package hotStuff
 
 import (
-	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/metadata/message"
 )
@@ -61,32 +60,6 @@ func (b *BasicService) PickHighQC() (highQC QC) {
 	return
 }
 
-func (b *BasicService) GetNextPhaseAndMsgType() (phase enum.Element, msgType enum.Element) {
-	switch b.CurrentPhase {
-	case ConsensusPhases.NewView:
-		phase = ConsensusPhases.Prepare
-		msgType = MessageTypes.Prepare
-
-	case ConsensusPhases.Prepare:
-		phase = ConsensusPhases.PreCommit
-		msgType = MessageTypes.PreCommit
-
-	case ConsensusPhases.PreCommit:
-		phase = ConsensusPhases.Commit
-		msgType = MessageTypes.Commit
-
-	case ConsensusPhases.Commit:
-		phase = ConsensusPhases.Decide
-		msgType = MessageTypes.Decide
-
-	case ConsensusPhases.Decide:
-		phase = ConsensusPhases.NewView
-		msgType = MessageTypes.NewView
-	}
-
-	return
-}
-
 func (b *BasicService) GotVote(consensusData SignedConsensusData) (reply *message.Message) {
 	if !b.hotStuff.GotVoteRule(b, consensusData) {
 		return
@@ -97,7 +70,7 @@ func (b *BasicService) GotVote(consensusData SignedConsensusData) (reply *messag
 	if !b.HasEnoughVotes(len(b.VotedMessage)) {
 		return
 	}
-	b.hotStuff.GotVote(b, consensusData.ConsensusData)
+	b.hotStuff.OnReceiveVote(b, consensusData.ConsensusData)
 
 	return
 }

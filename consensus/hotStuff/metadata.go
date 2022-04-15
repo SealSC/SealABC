@@ -89,9 +89,9 @@ func (c ConsensusData) IsStructureEmpty() bool {
 }
 
 func (c ConsensusData) NodeId() (nodeId string) {
-	parentNodeBytes, _ := structSerializer.ToMFBytes(c)
+	nodeBytes, _ := structSerializer.ToMFBytes(c)
 
-	node := Basic.Config.HashCalc.Sum(parentNodeBytes)
+	node := Basic.Config.HashCalc.Sum(nodeBytes)
 	nodeId = hex.EncodeToString(node)
 	return
 }

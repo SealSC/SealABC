@@ -118,7 +118,6 @@ func (b *BasicService) BuildConsensusMessage(phase string, payload ConsensusPayl
 	if err != nil {
 		return
 	}
-
 	//marshal data to json
 	msgPayload, err = json.Marshal(consensusMsg)
 	if err != nil {
@@ -217,7 +216,7 @@ func (b *BasicService) BuildCommonPhaseMessage(
 }
 
 func (b *BasicService) buildLeafNode(basedQC QC) (node ConsensusPayload, err error) {
-	customerData, err := b.ExternalProcessor.CustomerDataToConsensus(b.hotStuff.GetLastProposal())
+	customerData, err := b.ExternalProcessor.CustomerDataToConsensus(b.GetLastConsensusCustomerData())
 	if err != nil {
 		log.Log.Error("get customer data failed.")
 		return
@@ -242,7 +241,7 @@ func (b *BasicService) BroadCastPrepareMessage(highQC QC) (err error) {
 		return
 	}
 
-	err = b.hotStuff.Proposal(b, highQC, payload)
+	err = b.hotStuff.OnProposal(b, highQC, payload)
 
 	return
 }

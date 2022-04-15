@@ -54,7 +54,7 @@ func (c *ChainedHotStuff) VerifyProposal(bs *hotStuff.BasicService, consensusDat
 	passed = true
 	return
 }
-func (c *ChainedHotStuff) OnProposal(bs *hotStuff.BasicService, consensusData hotStuff.SignedConsensusData) {
+func (c *ChainedHotStuff) OnReceiveProposal(bs *hotStuff.BasicService, consensusData hotStuff.SignedConsensusData) {
 	bs.CurrentPhase = hotStuff.ConsensusPhases.Generic
 	c.update(bs, consensusData.ConsensusData)
 }
@@ -77,7 +77,7 @@ func (c *ChainedHotStuff) GotVoteRule(bs *hotStuff.BasicService, consensusData h
 	return bs.IsViewLeader(consensusData.ViewNumber, bs.Config.SelfSigner.PublicKeyBytes())
 }
 
-func (c *ChainedHotStuff) GotVote(bs *hotStuff.BasicService, consensusData hotStuff.ConsensusData) {
+func (c *ChainedHotStuff) OnReceiveVote(bs *hotStuff.BasicService, consensusData hotStuff.ConsensusData) {
 	defer func() {
 		bs.VotedMessage = map[string]hotStuff.SignedConsensusData{}
 	}()
@@ -103,4 +103,8 @@ func (c *ChainedHotStuff) GotVote(bs *hotStuff.BasicService, consensusData hotSt
 	if err != nil {
 		return
 	}
+}
+
+func (c *ChainedHotStuff) ProcessCommonPhaseMessage(bs *hotStuff.BasicService, consensusData hotStuff.ConsensusData) {
+
 }

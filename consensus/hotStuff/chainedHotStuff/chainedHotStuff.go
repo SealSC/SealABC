@@ -11,13 +11,15 @@ const MessageFamily = "chained-hot-stuff-consensus"
 const MessageVersion = "chained.0.0.1"
 
 type ChainedHotStuff struct {
-	nodeMap  map[string]hotStuff.ConsensusData
-	lastNode *hotStuff.ConsensusData
+	nodeMap   map[string]hotStuff.ConsensusData
+	pacemaker Pacemaker
 }
 
 func NewChainedHotStuff() (chs *ChainedHotStuff) {
 	chs = &ChainedHotStuff{}
+	chs.pacemaker = &RoundRobinPM{}
 	chs.nodeMap = map[string]hotStuff.ConsensusData{}
+
 	return
 }
 
@@ -35,21 +37,13 @@ func (c *ChainedHotStuff) RegisterProcessor(bs *hotStuff.BasicService) {
 	bs.ConsensusProcessor[hotStuff.MessageTypes.Generic.String()] = bs.GotGeneric
 }
 
-func (c *ChainedHotStuff) GetLastProposal() []byte {
-
-	if c.lastNode != nil {
-		return c.lastNode.Payload.CustomerData
-	}
-
-	return []byte{}
-}
-
 func (c *ChainedHotStuff) update(bs *hotStuff.BasicService, node hotStuff.ConsensusData) {
 	defer func() {
 		c.advanceView(bs)
 	}()
 
 	c.saveNode(node)
+	bs.UpdateBLeaf(node)
 
 	if !bs.IsNextViewLeader(node.ViewNumber, bs.Config.SelfSigner.PublicKeyBytes()) {
 		go func() {
@@ -82,7 +76,7 @@ func (c *ChainedHotStuff) update(bs *hotStuff.BasicService, node hotStuff.Consen
 	if !c.commitRule(prepare, preCommit) {
 		return
 	}
-	bs.PrepareQC = &prepare.Justify
+	c.pacemaker.UpdateHighQC(bs, prepare)
 
 	if !c.commitRule(preCommit, commit) {
 		return
@@ -101,26 +95,11 @@ func (c *ChainedHotStuff) update(bs *hotStuff.BasicService, node hotStuff.Consen
 }
 
 func (c *ChainedHotStuff) advanceView(bs *hotStuff.BasicService) {
-	bs.CurrentView += 1
-	bs.ViewChangeTrigger.Reset(bs.Config.ConsensusTimeout)
+	c.pacemaker.AdvanceView(bs)
 }
 
 func (c *ChainedHotStuff) NewRound(bs *hotStuff.BasicService) {
-	bs.ViewChangeTrigger.Reset(bs.Config.ConsensusTimeout)
-	bs.ClearNewView()
-	bs.ClearPrepare()
-	c.clear()
-
-	if !bs.IsCurrentLeader() {
-		newViewMsg, err := bs.BuildNewViewMessage()
-		if err != nil {
-			log.Log.Error("build new view message failed.")
-			return
-		}
-
-		go bs.SendMessageToLeader(newViewMsg)
-		return
-	}
+	c.pacemaker.OnNextSyncView(bs)
 }
 
 func (c *ChainedHotStuff) sendVoteToNextLeader(bs *hotStuff.BasicService, node hotStuff.ConsensusData, viewNumber uint64) {
@@ -147,7 +126,6 @@ func (c *ChainedHotStuff) PruneToHeight(height uint64) {
 }
 
 func (c *ChainedHotStuff) saveNode(consensusData hotStuff.ConsensusData) {
-	c.lastNode = &consensusData
 	c.nodeMap[consensusData.Id] = consensusData
 }
 
@@ -162,8 +140,4 @@ func (c *ChainedHotStuff) commitRule(child hotStuff.ConsensusData, parent hotStu
 		passed = true
 	}
 	return
-}
-
-func (c *ChainedHotStuff) clear() {
-	c.lastNode = nil
 }

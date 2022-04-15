@@ -50,7 +50,3 @@ func (b *BasicHotStuff) NewRound(bs *hotStuff.BasicService) {
 		//log.Log.Println("i am the leader @view ", b.currentView, " use public key: ", b.config.SelfSigner.PublicKeyString())
 	}
 }
-
-func (b *BasicHotStuff) GetLastProposal() []byte {
-	return []byte{}
-}

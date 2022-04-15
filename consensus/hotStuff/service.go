@@ -56,13 +56,13 @@ type hotStuff interface {
 	RegisterProcessor(*BasicService)
 	NewRound(*BasicService)
 	NewView(*BasicService, SignedConsensusData)
-	Proposal(*BasicService, QC, ConsensusPayload) (err error)
+	OnProposal(*BasicService, QC, ConsensusPayload) (err error)
 	VerifyProposal(*BasicService, SignedConsensusData) (passed bool)
-	OnProposal(*BasicService, SignedConsensusData)
+	OnReceiveProposal(*BasicService, SignedConsensusData)
+	ProcessCommonPhaseMessage(*BasicService, ConsensusData)
 	GotVoteRule(*BasicService, SignedConsensusData) bool
-	GotVote(*BasicService, ConsensusData)
+	OnReceiveVote(*BasicService, ConsensusData)
 	BuildNewViewMessage(*BasicService, QC) (msgPayload []byte, err error)
-	GetLastProposal() []byte
 }
 
 type basicHotStuffInformation struct {
@@ -94,6 +94,8 @@ type BasicService struct {
 
 	information *basicHotStuffInformation
 	hotStuff    hotStuff
+
+	BLeaf *ConsensusData
 }
 
 var Basic BasicService
@@ -142,6 +144,13 @@ func (b *BasicService) ClearNewView() {
 }
 func (b *BasicService) ClearPrepare() {
 	b.PrepareQC = nil
+}
+
+func (b *BasicService) UpdateBLeaf(consensusData ConsensusData) {
+	b.BLeaf = &consensusData
+}
+func (b *BasicService) ClearBLeaf() {
+	b.BLeaf = nil
 }
 
 func (b *BasicService) NewRound() {
@@ -297,7 +306,11 @@ func (b *BasicService) GetConsensusCustomerData(msg message.Message) (data []byt
 }
 
 func (b *BasicService) GetLastConsensusCustomerData() []byte {
-	return b.hotStuff.GetLastProposal()
+	if b.BLeaf == nil {
+		return []byte{}
+	}
+
+	return b.BLeaf.Payload.CustomerData
 }
 
 func (b *BasicService) Load(networkService network.IService, processor consensus.ExternalProcessor) {
