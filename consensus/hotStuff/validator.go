@@ -192,6 +192,7 @@ func (b *BasicService) verifyNewViewMessage(consensusData SignedConsensusData) (
 		passed = true
 	}
 
+
 	return
 }
 
