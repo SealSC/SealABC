@@ -126,6 +126,7 @@ func (b *BasicService) BuildConsensusMessage(phase string, payload ConsensusPayl
 	}
 
 	return
+}
 
 func (b *BasicService) BuildCommonMessage(msgType enum.Element, msgPayload []byte) (msg message.Message) {
 	msg.Family = b.hotStuff.MessageFamily()
@@ -187,7 +188,6 @@ func (b *BasicService) BuildCommonPhaseMessage(
 	phase enum.Element,
 	msgType enum.Element,
 	votedQC *QC) (msg message.Message, err error) {
-
 
 	for _, votedMsg := range b.VotedMessage {
 		votedQC.Votes = append(votedQC.Votes, votedMsg.Seal)

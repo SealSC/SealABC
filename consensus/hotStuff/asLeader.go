@@ -35,31 +35,29 @@
 package hotStuff
 
 import (
-    "github.com/SealSC/SealABC/consensus"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/metadata/message"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/message"
 )
 
-func (b *basicService) pickHighQC() (highQC QC) {
-    highView := -1
-    blankNewViewQC := QC {}
+func (b *BasicService) PickHighQC() (highQC QC) {
+	highView := -1
+	blankNewViewQC := QC{}
 
-    for _, newView := range b.newViews {
-        if highView < int(newView.ViewNumber) {
-            highView = int(newView.ViewNumber)
-            highQC = newView.Justify
-        }
-    }
+	for _, newView := range b.NewViews {
+		if highView < int(newView.ViewNumber) {
+			highView = int(newView.ViewNumber)
+			highQC = newView.Justify
+		}
+	}
 
-    if highView == 0 {
-        for _, newView := range b.newViews {
-            blankNewViewQC.Votes = append(blankNewViewQC.Votes, newView.Justify.Votes...)
-        }
-        highQC.Votes = blankNewViewQC.Votes
-    }
+	if highView == 0 {
+		for _, newView := range b.NewViews {
+			blankNewViewQC.Votes = append(blankNewViewQC.Votes, newView.Justify.Votes...)
+		}
+		highQC.Votes = blankNewViewQC.Votes
+	}
 
-    return
+	return
 }
 
 func (b *BasicService) GotVote(consensusData SignedConsensusData) (reply *message.Message) {
