@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/SealSC/SealABC/common"
-	"github.com/SealSC/SealABC/dataStructure/state"
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/metadata/blockchainRequest"
@@ -91,10 +90,6 @@ func (b *Blockchain) InternalCall(src string, dst string, data []byte) (ret inte
 	}
 
 	return app.ApplicationInternalCall(src, data)
-}
-
-func (b *Blockchain) StateAt(root common.Hash) (*state.StateDB, error) {
-	return state.New(root, b.StateCache)
 }
 
 func (b *Blockchain) AddBlock(blk block.Entity) (err error) {

@@ -33,6 +33,7 @@ func New(root common.Hash, db Database) (*StateDB, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &StateDB{
 		db:                db,
 		trie:              tr,

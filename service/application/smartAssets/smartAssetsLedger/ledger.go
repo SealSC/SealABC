@@ -74,7 +74,7 @@ func (l *Ledger) SetChain(chain chainStructure.IChainInterface) {
 
 	if chain.GetLastBlock() != nil {
 		stateRoot := common.BytesToHash(chain.GetLastBlock().Header.StateRoot)
-		stateDB, err := l.chain.StateAt(stateRoot)
+		stateDB, err := state.New(stateRoot, state.NewDatabase(l.Storage))
 		if err != nil {
 			log.Log.Error("Failed to reset txpool state", "err", err)
 		}

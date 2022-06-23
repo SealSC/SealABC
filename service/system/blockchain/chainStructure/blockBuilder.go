@@ -62,6 +62,8 @@ func (b *Blockchain) NewBlankBlock() (newBlock block.Entity) {
 
 		//set block prev hash
 		newBlock.Header.PrevBlock = append([]byte{}, b.lastBlock.Seal.Hash...)
+
+		newBlock.Header.StateRoot = b.lastBlock.Header.StateRoot
 	}
 
 	//set block hash
@@ -78,6 +80,7 @@ func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity, blankBlock bl
 	//build a basic block
 	newBlock = b.buildBasicBlock(requests)
 	newBlock.Header.Timestamp = blankBlock.Header.Timestamp
+	newBlock.Header.StateRoot = blankBlock.Header.StateRoot
 	newBlock.BlankSeal = blankBlock.BlankSeal
 
 	//set block height

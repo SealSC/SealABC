@@ -18,7 +18,6 @@
 package chainStructure
 
 import (
-	"github.com/SealSC/SealABC/dataStructure/state"
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
@@ -33,8 +32,6 @@ type Blockchain struct {
 	SQLStorage    *chainSQLStorage.Storage
 	currentHeight uint64
 	operateLock   sync.RWMutex
-
-	StateCache state.Database
 }
 
 func (b *Blockchain) SetSQLStorage(sqlStorage *chainSQLStorage.Storage) {

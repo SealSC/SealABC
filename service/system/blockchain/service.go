@@ -18,7 +18,6 @@
 package blockchain
 
 import (
-	"github.com/SealSC/SealABC/dataStructure/state"
 	"github.com/SealSC/SealABC/engine/engineService"
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/service"
@@ -47,9 +46,6 @@ func NewService(cfg Config) service.IService {
 		}
 		chain.SetSQLStorage(sqlStorage)
 	}
-
-	//
-	chain.StateCache = state.NewDatabase(cfg.Blockchain.StorageDriver)
 
 	err := chain.LoadBlockchain(cfg.Blockchain)
 	if err != nil {

@@ -328,7 +328,7 @@ func (t *Trie) resolveHash(n hashNode, prefix []byte) (node, error) {
 	cacheMissCounter.Inc(1)
 
 	enc, err := t.db.Get(n)
-	if err != nil || enc.Exists {
+	if err != nil || !enc.Exists {
 		return nil, &MissingNodeError{NodeHash: common.BytesToHash(n), Path: prefix}
 	}
 	dec := mustDecodeNode(n, enc.Data, t.cacheGen)
