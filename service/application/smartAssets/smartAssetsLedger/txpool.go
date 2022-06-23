@@ -18,8 +18,8 @@ type TxPool struct {
 	chain chainStructure.IChainInterface
 
 	pending map[common.Address]*txList
-	//queue   map[common.Address]*txList
-	all map[common.Hash]*Transaction
+	queue   map[common.Address]*txList
+	all     map[common.Hash]*Transaction
 
 	currentState *state.StateDB
 	pendingState *state.ManagedState
@@ -32,8 +32,8 @@ func NewTxPool() *TxPool {
 		mu: sync.RWMutex{},
 
 		pending: make(map[common.Address]*txList),
-		//queue:   make(map[common.Address]*txList),
-		all: make(map[common.Hash]*Transaction),
+		queue:   make(map[common.Address]*txList),
+		all:     make(map[common.Hash]*Transaction),
 	}
 
 	return pool
@@ -60,25 +60,43 @@ func (pool *TxPool) addTx(tx *Transaction) error {
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
 
-	err := pool.add(tx)
+	replaced, err := pool.add(tx)
 	if err != nil {
 		return err
+	}
+
+	if !replaced {
+		pool.promoteExecutables(common.BytesToAddress(tx.From))
 	}
 
 	return nil
 }
 
-func (pool *TxPool) add(tx *Transaction) error {
+func (pool *TxPool) add(tx *Transaction) (bool, error) {
 	hash := tx.getCommonHash()
 
 	err := pool.validateTx(tx)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	pool.promoteTx(common.BytesToAddress(tx.From), hash, tx)
+	from := common.BytesToAddress(tx.From)
+	if list := pool.pending[from]; list != nil && list.Overlaps(tx) {
+		old := list.Add(tx)
 
-	return nil
+		if old != nil {
+			delete(pool.all, old.getCommonHash())
+		}
+		pool.all[tx.getCommonHash()] = tx
+
+		return old != nil, nil
+	}
+
+	replace, err := pool.enqueueTx(hash, tx)
+	if err != nil {
+		return false, err
+	}
+	return replace, nil
 }
 
 func (pool *TxPool) validateTx(tx *Transaction) error {
@@ -95,14 +113,35 @@ func (pool *TxPool) validateTx(tx *Transaction) error {
 	return nil
 }
 
+func (pool *TxPool) promoteExecutables(addr common.Address) {
+
+	list := pool.queue[addr]
+	if list == nil {
+		return
+	}
+
+	for _, tx := range list.Forward(pool.currentState.GetNonce(addr)) {
+		hash := tx.getCommonHash()
+		delete(pool.all, hash)
+	}
+
+	for _, tx := range list.Ready(pool.pendingState.GetNonce(addr)) {
+		hash := tx.getCommonHash()
+		pool.promoteTx(addr, hash, tx)
+	}
+
+	if list.Empty() {
+		delete(pool.queue, addr)
+	}
+}
+
 func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *Transaction) {
 	if pool.pending[addr] == nil {
 		pool.pending[addr] = newTxList(true)
 	}
 	list := pool.pending[addr]
 
-	_, old := list.Add(tx)
-
+	old := list.Add(tx)
 	if old != nil {
 		delete(pool.all, old.getCommonHash())
 	}
@@ -146,6 +185,21 @@ func (pool *TxPool) removeTx(hash common.Hash) {
 	//		delete(pool.queue, addr)
 	//	}
 	//}
+}
+
+func (pool *TxPool) enqueueTx(hash common.Hash, tx *Transaction) (bool, error) {
+	from := common.BytesToAddress(tx.From)
+	if pool.queue[from] == nil {
+		pool.queue[from] = newTxList(false)
+	}
+
+	old := pool.queue[from].Add(tx)
+	if old != nil {
+		delete(pool.all, old.getCommonHash())
+	}
+
+	pool.all[hash] = tx
+	return old != nil, nil
 }
 
 func (pool *TxPool) removeUnenforceable() {

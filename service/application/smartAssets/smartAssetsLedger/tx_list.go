@@ -135,7 +135,6 @@ func (m *txSortedMap) Remove(nonce uint64) bool {
 }
 
 func (m *txSortedMap) Ready(start uint64) Transactions {
-
 	if m.index.Len() == 0 || (*m.index)[0] > start {
 		return nil
 	}
@@ -146,6 +145,7 @@ func (m *txSortedMap) Ready(start uint64) Transactions {
 		delete(m.items, next)
 		heap.Pop(m.index)
 	}
+
 	m.cache = nil
 
 	return ready
@@ -185,10 +185,10 @@ func (l *txList) Overlaps(tx *Transaction) bool {
 	return l.txs.Get(tx.Nonce) != nil
 }
 
-func (l *txList) Add(tx *Transaction) (bool, *Transaction) {
+func (l *txList) Add(tx *Transaction) *Transaction {
 	old := l.txs.Get(tx.Nonce)
 	l.txs.Put(tx)
-	return true, old
+	return old
 }
 
 func (l *txList) Forward(threshold uint64) Transactions {

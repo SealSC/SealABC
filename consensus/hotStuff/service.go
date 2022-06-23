@@ -253,7 +253,7 @@ func (b *BasicService) Feed(msg message.Message) (reply *message.Message) {
 	defer b.PhaseLock.Unlock()
 
 	//todo: modular log system
-	log.Log.Println("got message: ", msg.Type)
+	//log.Log.Println("got message: ", msg.Type)
 	if handle, exists := b.ConsensusProcessor[msg.Type]; exists {
 		reply = handle(consensusData)
 	}
