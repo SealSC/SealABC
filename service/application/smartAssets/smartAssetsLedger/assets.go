@@ -18,9 +18,10 @@
 package smartAssetsLedger
 
 import (
+	"encoding/json"
+	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/metadata/seal"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-	"encoding/json"
 	"math/big"
 )
 
@@ -45,17 +46,12 @@ func (b *BaseAssets) getHash() []byte {
 }
 
 func (l *Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
-	balanceKey := BuildKey(StoragePrefixes.Balance, address)
-	bKV, err := l.Storage.Get(balanceKey)
-	if err != nil {
-		return
-	}
+	balance = l.StateDB.GetBalance(common.BytesToAddress(address))
+	return
+}
 
-	if !bKV.Exists {
-		return big.NewInt(0), nil
-	}
-
-	balance = big.NewInt(0).SetBytes(bKV.Data)
+func (l *Ledger) NonceOf(address []byte) (nonce uint64) {
+	nonce = l.StateDB.GetNonce(common.BytesToAddress(address))
 	return
 }
 

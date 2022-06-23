@@ -18,6 +18,8 @@
 package chainStructure
 
 import (
+	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/dataStructure/state"
 	"github.com/SealSC/SealABC/metadata/block"
 )
 
@@ -26,4 +28,6 @@ type IChainInterface interface {
 	GetLastBlock() (last *block.Entity)
 	CurrentHeight() (height uint64)
 	InternalCall(src string, dst string, data []byte) (ret interface{}, err error)
+
+	StateAt(root common.Hash) (*state.StateDB, error)
 }

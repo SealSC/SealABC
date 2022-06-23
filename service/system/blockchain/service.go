@@ -18,57 +18,61 @@
 package blockchain
 
 import (
-    "github.com/SealSC/SealABC/engine/engineService"
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/service"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainApi"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
-    "github.com/SealSC/SealABC/service/system/blockchain/serviceInterface"
+	"github.com/SealSC/SealABC/dataStructure/state"
+	"github.com/SealSC/SealABC/engine/engineService"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainApi"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/service/system/blockchain/serviceInterface"
 )
 
-func Load()  {
-    chainNetwork.Load()
-    chainApi.Load()
-    chainSQLStorage.Load()
+func Load() {
+	chainNetwork.Load()
+	chainApi.Load()
+	chainSQLStorage.Load()
 }
 
 func NewService(cfg Config) service.IService {
-    //new blockchain
-    chain := chainStructure.Blockchain{}
+	//new blockchain
+	chain := chainStructure.Blockchain{}
 
-    //sql database
-    var sqlStorage *chainSQLStorage.Storage = nil
-    if cfg.SQLStorage != nil && cfg.EnableSQLDB{
-        sqlStorage = &chainSQLStorage.Storage {
-            Driver: cfg.SQLStorage,
-        }
-        chain.SetSQLStorage(sqlStorage)
-    }
+	//sql database
+	var sqlStorage *chainSQLStorage.Storage = nil
+	if cfg.SQLStorage != nil && cfg.EnableSQLDB {
+		sqlStorage = &chainSQLStorage.Storage{
+			Driver: cfg.SQLStorage,
+		}
+		chain.SetSQLStorage(sqlStorage)
+	}
 
-    err := chain.LoadBlockchain(cfg.Blockchain)
-    if err != nil {
-        log.Log.Error("create block chain failed")
-        return nil
-    }
+	//
+	chain.StateCache = state.NewDatabase(cfg.Blockchain.StorageDriver)
 
-    //new networks & service
-    p2p := chainNetwork.NewNetwork(cfg.Network, &chain)
+	err := chain.LoadBlockchain(cfg.Blockchain)
+	if err != nil {
+		log.Log.Error("create block chain failed")
+		return nil
+	}
 
-    //start api server
-    apiServers := chainApi.NewServer(cfg.Api, &chain, p2p, sqlStorage)
+	//new networks & service
+	p2p := chainNetwork.NewNetwork(cfg.Network, &chain)
 
-    //register application executors
-    for _, exe := range cfg.ExternalExecutors {
-        _ = chain.Executor.RegisterApplicationExecutor(exe, &chain)
-        apiServers.HttpJSON.Actions.RegisterApplicationQueryHandler(exe.Name(), exe.Query)
-    }
+	//start api server
+	apiServers := chainApi.NewServer(cfg.Api, &chain, p2p, sqlStorage)
 
-    chainService := serviceInterface.NewServiceInterface(cfg.ServiceName, &chain, p2p, apiServers)
+	//register application executors
+	for _, exe := range cfg.ExternalExecutors {
+		_ = chain.Executor.RegisterApplicationExecutor(exe, &chain)
+		apiServers.HttpJSON.Actions.RegisterApplicationQueryHandler(exe.Name(), exe.Query)
+	}
 
-    //mount to engine
-    _ = engineService.Mount(chainService)
+	chainService := serviceInterface.NewServiceInterface(cfg.ServiceName, &chain, p2p, apiServers)
 
-    return chainService
+	//mount to engine
+	_ = engineService.Mount(chainService)
+
+	return chainService
 }

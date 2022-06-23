@@ -18,24 +18,24 @@
 package crypto
 
 import (
-    "github.com/SealSC/SealABC/crypto/ciphers"
-    "github.com/SealSC/SealABC/crypto/signers"
-    "github.com/SealSC/SealABC/crypto/hashes"
+	"github.com/SealSC/SealABC/crypto/ciphers"
+	"github.com/SealSC/SealABC/crypto/hashes"
+	"github.com/SealSC/SealABC/crypto/signers"
 )
 
 type Tools struct {
-    HashCalculator  hashes.IHashCalculator
-    Cipher          ciphers.ICipher
-    SignerGenerator signers.ISignerGenerator
+	HashCalculator  hashes.IHashCalculator
+	Cipher          ciphers.ICipher
+	SignerGenerator signers.ISignerGenerator
 }
 
 type AlgorithmDescription struct {
-    Cipher  string
-    Sign    string
-    Hash    string
-    KDF     string
+	Cipher string
+	Sign   string
+	Hash   string
+	KDF    string
 }
 
-func Load()  {
-    hashes.Load()
+func Load() {
+	hashes.Load()
 }
