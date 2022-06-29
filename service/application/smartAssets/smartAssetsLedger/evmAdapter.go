@@ -18,19 +18,20 @@
 package smartAssetsLedger
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealEVM"
 	"github.com/SealSC/SealEVM/common"
 	"github.com/SealSC/SealEVM/environment"
 	"github.com/SealSC/SealEVM/evmInt256"
 	"github.com/SealSC/SealEVM/storage"
-	"bytes"
-	"fmt"
 	"math/big"
 	"sort"
 )
 
 const defaultStackDepth = 1000
+
 func constTransactionGasPrice() *evmInt256.Int {
 	return evmInt256.New(1)
 }
@@ -38,7 +39,7 @@ func constTransactionGasLimit() *evmInt256.Int {
 	return evmInt256.New(100000000)
 }
 
-func (l Ledger)newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
+func (l Ledger) newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 	blk block.Entity, blockGasLimit *evmInt256.Int) (*SealEVM.EVM, *environment.Contract, error) {
 
 	evmTransaction := environment.Transaction{
@@ -77,8 +78,8 @@ func (l Ledger)newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 		MaxStackDepth:  defaultStackDepth,
 		ExternalStore:  &l.storageForEVM,
 		ResultCallback: callback,
-		Context:        &environment.Context{
-			Block:       environment.Block{
+		Context: &environment.Context{
+			Block: environment.Block{
 				Coinbase:   common.BytesDataToEVMIntHash(blk.BlankSeal.SignerPublicKey),
 				Timestamp:  evmInt256.New(int64(blk.Header.Timestamp)),
 				Number:     evmInt256.New(int64(blk.Header.Height)),
@@ -88,7 +89,7 @@ func (l Ledger)newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 			},
 			Contract:    contract,
 			Transaction: evmTransaction,
-			Message:     environment.Message {
+			Message: environment.Message{
 				Caller: caller,
 				Value:  evmInt256.FromDecimalString(tx.Value),
 				Data:   tx.Data,
@@ -119,7 +120,6 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 			if err != nil {
 				continue
 			}
-
 
 			resultCache[string(addr)] = &txResultCacheData{
 				val: localBalance,

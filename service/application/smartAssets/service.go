@@ -28,13 +28,6 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
-func Load() {
-	smartAssetsInterface.Load()
-	smartAssetsLedger.Load()
-	smartAssetsSQLTables.Load()
-	smartAssetsSQLStorage.Load()
-}
-
 func NewSmartAssetsApplication(config *Config) (app chainStructure.IBlockchainExternalApplication, err error) {
 	if config == nil {
 		config = DefaultConfig()
@@ -53,4 +46,11 @@ func NewSmartAssetsApplication(config *Config) (app chainStructure.IBlockchainEx
 
 	app, err = smartAssetsInterface.NewApplicationInterface(kvDriver, sqlDriver, config.CryptoTools, config.BaseAssets)
 	return
+}
+
+func Load() {
+	smartAssetsInterface.Load()
+	smartAssetsLedger.Load()
+	smartAssetsSQLTables.Load()
+	smartAssetsSQLStorage.Load()
 }

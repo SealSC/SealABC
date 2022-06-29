@@ -18,18 +18,19 @@
 package smartAssetsLedger
 
 import (
+	"bytes"
+	"errors"
+	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"github.com/SealSC/SealABC/crypto/hashes"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/metadata/seal"
-	"bytes"
-	"errors"
 	"math/big"
 )
 
 const (
-	maxMemoSize = 200 //200 Byte
+	maxMemoSize = 200       //200 Byte
 	maxDataSize = 24 * 1024 //24 KB
 )
 
@@ -55,13 +56,14 @@ func GetTxTypeCodeForName(name string) int {
 }
 
 type TransactionData struct {
-	Type           string
-	From           []byte
-	To             []byte
-	Value          string
-	Data           []byte
-	Memo           string
-	SerialNumber   string
+	Nonce        uint64
+	Type         string
+	From         []byte
+	To           []byte
+	Value        string
+	Data         []byte
+	Memo         string
+	SerialNumber string
 }
 
 type StateData struct {
@@ -83,7 +85,7 @@ type Transaction struct {
 	TransactionData
 	TransactionResult
 
-	DataSeal   seal.Entity
+	DataSeal seal.Entity
 }
 
 type TransactionList struct {
@@ -102,6 +104,10 @@ func (t *Transaction) toMFBytes() []byte {
 
 func (t *Transaction) getHash() []byte {
 	return t.DataSeal.Hash
+}
+
+func (t *Transaction) getCommonHash() common.Hash {
+	return common.BytesToHash(t.DataSeal.Hash)
 }
 
 func (t *Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err error) {
@@ -138,6 +144,6 @@ const (
 	CachedContractCreationAddress = "contractCreationAddress"
 )
 
-type txResultCache map[string] *txResultCacheData
+type txResultCache map[string]*txResultCacheData
 type txPreActuator func(tx Transaction, cache txResultCache, blk block.Entity) (ret []StateData, resultCache txResultCache, err error)
 type queryActuator func(req QueryRequest) (ret interface{}, err error)

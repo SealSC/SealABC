@@ -22,11 +22,12 @@ import "github.com/SealSC/SealABC/dataStructure/enum"
 var QueryTypes struct {
 	BaseAssets   enum.Element
 	Balance      enum.Element
+	Nonce        enum.Element
 	Transaction  enum.Element
 	OffChainCall enum.Element
 }
 
-var QueryParameterFields struct{
+var QueryParameterFields struct {
 	Address enum.Element
 	TxHash  enum.Element
 	Data    enum.Element
@@ -34,5 +35,5 @@ var QueryParameterFields struct{
 
 type QueryRequest struct {
 	QueryType string
-	Parameter map[string] string
+	Parameter map[string]string
 }
