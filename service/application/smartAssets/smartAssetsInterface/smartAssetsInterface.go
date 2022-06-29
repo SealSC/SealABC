@@ -18,6 +18,8 @@
 package smartAssetsInterface
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/log"
@@ -31,13 +33,11 @@ import (
 	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/hex"
-	"encoding/json"
 )
 
 type SmartAssetsApplication struct {
 	chainStructure.BlankApplication
-	ledger *smartAssetsLedger.Ledger
+	ledger     *smartAssetsLedger.Ledger
 	sqlStorage *smartAssetsSQLStorage.Storage
 }
 
@@ -93,7 +93,10 @@ func (s *SmartAssetsApplication) Execute(
 	}
 
 	_, err = s.ledger.Execute(txList, blk)
-	if err == nil && s.sqlStorage != nil{
+
+	result.Data, _ = s.ledger.StateDB.CommitTo(s.ledger.Storage, true)
+
+	if err == nil && s.sqlStorage != nil {
 		for _, tx := range txList.Transactions {
 			_ = s.sqlStorage.StoreTransaction(tx, blk)
 		}
@@ -104,6 +107,7 @@ func (s *SmartAssetsApplication) Execute(
 
 func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
 	txList, cnt, txRoot := s.ledger.GetTransactionsFromPool(blk)
+
 	if cnt == 0 {
 		return
 	}
@@ -119,7 +123,7 @@ func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []b
 
 		Packed:      true,
 		PackedCount: cnt,
-		Seal:       seal.Entity{
+		Seal: seal.Entity{
 			Hash:            txRoot, //use merkle tree root as seal hash for packed actions
 			Signature:       nil,
 			SignerPublicKey: nil,
@@ -136,7 +140,7 @@ func (s *SmartAssetsApplication) Information() (info service.BasicInformation) {
 
 	info.Api.Protocol = service.ApiProtocols.INTERNAL.String()
 	info.Api.Address = ""
-	info.Api.ApiList = []service.ApiInterface {}
+	info.Api.ApiList = []service.ApiInterface{}
 	return
 }
 
@@ -144,9 +148,9 @@ func (s *SmartAssetsApplication) SetChainInterface(ci chainStructure.IChainInter
 	s.ledger.SetChain(ci)
 }
 
-func (s *SmartAssetsApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (list []blockchainRequest.Entity, err error){
+func (s *SmartAssetsApplication) UnpackingActionsAsRequests(req blockchainRequest.Entity) (list []blockchainRequest.Entity, err error) {
 	if !req.Packed {
-		list = []blockchainRequest.Entity {req}
+		list = []blockchainRequest.Entity{req}
 		return
 	}
 
@@ -182,14 +186,14 @@ func (s *SmartAssetsApplication) GetActionAsRequest(req blockchainRequest.Entity
 	return newReq
 }
 
-func Load()  {}
+func Load() {}
 
 func NewApplicationInterface(
 	kvDriver kvDatabase.IDriver,
 	sqlDriver simpleSQLDatabase.IDriver,
 	tools crypto.Tools,
 	assets smartAssetsLedger.BaseAssetsData,
-	) (app chainStructure.IBlockchainExternalApplication, err error) {
+) (app chainStructure.IBlockchainExternalApplication, err error) {
 	sa := SmartAssetsApplication{}
 
 	sa.ledger = smartAssetsLedger.NewLedger(tools, kvDriver)
@@ -203,22 +207,27 @@ func NewApplicationInterface(
 		return
 	}
 
-	err = sa.ledger.LoadGenesisAssets(ownerBytes, assets)
+	err = sa.ledger.NewStateAndLoadGenesisAssets(ownerBytes, assets)
 	if err != nil {
 		return
 	}
 
-	ownerBalance, err := sa.ledger.BalanceOf(ownerBytes)
-	if err != nil {
-		return
-	}
+	//err = sa.ledger.LoadGenesisAssets(ownerBytes, assets)
+	//if err != nil {
+	//	return
+	//}
 
-	if sqlDriver != nil {
-		err = sa.sqlStorage.StoreSystemIssueBalance(ownerBalance, assets.Owner)
-		if err != nil {
-			return
-		}
-	}
+	//ownerBalance, err := sa.ledger.BalanceOf(ownerBytes)
+	//if err != nil {
+	//	return
+	//}
+	//
+	//if sqlDriver != nil {
+	//	err = sa.sqlStorage.StoreSystemIssueBalance(ownerBalance, assets.Owner)
+	//	if err != nil {
+	//		return
+	//	}
+	//}
 
 	app = &sa
 	return
