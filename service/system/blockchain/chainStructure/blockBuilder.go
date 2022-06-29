@@ -84,11 +84,14 @@ func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity, blankBlock bl
 	if lastBlock != nil {
 		newBlock.Header.Height = lastBlock.Header.Height + 1
 		newBlock.Header.PrevBlock = append([]byte{}, lastBlock.Seal.Hash...)
+		newBlock.Header.StateRoot = lastBlock.Header.StateRoot
+
 	} else if b.lastBlock != nil {
 		newBlock.Header.Height = b.lastBlock.Header.Height + 1
 
 		//set block prev hash
 		newBlock.Header.PrevBlock = append([]byte{}, b.lastBlock.Seal.Hash...)
+		newBlock.Header.StateRoot = b.lastBlock.Header.StateRoot
 	}
 
 	//set block hash
