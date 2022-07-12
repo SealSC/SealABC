@@ -44,7 +44,7 @@ func (b *BasicHotStuff) NewRound(bs *hotStuff.BasicService) {
 			return
 		}
 
-		go bs.SendMessageToLeader(newViewMsg)
+		bs.SendMessageToLeader(newViewMsg)
 		return
 	} else {
 		//log.Log.Println("i am the leader @view ", b.currentView, " use public key: ", b.config.SelfSigner.PublicKeyString())

@@ -66,7 +66,6 @@ func (b *BasicService) VerifyQCVotes(qc QC) (passed bool) {
 		}
 	}
 
-	log.Log.Info("--------", voterCount, "-----", len(voteCounter))
 	if voterCount != 1 {
 		passed = b.HasEnoughVotes(len(voteCounter))
 	} else {

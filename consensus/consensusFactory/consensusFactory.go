@@ -8,9 +8,10 @@ import (
 	"github.com/SealSC/SealABC/log"
 )
 
-func NewConsensusService(consensusType consensus.Type) (service consensus.IConsensusService) {
-	if consensusType == "" {
-		consensusType = consensus.BasicHotStuff
+func NewConsensusService(t consensus.Type) (service consensus.IConsensusService) {
+	consensusType := consensus.BasicHotStuff
+	if t != "" {
+		consensusType = t
 	}
 
 	switch consensusType {
@@ -18,6 +19,8 @@ func NewConsensusService(consensusType consensus.Type) (service consensus.IConse
 		service = hotStuff.NewHotStuff(basicHotStuff.NewBasicHotStuff())
 	case consensus.ChainedHotStuff:
 		service = hotStuff.NewHotStuff(chainedHotStuff.NewChainedHotStuff())
+	default:
+		service = hotStuff.NewHotStuff(basicHotStuff.NewBasicHotStuff())
 	}
 
 	log.Log.Infof("ConsensusType:%s", consensusType)

@@ -80,6 +80,10 @@ func (b *BlockchainService) Name() (name string) {
 
 //build a new block for consensus
 func (b *BlockchainService) RequestsForConsensus(lastReqs []interface{}) (req [][]byte, cnt uint32) {
+	if chainNetwork.Syncing {
+		return
+	}
+
 	var lastBlock *block.Entity
 	for _, lastReq := range lastReqs {
 		blk, err := b.getNewBlockRequestFromConsensus(lastReq)
@@ -91,10 +95,6 @@ func (b *BlockchainService) RequestsForConsensus(lastReqs []interface{}) (req []
 		} else if blk.Header.Height > lastBlock.Header.Height {
 			lastBlock = &blk
 		}
-	}
-
-	if chainNetwork.Syncing {
-		return
 	}
 
 	newBlankBlock := b.chain.NewBlankBlock()
