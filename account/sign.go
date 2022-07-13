@@ -39,11 +39,12 @@ func (s SealAccount) Seal(data []byte, hashCalculator hashes.IHashCalculator) (s
 		return
 	}
 
-	return seal.Entity{
+	se = seal.Entity{
 		Hash:            dataHash,
 		Signature:       sig,
 		SignerPublicKey: s.Signer.PrivateKeyBytes(),
-	}, nil
+	}
+	return se, nil
 }
 
 func (s SealAccount) VerifySignature(data []byte, sig []byte) (bool, error) {
