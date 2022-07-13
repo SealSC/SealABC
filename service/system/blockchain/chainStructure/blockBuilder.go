@@ -75,14 +75,20 @@ func (b *Blockchain) NewBlankBlock() (newBlock block.Entity) {
 	return
 }
 
-func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity, blankBlock block.Entity) (newBlock block.Entity) {
+func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity, blankBlock block.Entity, lastBlock *block.Entity) (newBlock block.Entity) {
+
 	//build a basic block
 	newBlock = b.buildBasicBlock(requests)
 	newBlock.Header.Timestamp = blankBlock.Header.Timestamp
 	newBlock.BlankSeal = blankBlock.BlankSeal
 	newBlock.Header.StateRoot = blankBlock.Header.StateRoot
+
 	//set block height
-	if b.lastBlock != nil {
+	if lastBlock != nil {
+		newBlock.Header.Height = lastBlock.Header.Height + 1
+		newBlock.Header.PrevBlock = append([]byte{}, lastBlock.Seal.Hash...)
+	} else if b.lastBlock != nil {
+
 		newBlock.Header.Height = b.lastBlock.Header.Height + 1
 
 		//set block prev hash
