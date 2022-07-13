@@ -18,73 +18,72 @@
 package engineService
 
 import (
-    "github.com/SealSC/SealABC/metadata/serviceRequest"
-    "github.com/SealSC/SealABC/service"
-    "errors"
-    "sync"
+	"errors"
+	"github.com/SealSC/SealABC/metadata/serviceRequest"
+	"github.com/SealSC/SealABC/service"
+	"sync"
 )
 
-var serviceMap = map[string] service.IService{}
+var serviceMap = map[string]service.IService{}
 var serviceLock sync.RWMutex
 
 func Mount(s service.IService) (err error) {
-    serviceLock.Lock()
-    defer serviceLock.Unlock()
+	serviceLock.Lock()
+	defer serviceLock.Unlock()
 
-    if srv, _ := getService(s.Name()); srv != nil {
-        err = errors.New("service named " + s.Name() + " already registered")
-        return
-    }
+	if srv, _ := getService(s.Name()); srv != nil {
+		err = errors.New("service named " + s.Name() + " already registered")
+		return
+	}
 
-    serviceMap[s.Name()] = s
-    return
+	serviceMap[s.Name()] = s
+	return
 }
 
 func getService(name string) (s service.IService, err error) {
-    if _, exists := serviceMap[name]; !exists {
-        err = errors.New("service named " + name + " not exists")
-        return
-    }
+	if _, exists := serviceMap[name]; !exists {
+		err = errors.New("service named " + name + " not exists")
+		return
+	}
 
-    s = serviceMap[name]
-    return
+	s = serviceMap[name]
+	return
 }
 
 func preExecuteServiceRequest(req serviceRequest.Entity) (result []byte, err error) {
-    serviceLock.Lock()
-    defer serviceLock.Unlock()
+	serviceLock.Lock()
+	defer serviceLock.Unlock()
 
-    s, err := getService(req.RequestService)
-    if err != nil {
-        return
-    }
+	s, err := getService(req.RequestService)
+	if err != nil {
+		return
+	}
 
-    return s.PreExecute(req)
+	return s.PreExecute(req)
 }
 
 func executeServiceRequest(req serviceRequest.Entity) (result []byte, err error) {
-    serviceLock.Lock()
-    defer serviceLock.Unlock()
+	serviceLock.Lock()
+	defer serviceLock.Unlock()
 
-    s, err := getService(req.RequestService)
-    if err != nil {
-        return
-    }
+	s, err := getService(req.RequestService)
+	if err != nil {
+		return
+	}
 
-    return s.Execute(req)
+	return s.Execute(req)
 }
 
-func getAllRequestsNeedConsensus() (actions [][]byte) {
-    serviceLock.Lock()
-    defer serviceLock.Unlock()
+func getAllRequestsNeedConsensus(lastReqs []interface{}) (actions [][]byte) {
+	serviceLock.Lock()
+	defer serviceLock.Unlock()
+	for _, s := range serviceMap {
+		act, cnt := s.RequestsForConsensus(lastReqs)
+		if cnt == 0 {
+			continue
+		}
+		actions = append(actions, act...)
+	}
 
-    for _, s := range serviceMap {
-        act, cnt := s.RequestsForConsensus()
-        if cnt == 0 {
-            continue
-        }
-        actions = append(actions, act...)
-    }
-
-    return
+	return
 }

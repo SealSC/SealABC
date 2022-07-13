@@ -18,58 +18,57 @@
 package consensus
 
 import (
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/network"
-    "github.com/SealSC/SealABC/metadata/message"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/metadata/message"
+	"github.com/SealSC/SealABC/network"
 )
 
-
 type state struct {
-    Init    enum.Element
-    Running enum.Element
-    Stopped enum.Element
+	Init    enum.Element
+	Running enum.Element
+	Stopped enum.Element
 }
 
 type event struct {
-    Success enum.Element
-    Failed  enum.Element
+	Success enum.Element
+	Failed  enum.Element
 }
 
 type ICustomerData interface {
-    Verify() (passed bool, err error)
-    Bytes() ([]byte, error)
+	Verify() (passed bool, err error)
+	Bytes() ([]byte, error)
 }
 
 var States state
-var Event  event
+var Event event
 
 type ExternalProcessor interface {
-    EventProcessor(event enum.Element, customerData []byte)
-    NewDataBasedOnConsensus(data ICustomerData) (newData ICustomerData, err error)
-    CustomerDataToConsensus() (data ICustomerData, err error)
-    CustomerDataFromConsensus(data []byte) (customData ICustomerData, err error)
+	EventProcessor(event enum.Element, customerData []byte)
+	NewDataBasedOnConsensus(data ICustomerData) (newData ICustomerData, err error)
+	CustomerDataToConsensus(lastCustomerData []byte) (data ICustomerData, err error)
+	CustomerDataFromConsensus(data []byte) (customData ICustomerData, err error)
 }
 
 type IConsensusService interface {
-    Load(networkService network.IService, processor ExternalProcessor)
-    Start(cfg interface{}) (err error)
-    Stop() (err error)
+	Load(networkService network.IService, processor ExternalProcessor)
+	Start(cfg interface{}) (err error)
+	Stop() (err error)
 
-    Feed(msg message.Message) (reply *message.Message)
-    RegisterExternalProcessor(processor ExternalProcessor)
+	Feed(msg message.Message) (reply *message.Message)
+	RegisterExternalProcessor(processor ExternalProcessor)
 
-    GetMessageFamily() string
-    GetExternalProcessor() (processor ExternalProcessor)
-    GetConsensusCustomerData(msg message.Message) (data []byte, err error)
-
-    StaticInformation() interface{}
+	GetMessageFamily() string
+	GetExternalProcessor() (processor ExternalProcessor)
+	GetConsensusCustomerData(msg message.Message) (data []byte, err error)
+	GetLastConsensusCustomerData() []byte
+	StaticInformation() interface{}
 }
 
 func Load(service IConsensusService, ns network.IService, processor ExternalProcessor) IConsensusService {
-    enum.Build(&States, 0, "")
-    enum.Build(&Event, 0, "")
-    service.Load(ns, processor)
-    Driver.consensusRegister(service, ns)
+	enum.Build(&States, 0, "")
+	enum.Build(&Event, 0, "")
+	service.Load(ns, processor)
+	Driver.consensusRegister(service, ns)
 
-    return service
+	return service
 }

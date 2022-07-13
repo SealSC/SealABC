@@ -35,21 +35,21 @@
 package hotStuff
 
 import (
-    "github.com/SealSC/SealABC/metadata/message"
+	"github.com/SealSC/SealABC/metadata/message"
 )
 
-func (b *basicService) sendMessageToLeader(msg message.Message) {
-    b.viewChangeTrigger.Reset(b.config.ConsensusTimeout)
-    leader := b.getLeader()
-    //todo : modular log system
-    //log.Log.Println("send message to leader node: ", leader.FromNode, " msg : ", msg.Type)
-    go b.network.SendTo(leader.FromNode, msg)
+func (b *BasicService) SendMessageToLeader(msg message.Message) {
+	b.ViewChangeTrigger.Reset(b.Config.ConsensusTimeout)
+	leader := b.getLeader()
+	//todo : modular log system
+	//log.Log.Println("send message to leader node: ", leader.FromNode, " msg : ", msg.Type)
+	go b.network.SendTo(leader.FromNode, msg)
 }
 
-func (b *basicService) broadCastMessage(msg message.Message) {
-    b.viewChangeTrigger.Reset(b.config.ConsensusTimeout)
+func (b *BasicService) BroadCastMessage(msg message.Message) {
+	b.ViewChangeTrigger.Reset(b.Config.ConsensusTimeout)
 
-    //todo: modular log system
-    //log.Log.Println("broadcast message: ", msg.Type)
-    go b.network.Broadcast(msg)
+	//todo: modular log system
+	//log.Log.Println("broadcast message: ", msg.Type)
+	go b.network.Broadcast(msg)
 }
