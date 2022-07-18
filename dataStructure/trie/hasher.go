@@ -3,7 +3,7 @@ package trie
 import (
 	"bytes"
 	"github.com/SealSC/SealABC/common"
-	"github.com/SealSC/SealABC/crypto/hashes/sha3"
+	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"github.com/ethereum/go-ethereum/rlp"
 	"hash"
@@ -17,11 +17,14 @@ type hasher struct {
 	cacheGen, cacheLimit uint16
 }
 
-var hasherPool = sync.Pool{
-	New: func() interface{} {
-		//todo: hash
-		return &hasher{tmp: new(bytes.Buffer), sha: sha3.Keccak256.OriginalHash()()}
-	},
+var hasherPool sync.Pool
+
+func Load(cryptoTools crypto.Tools) {
+	hasherPool = sync.Pool{
+		New: func() interface{} {
+			return &hasher{tmp: new(bytes.Buffer), sha: cryptoTools.HashCalculator.OriginalHash()()}
+		},
+	}
 }
 
 func newHasher(cacheGen, cacheLimit uint16) *hasher {

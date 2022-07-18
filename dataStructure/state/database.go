@@ -3,6 +3,7 @@ package state
 import (
 	"fmt"
 	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/dataStructure/trie"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	lru "github.com/hashicorp/golang-lru"
@@ -17,7 +18,7 @@ const (
 )
 
 type Database interface {
-	OpenTrie(root common.Hash) (Trie, error)
+	OpenTrie(root common.Hash, cryptoTools crypto.Tools) (Trie, error)
 	OpenStorageTrie(addrHash, root common.Hash) (Trie, error)
 	ContractCode(addrHash, codeHash common.Hash) ([]byte, error)
 	ContractCodeSize(addrHash, codeHash common.Hash) (int, error)
@@ -47,10 +48,11 @@ type cachingDB struct {
 	codeSizeCache *lru.Cache
 }
 
-func (db *cachingDB) OpenTrie(root common.Hash) (Trie, error) {
+func (db *cachingDB) OpenTrie(root common.Hash, cryptoTools crypto.Tools) (Trie, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
+	trie.Load(cryptoTools)
 	for i := len(db.pastTries) - 1; i >= 0; i-- {
 		if db.pastTries[i].Hash() == root {
 			return cachedTrie{db.pastTries[i].Copy(), db}, nil
