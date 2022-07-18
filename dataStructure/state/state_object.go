@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-	"github.com/ethereum/go-ethereum/crypto"
+	//"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"math/big"
 )
 
-//todo: Hash
-var emptyCodeHash = crypto.Keccak256(nil)
+var emptyCodeHash []byte
 
 func (c Code) String() string {
 	return string(c)
@@ -56,20 +57,24 @@ type stateObject struct {
 	touched   bool
 	deleted   bool
 	onDirty   func(addr common.Address) // Callback method to mark a state object newly dirty
+
+	cryptoTools crypto.Tools
 }
 
-func newObject(db *StateDB, address common.Address, data Account, onDirty func(addr common.Address)) *stateObject {
+func newObject(db *StateDB, cryptoTools crypto.Tools, address common.Address, data Account, onDirty func(addr common.Address)) *stateObject {
+	emptyCodeHash = cryptoTools.HashCalculator.Sum(nil)
+
 	if data.Balance() == nil {
 		data.SetBalance(new(big.Int))
 	}
 	if data.CodeHash == nil {
 		data.SetCodeHash(emptyCodeHash)
 	}
+
 	return &stateObject{
-		db:      db,
-		address: address,
-		//todo: Hash
-		addrHash:      common.Hash(crypto.Keccak256Hash(address[:])),
+		db:            db,
+		address:       address,
+		addrHash:      common.BytesToHash(cryptoTools.HashCalculator.Sum(address[:])),
 		data:          data,
 		cachedStorage: make(Storage),
 		dirtyStorage:  make(Storage),
@@ -278,7 +283,7 @@ func (s *stateObject) ReturnGas(gas *big.Int) {}
 
 func (s *stateObject) deepCopy(db *StateDB, onDirty func(addr common.Address)) *stateObject {
 	account := s.deepCopyAccount(db, s.data)
-	stateObject := newObject(db, s.address, account, onDirty)
+	stateObject := newObject(db, db.cryptoTools, s.address, account, onDirty)
 	if s.trie != nil {
 		stateObject.trie = db.db.CopyTrie(s.trie)
 	}

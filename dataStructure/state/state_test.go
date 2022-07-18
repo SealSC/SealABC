@@ -2,7 +2,10 @@ package state
 
 import (
 	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/crypto/hashes"
+	"github.com/SealSC/SealABC/crypto/hashes/sha3"
+	"github.com/SealSC/SealABC/crypto/signers/ed25519"
 	ledger "github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
 	"github.com/SealSC/SealABC/storage/db"
 	"github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
@@ -16,7 +19,13 @@ func Test(t *testing.T) {
 	driver, _ := db.NewKVDatabaseDriver(dbInterface.LevelDB, levelDB.Config{
 		DBFilePath: "/Users/bianning/Project/Seal/TestDemo/et/temp/nodes/n1-1/chain",
 	})
-	state, _ := New(common.Hash{}, NewDatabase(driver), &ledger.AccountTool{})
+
+	cryptoTools := crypto.Tools{
+		HashCalculator:  sha3.Sha256,
+		SignerGenerator: ed25519.SignerGenerator,
+	}
+
+	state, _ := New(common.Hash{}, NewDatabase(driver), cryptoTools, &ledger.AccountTool{})
 
 	stateobjaddr0 := common.BytesToAddress([]byte("so0"))
 	stateobjaddr1 := common.BytesToAddress([]byte("so1"))
