@@ -26,9 +26,11 @@ type StateDB struct {
 	txIndex      int
 
 	lock sync.Mutex
+
+	accountTool AccountTool
 }
 
-func New(root common.Hash, db Database) (*StateDB, error) {
+func New(root common.Hash, db Database, accountTool AccountTool) (*StateDB, error) {
 	tr, err := db.OpenTrie(root)
 	if err != nil {
 		return nil, err
@@ -39,6 +41,7 @@ func New(root common.Hash, db Database) (*StateDB, error) {
 		trie:              tr,
 		stateObjects:      make(map[common.Address]*stateObject),
 		stateObjectsDirty: make(map[common.Address]struct{}),
+		accountTool:       accountTool,
 	}, nil
 }
 
@@ -196,7 +199,7 @@ func (s *StateDB) Suicide(addr common.Address) bool {
 		return false
 	}
 	stateObject.markSuicided()
-	stateObject.data.Balance = new(big.Int)
+	stateObject.data.SetBalance(new(big.Int))
 
 	return true
 }
@@ -229,13 +232,15 @@ func (s *StateDB) getStateObject(addr common.Address) (stateObject *stateObject)
 		s.setError(err)
 		return nil
 	}
-	var data Account
-	if err := rlp.DecodeBytes(enc, &data); err != nil {
+
+	account, err := s.accountTool.DecodeAccount(enc)
+	if err != nil {
 		log.Log.Error("Failed to decode state object", "addr", addr, "err", err)
 		return nil
 	}
+
 	// Insert into the live set.
-	obj := newObject(s, addr, data, s.MarkStateObjectDirty)
+	obj := newObject(s, addr, account, s.MarkStateObjectDirty)
 	s.setStateObject(obj)
 	return obj
 }
@@ -258,17 +263,10 @@ func (s *StateDB) MarkStateObjectDirty(addr common.Address) {
 
 func (s *StateDB) createObject(addr common.Address) (newObj, prev *stateObject) {
 	prev = s.getStateObject(addr)
-	newObj = newObject(s, addr, Account{}, s.MarkStateObjectDirty)
+	newObj = newObject(s, addr, s.accountTool.NewAccount(), s.MarkStateObjectDirty)
 	newObj.setNonce(0)
 	s.setStateObject(newObj)
 	return newObj, prev
-}
-
-func (s *StateDB) CreateAccount(addr common.Address) {
-	newObj, prev := s.createObject(addr)
-	if prev != nil {
-		newObj.setBalance(prev.data.Balance)
-	}
 }
 
 func (s *StateDB) ForEachStorage(addr common.Address, cb func(key, value common.Hash) bool) {
@@ -299,6 +297,7 @@ func (s *StateDB) Copy() *StateDB {
 		trie:              s.trie,
 		stateObjects:      make(map[common.Address]*stateObject, len(s.stateObjectsDirty)),
 		stateObjectsDirty: make(map[common.Address]struct{}, len(s.stateObjectsDirty)),
+		accountTool:       s.accountTool,
 	}
 	for addr := range s.stateObjectsDirty {
 		state.stateObjects[addr] = s.stateObjects[addr].deepCopy(state, state.MarkStateObjectDirty)

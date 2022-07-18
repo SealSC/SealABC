@@ -14,8 +14,6 @@ import (
 //todo: Hash
 var emptyCodeHash = crypto.Keccak256(nil)
 
-type Code []byte
-
 func (c Code) String() string {
 	return string(c)
 }
@@ -60,19 +58,12 @@ type stateObject struct {
 	onDirty   func(addr common.Address) // Callback method to mark a state object newly dirty
 }
 
-type Account struct {
-	Nonce    uint64
-	Balance  *big.Int
-	Root     common.Hash
-	CodeHash []byte
-}
-
 func newObject(db *StateDB, address common.Address, data Account, onDirty func(addr common.Address)) *stateObject {
-	if data.Balance == nil {
-		data.Balance = new(big.Int)
+	if data.Balance() == nil {
+		data.SetBalance(new(big.Int))
 	}
 	if data.CodeHash == nil {
-		data.CodeHash = emptyCodeHash
+		data.SetCodeHash(emptyCodeHash)
 	}
 	return &stateObject{
 		db:      db,
@@ -91,7 +82,7 @@ func (s *stateObject) EncodeRLP(w io.Writer) error {
 }
 
 func (s *stateObject) empty() bool {
-	return s.data.Nonce == 0 && s.data.Balance.Sign() == 0 && bytes.Equal(s.data.CodeHash, emptyCodeHash)
+	return s.data.Nonce() == 0 && s.data.Balance().Sign() == 0 && bytes.Equal(s.data.CodeHash(), emptyCodeHash)
 }
 
 func (s *stateObject) Address() common.Address {
@@ -125,7 +116,7 @@ func (s *stateObject) SetCode(codeHash common.Hash, code []byte) {
 
 func (s *stateObject) setCode(codeHash common.Hash, code []byte) {
 	s.code = code
-	s.data.CodeHash = codeHash[:]
+	s.data.SetCodeHash(codeHash[:])
 	s.dirtyCode = true
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
@@ -138,7 +129,7 @@ func (s *stateObject) SetNonce(nonce uint64) {
 }
 
 func (s *stateObject) setNonce(nonce uint64) {
-	s.data.Nonce = nonce
+	s.data.SetNonce(nonce)
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
 		s.onDirty = nil
@@ -146,21 +137,21 @@ func (s *stateObject) setNonce(nonce uint64) {
 }
 
 func (s *stateObject) CodeHash() []byte {
-	return s.data.CodeHash
+	return s.data.CodeHash()
 }
 
 func (s *stateObject) Balance() *big.Int {
-	return s.data.Balance
+	return s.data.Balance()
 }
 
 func (s *stateObject) Nonce() uint64 {
-	return s.data.Nonce
+	return s.data.Nonce()
 }
 
 func (s *stateObject) getTrie(db Database) Trie {
 	if s.trie == nil {
 		var err error
-		s.trie, err = db.OpenStorageTrie(s.addrHash, s.data.Root)
+		s.trie, err = db.OpenStorageTrie(s.addrHash, s.data.Root())
 		if err != nil {
 			s.trie, _ = db.OpenStorageTrie(s.addrHash, common.Hash{})
 			s.setError(fmt.Errorf("can't create storage trie: %v", err))
@@ -222,7 +213,7 @@ func (s *stateObject) updateTrie(db Database) Trie {
 
 func (s *stateObject) updateRoot(db Database) {
 	s.updateTrie(db)
-	s.data.Root = s.trie.Hash()
+	s.data.SetRoot(s.trie.Hash())
 }
 
 func (s *stateObject) CommitTrie(db Database, db2 kvDatabase.IDriver) error {
@@ -232,7 +223,7 @@ func (s *stateObject) CommitTrie(db Database, db2 kvDatabase.IDriver) error {
 	}
 	root, err := s.trie.CommitTo(db2)
 	if err == nil {
-		s.data.Root = root
+		s.data.SetRoot(root)
 	}
 	return err
 }
@@ -276,7 +267,7 @@ func (s *stateObject) SetBalance(amount *big.Int) {
 }
 
 func (s *stateObject) setBalance(amount *big.Int) {
-	s.data.Balance = amount
+	s.data.SetBalance(amount)
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
 		s.onDirty = nil
@@ -286,7 +277,8 @@ func (s *stateObject) setBalance(amount *big.Int) {
 func (s *stateObject) ReturnGas(gas *big.Int) {}
 
 func (s *stateObject) deepCopy(db *StateDB, onDirty func(addr common.Address)) *stateObject {
-	stateObject := newObject(db, s.address, s.data, onDirty)
+	account := s.deepCopyAccount(db, s.data)
+	stateObject := newObject(db, s.address, account, onDirty)
 	if s.trie != nil {
 		stateObject.trie = db.db.CopyTrie(s.trie)
 	}
@@ -296,5 +288,15 @@ func (s *stateObject) deepCopy(db *StateDB, onDirty func(addr common.Address)) *
 	stateObject.suicided = s.suicided
 	stateObject.dirtyCode = s.dirtyCode
 	stateObject.deleted = s.deleted
+
 	return stateObject
+}
+
+func (s *stateObject) deepCopyAccount(db *StateDB, data Account) Account {
+	account := db.accountTool.NewAccount()
+	account.SetRoot(data.Root())
+	account.SetBalance(data.Balance())
+	account.SetNonce(data.Nonce())
+	account.SetCodeHash(data.CodeHash())
+	return account
 }

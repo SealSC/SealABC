@@ -74,7 +74,7 @@ func (l *Ledger) SetChain(chain chainStructure.IChainInterface) {
 
 	if chain.GetLastBlock() != nil {
 		stateRoot := common.BytesToHash(chain.GetLastBlock().Header.StateRoot)
-		stateDB, err := state.New(stateRoot, state.NewDatabase(l.Storage))
+		stateDB, err := state.New(stateRoot, state.NewDatabase(l.Storage), &AccountTool{})
 		if err != nil {
 			log.Log.Error("Failed to reset txpool state", "err", err)
 		}
@@ -99,7 +99,7 @@ func (l *Ledger) NewStateAndLoadGenesisAssets(owner []byte, assets BaseAssetsDat
 		return errors.New("no owner for system assets")
 	}
 
-	stateDB, err := state.New(common.Hash{}, state.NewDatabase(l.Storage))
+	stateDB, err := state.New(common.Hash{}, state.NewDatabase(l.Storage), &AccountTool{})
 	if err != nil {
 		return err
 	}
