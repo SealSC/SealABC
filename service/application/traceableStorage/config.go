@@ -31,17 +31,17 @@ type Config struct {
 }
 
 func DefaultConfig() *Config {
-	return &Config {
-		Config: commonCfg.Config {
+	return &Config{
+		Config: commonCfg.Config{
 			KVDBName: dbInterface.LevelDB,
 			KVDBConfig: levelDB.Config{
 				DBFilePath: "./traceableStorage",
 			},
 
-			EnableSQLDB:  false,
-			SQLStorage:   nil,
+			EnableSQLDB: false,
+			SQLStorage:  nil,
 
-			CryptoTools:  crypto.Tools{
+			CryptoTools: crypto.Tools{
 				HashCalculator:  sha3.Sha256,
 				SignerGenerator: ed25519.SignerGenerator,
 			},

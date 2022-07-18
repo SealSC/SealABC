@@ -18,170 +18,170 @@
 package simpleSQLDatabase
 
 import (
-    "reflect"
-    "strconv"
+	"reflect"
+	"strconv"
 )
 
 type ITable interface {
-    Name() string
-    Columns() []string
-    ColumnsForInsert() []string
-    FieldForInsert() []string
-    FieldsToColumns([]string) []string
-    NewRows() interface{}
+	Name() string
+	Columns() []string
+	ColumnsForInsert() []string
+	FieldForInsert() []string
+	FieldsToColumns([]string) []string
+	NewRows() interface{}
 }
 
 type BasicTable struct {
-    columns             []string
-    columnsForInsert    []string
-    insertField         []string
+	columns          []string
+	columnsForInsert []string
+	insertField      []string
 
-    Instance            interface{}
+	Instance interface{}
 }
 
 func (b BasicTable) Name() string {
-    return ""
+	return ""
 }
 
 func (b BasicTable) Columns() (list []string) {
-    if b.Instance == nil {
-        return
-    }
+	if b.Instance == nil {
+		return
+	}
 
-    if len(b.columns) == 0 {
-        list, _ = ColumnsFromTag(b.Instance, false, nil)
-        b.columns = list
-    }
+	if len(b.columns) == 0 {
+		list, _ = ColumnsFromTag(b.Instance, false, nil)
+		b.columns = list
+	}
 
-    return b.columns
+	return b.columns
 }
 
 func (b BasicTable) FieldsToColumns(fields []string) []string {
-    list, _ := ColumnsFromTag(b.Instance, false, fields)
-    return list
+	list, _ := ColumnsFromTag(b.Instance, false, fields)
+	return list
 }
 
 func (b BasicTable) ColumnsForInsert() (list []string) {
-    if b.Instance == nil {
-        return
-    }
+	if b.Instance == nil {
+		return
+	}
 
-    if len(b.columnsForInsert) == 0 {
-        list, _ = ColumnsFromTag(b.Instance, true, nil)
-        b.columnsForInsert = list
-    }
+	if len(b.columnsForInsert) == 0 {
+		list, _ = ColumnsFromTag(b.Instance, true, nil)
+		b.columnsForInsert = list
+	}
 
-    return b.columnsForInsert
+	return b.columnsForInsert
 }
 
-func (b BasicTable) FieldForInsert() (fields []string){
-    if b.Instance == nil {
-        return
-    }
+func (b BasicTable) FieldForInsert() (fields []string) {
+	if b.Instance == nil {
+		return
+	}
 
-    if len(b.insertField) == 0 {
-        fields, _ = FieldsFromLocalTable(b.Instance, true)
-        b.insertField = fields
-    }
+	if len(b.insertField) == 0 {
+		fields, _ = FieldsFromLocalTable(b.Instance, true)
+		b.insertField = fields
+	}
 
-    return b.insertField
+	return b.insertField
 }
 
 type IRows interface {
-    Table() ITable
-    Count() int
-    DataForInsert() []interface{}
-    Data(requiredColumns []string) []interface{}
+	Table() ITable
+	Count() int
+	DataForInsert() []interface{}
+	Data(requiredColumns []string) []interface{}
 }
 
 type BasicRows struct {
-    Rows []interface{}
+	Rows []interface{}
 
-    Instance IRows
+	Instance IRows
 }
 
 func (b BasicRows) Count() int {
-    return len(b.Rows)
+	return len(b.Rows)
 }
 
 func (b BasicRows) Data(requiredField []string) (data []interface{}) {
-    if requiredField == nil {
-        return
-    }
+	if requiredField == nil {
+		return
+	}
 
-    for _, d := range b.Rows {
-        list := StringDataFromRow(d, requiredField)
-        data = append(data, list...)
-    }
+	for _, d := range b.Rows {
+		list := StringDataFromRow(d, requiredField)
+		data = append(data, list...)
+	}
 
-    return
+	return
 }
 
 func (b BasicRows) DataForInsert() (data []interface{}) {
-    if b.Instance == nil {
-        return
-    }
+	if b.Instance == nil {
+		return
+	}
 
-    table := b.Instance.Table()
-    if table == nil {
-        return
-    }
+	table := b.Instance.Table()
+	if table == nil {
+		return
+	}
 
-    fieldForInsert := table.FieldForInsert()
-    for _, d := range b.Rows {
-        list := StringDataFromRow(d, fieldForInsert)
-        data = append(data, list...)
-    }
+	fieldForInsert := table.FieldForInsert()
+	for _, d := range b.Rows {
+		list := StringDataFromRow(d, fieldForInsert)
+		data = append(data, list...)
+	}
 
-    return
+	return
 }
 
 type SimplePagingQueryParam struct {
-    Page          int64
-    Count         int64
-    Table         string
-    RowType       interface{}
-    Condition     string
-    ConditionArgs []interface{}
+	Page          int64
+	Count         int64
+	Table         string
+	RowType       interface{}
+	Condition     string
+	ConditionArgs []interface{}
 }
 
-func (s *SimplePagingQueryParam) PageFromString(page string)  {
-    s.Page = 0
-    if page == "" {
-        return
-    }
+func (s *SimplePagingQueryParam) PageFromString(page string) {
+	s.Page = 0
+	if page == "" {
+		return
+	}
 
-    p, err := strconv.ParseInt(page, 10, 64)
-    if err != nil {
-        return
-    }
+	p, err := strconv.ParseInt(page, 10, 64)
+	if err != nil {
+		return
+	}
 
-    s.Page = p
+	s.Page = p
 }
 
 type SimplePagingQueryResult struct {
-    Total uint64
-    Rows  interface{}
+	Total uint64
+	Rows  interface{}
 }
 
 func NewRowsInstance(base interface{}) (rows interface{}) {
-    rowsType := reflect.TypeOf(base)
-    newRows := reflect.New(rowsType).Elem()
+	rowsType := reflect.TypeOf(base)
+	newRows := reflect.New(rowsType).Elem()
 
-    if !newRows.CanAddr() {
-        return
-    }
+	if !newRows.CanAddr() {
+		return
+	}
 
-    field := newRows.FieldByName("Instance")
-    if !field.IsValid() {
-        return
-    }
+	field := newRows.FieldByName("Instance")
+	if !field.IsValid() {
+		return
+	}
 
-    if !field.CanSet() {
-        return
-    }
+	if !field.CanSet() {
+		return
+	}
 
-    field.Set(newRows.Addr())
+	field.Set(newRows.Addr())
 
-    return newRows.Interface()
+	return newRows.Interface()
 }

@@ -18,77 +18,77 @@
 package enum
 
 import (
-    "reflect"
-    "strconv"
+	"reflect"
+	"strconv"
 )
 
 const (
-    errorCodeTag    = "code"
-    errorMessageTag = "msg"
+	errorCodeTag    = "code"
+	errorMessageTag = "msg"
 )
 
 type ErrorElement struct {
-    code    int64
-    name    string
-    message string
+	code    int64
+	name    string
+	message string
 }
 
 type ErrorElementWithData struct {
-    ErrorElement
-    data interface{}
+	ErrorElement
+	data interface{}
 }
 
 func (e ErrorElement) NewErrorWithNewMessage(msg string) ErrorElement {
-    return ErrorElement{
-        code:    e.code,
-        name:    e.name,
-        message: msg,
-    }
+	return ErrorElement{
+		code:    e.code,
+		name:    e.name,
+		message: msg,
+	}
 }
 
 func (e ErrorElement) NewErrorWithData(msg string, data interface{}) *ErrorElementWithData {
-    return &ErrorElementWithData{
-            ErrorElement: ErrorElement{
-                code:    e.code,
-                name:    e.name,
-                message: msg,
-            },
-            data:    data,
-    }
+	return &ErrorElementWithData{
+		ErrorElement: ErrorElement{
+			code:    e.code,
+			name:    e.name,
+			message: msg,
+		},
+		data: data,
+	}
 }
 
-func (e ErrorElement)Code() int64  {
-    return e.code
+func (e ErrorElement) Code() int64 {
+	return e.code
 }
 
-func (e ErrorElement)Name() string  {
-    return e.name
+func (e ErrorElement) Name() string {
+	return e.name
 }
 
-func (e ErrorElement)Error() string  {
-    if e.message == "" {
-        return e.name
-    }
-    return e.message
+func (e ErrorElement) Error() string {
+	if e.message == "" {
+		return e.name
+	}
+	return e.message
 }
 
-func (e ErrorElementWithData)Data() interface{}  {
-   return e.data
+func (e ErrorElementWithData) Data() interface{} {
+	return e.data
 }
 
 func BuildErrorEnum(enum interface{}, startCode int64) {
-    buildEnum(enum, true, func(code int, name string, tag reflect.StructTag) reflect.Value {
-        codeStr := tag.Get(errorCodeTag)
-        codeNum := int64(code) + startCode
-        if "" != codeStr {
-            codeNum, _ = strconv.ParseInt(codeStr, 0, 64)
-        }
+	buildEnum(enum, true, func(code int, name string, tag reflect.StructTag) reflect.Value {
+		codeStr := tag.Get(errorCodeTag)
+		codeNum := int64(code) + startCode
+		if "" != codeStr {
+			codeNum, _ = strconv.ParseInt(codeStr, 0, 64)
+		}
 
-        return reflect.ValueOf(ErrorElement{
-            code: codeNum,
-            name: name,
-            message: tag.Get(errorMessageTag),
-        })
-    })
-    return
+		return reflect.ValueOf(ErrorElement{
+			code:    codeNum,
+			name:    name,
+			message: tag.Get(errorMessageTag),
+		})
+	})
+	return
 }

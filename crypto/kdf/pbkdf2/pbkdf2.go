@@ -18,84 +18,84 @@
 package pbkdf2
 
 import (
-    "github.com/SealSC/SealABC/crypto/hashes"
-    "github.com/SealSC/SealABC/crypto/hashes/sha3"
-    "encoding/json"
-    "errors"
-    "golang.org/x/crypto/bcrypt"
-    "golang.org/x/crypto/pbkdf2"
+	"encoding/json"
+	"errors"
+	"github.com/SealSC/SealABC/crypto/hashes"
+	"github.com/SealSC/SealABC/crypto/hashes/sha3"
+	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type Param struct {
-    Iter                int
-    KeyHashAlgorithm    string
-    PasswordHashCost    int
+	Iter             int
+	KeyHashAlgorithm string
+	PasswordHashCost int
 }
 
-type keyGenerator struct {}
+type keyGenerator struct{}
+
 var Generator keyGenerator
 
-var defaultParam = Param {
-    Iter:             10000,
-    KeyHashAlgorithm: sha3.Keccak512.Name(),
-    PasswordHashCost: bcrypt.DefaultCost,
-
+var defaultParam = Param{
+	Iter:             10000,
+	KeyHashAlgorithm: sha3.Keccak512.Name(),
+	PasswordHashCost: bcrypt.DefaultCost,
 }
 
 func (p keyGenerator) Name() string {
-    return "PBKDF2"
+	return "PBKDF2"
 }
 
 func (p keyGenerator) NewKey(password []byte, keyLen int) (key []byte, salt []byte, paramData []byte, err error) {
-    salt, err = bcrypt.GenerateFromPassword(password, defaultParam.PasswordHashCost)
-    if err != nil {
-        return
-    }
+	salt, err = bcrypt.GenerateFromPassword(password, defaultParam.PasswordHashCost)
+	if err != nil {
+		return
+	}
 
-    key = pbkdf2.Key(password, salt, defaultParam.Iter, keyLen, hashes.AllHash[defaultParam.KeyHashAlgorithm].OriginalHash())
-    param := Param {
-        Iter:             defaultParam.Iter,
-        KeyHashAlgorithm: defaultParam.KeyHashAlgorithm,
-        PasswordHashCost: defaultParam.PasswordHashCost,
-    }
+	key = pbkdf2.Key(password, salt, defaultParam.Iter, keyLen, hashes.AllHash[defaultParam.KeyHashAlgorithm].OriginalHash())
+	param := Param{
+		Iter:             defaultParam.Iter,
+		KeyHashAlgorithm: defaultParam.KeyHashAlgorithm,
+		PasswordHashCost: defaultParam.PasswordHashCost,
+	}
 
-    paramData, err = json.Marshal(param)
-    return
+	paramData, err = json.Marshal(param)
+	return
 }
 
-func (p keyGenerator) NewKeyWithParam(password []byte, keyLen int, param []byte) (key []byte, salt []byte, err error)  {
-    customParam := Param{}
-    err = json.Unmarshal(param, &customParam)
-    if err != nil {
-        return
-    }
+func (p keyGenerator) NewKeyWithParam(password []byte, keyLen int, param []byte) (key []byte, salt []byte, err error) {
+	customParam := Param{}
+	err = json.Unmarshal(param, &customParam)
+	if err != nil {
+		return
+	}
 
-    salt, err = bcrypt.GenerateFromPassword(password, customParam.PasswordHashCost)
-    if err != nil {
-        return
-    }
+	salt, err = bcrypt.GenerateFromPassword(password, customParam.PasswordHashCost)
+	if err != nil {
+		return
+	}
 
-    hashCalc, supported := hashes.AllHash[customParam.KeyHashAlgorithm]
-    if !supported {
-        err = errors.New("not supported hash: " + customParam.KeyHashAlgorithm)
-        return
-    }
-    key = pbkdf2.Key(password, salt, customParam.Iter, keyLen, hashCalc.OriginalHash())
-    return
+	hashCalc, supported := hashes.AllHash[customParam.KeyHashAlgorithm]
+	if !supported {
+		err = errors.New("not supported hash: " + customParam.KeyHashAlgorithm)
+		return
+	}
+	key = pbkdf2.Key(password, salt, customParam.Iter, keyLen, hashCalc.OriginalHash())
+	return
 }
 
 func (p keyGenerator) RebuildKey(password []byte, keyLen int, salt []byte, param []byte) (key []byte, err error) {
-    customParam := Param{}
-    err = json.Unmarshal(param, &customParam)
-    if err != nil {
-        return
-    }
+	customParam := Param{}
+	err = json.Unmarshal(param, &customParam)
+	if err != nil {
+		return
+	}
 
-    hashCalc, supported := hashes.AllHash[customParam.KeyHashAlgorithm]
-    if !supported {
-        err = errors.New("not supported hash: " + customParam.KeyHashAlgorithm)
-        return
-    }
-    key = pbkdf2.Key(password, salt, customParam.Iter, keyLen, hashCalc.OriginalHash())
-    return
+	hashCalc, supported := hashes.AllHash[customParam.KeyHashAlgorithm]
+	if !supported {
+		err = errors.New("not supported hash: " + customParam.KeyHashAlgorithm)
+		return
+	}
+	key = pbkdf2.Key(password, salt, customParam.Iter, keyLen, hashCalc.OriginalHash())
+	return
 }

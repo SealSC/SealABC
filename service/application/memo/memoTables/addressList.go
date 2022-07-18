@@ -18,59 +18,59 @@
 package memoTables
 
 import (
-    "github.com/SealSC/SealABC/common"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-    "fmt"
-    "time"
+	"fmt"
+	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"time"
 )
 
 type AddressListTable struct {
-    ID      enum.Element `col:"c_id" ignoreInsert:"true"`
-    Height  enum.Element `col:"c_height"`
-    Address enum.Element `col:"c_address"`
-    Time    enum.Element `col:"c_time"`
+	ID      enum.Element `col:"c_id" ignoreInsert:"true"`
+	Height  enum.Element `col:"c_height"`
+	Address enum.Element `col:"c_address"`
+	Time    enum.Element `col:"c_time"`
 
-    simpleSQLDatabase.BasicTable
+	simpleSQLDatabase.BasicTable
 }
 
 var AddressList AddressListTable
 
 func (a AddressListTable) NewRows() interface{} {
-    return simpleSQLDatabase.NewRowsInstance(AddressListRows{})
+	return simpleSQLDatabase.NewRowsInstance(AddressListRows{})
 }
 
 func (a AddressListTable) Name() (name string) {
-    return "t_memo_address_list"
+	return "t_memo_address_list"
 }
 
 func (a *AddressListTable) load() {
-    enum.SimpleBuild(a)
-    a.Instance = *a
+	enum.SimpleBuild(a)
+	a.Instance = *a
 }
 
 type AddressListRow struct {
-    ID      string
-    Height  string
-    Address string
-    Time    string
+	ID      string
+	Height  string
+	Address string
+	Time    string
 }
 
 type AddressListRows struct {
-    simpleSQLDatabase.BasicRows
+	simpleSQLDatabase.BasicRows
 }
 
 func (b *AddressListRows) InsertAddress(height uint64, tm int64, address string) {
-    timestamp := time.Unix(tm, 0)
-    newAddressRow := AddressListRow{
-        Height:  fmt.Sprintf("%d", height),
-        Address: address,
-        Time:    timestamp.Format(common.BASIC_TIME_FORMAT),
-    }
+	timestamp := time.Unix(tm, 0)
+	newAddressRow := AddressListRow{
+		Height:  fmt.Sprintf("%d", height),
+		Address: address,
+		Time:    timestamp.Format(common.BASIC_TIME_FORMAT),
+	}
 
-    b.Rows = append(b.Rows, newAddressRow)
+	b.Rows = append(b.Rows, newAddressRow)
 }
 
 func (b *AddressListRows) Table() simpleSQLDatabase.ITable {
-    return &AddressList
+	return &AddressList
 }

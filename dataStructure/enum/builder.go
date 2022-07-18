@@ -18,40 +18,40 @@
 package enum
 
 import (
-    "reflect"
+	"reflect"
 )
 
 func buildEnum(enum interface{}, isErrEnum bool, valueBuilder func(int, string, reflect.StructTag) reflect.Value) {
-    eValue := reflect.ValueOf(enum).Elem()
-    eType := eValue.Type()
+	eValue := reflect.ValueOf(enum).Elem()
+	eType := eValue.Type()
 
-    for i:=0; i<eValue.NumField(); i++ {
-        elemValue := eValue.Field(i)
+	for i := 0; i < eValue.NumField(); i++ {
+		elemValue := eValue.Field(i)
 
-        if !elemValue.CanSet() {
-            continue
-        }
+		if !elemValue.CanSet() {
+			continue
+		}
 
-        if !elemValue.CanInterface() {
-            continue
-        }
+		if !elemValue.CanInterface() {
+			continue
+		}
 
-        if isErrEnum {
-            _, ok := elemValue.Interface().(ErrorElement)
-            if !ok {
-                continue
-            }
-        } else {
-            _, ok := elemValue.Interface().(Element)
-            if !ok {
-                continue
-            }
-        }
+		if isErrEnum {
+			_, ok := elemValue.Interface().(ErrorElement)
+			if !ok {
+				continue
+			}
+		} else {
+			_, ok := elemValue.Interface().(Element)
+			if !ok {
+				continue
+			}
+		}
 
-        elemType := eType.Field(i)
-        enumValue := valueBuilder(i, elemType.Name, elemType.Tag)
-        elemValue.Set(enumValue)
-    }
+		elemType := eType.Field(i)
+		enumValue := valueBuilder(i, elemType.Name, elemType.Tag)
+		elemValue.Set(enumValue)
+	}
 
-    return
+	return
 }

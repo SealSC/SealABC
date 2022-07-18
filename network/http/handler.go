@@ -20,19 +20,19 @@ package http
 import "github.com/gin-gonic/gin"
 
 type Parameters struct {
-    Type        string
-    Template    interface{}
+	Type     string
+	Template interface{}
 }
 
 type HandlerBasicInformation struct {
-    Path            string
-    Method          string
-    Description     string
-    Parameters      Parameters
+	Path        string
+	Method      string
+	Description string
+	Parameters  Parameters
 }
 
 type IRequestHandler interface {
-    Handle(ctx *gin.Context)
-    RouteRegister(router gin.IRouter)
-    BasicInformation() (info HandlerBasicInformation)
+	Handle(ctx *gin.Context)
+	RouteRegister(router gin.IRouter)
+	BasicInformation() (info HandlerBasicInformation)
 }

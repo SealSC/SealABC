@@ -20,5 +20,5 @@ package basicAssets
 import "github.com/SealSC/SealABC/metadata/applicationCommonConfig"
 
 type Config struct {
-    applicationCommonConfig.Config
+	applicationCommonConfig.Config
 }

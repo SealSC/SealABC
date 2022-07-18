@@ -18,56 +18,55 @@
 package levelDB
 
 import (
-    "github.com/syndtr/goleveldb/leveldb"
-    "github.com/syndtr/goleveldb/leveldb/errors"
-    "github.com/syndtr/goleveldb/leveldb/opt"
-    "github.com/syndtr/goleveldb/leveldb/filter"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 type levelDBDriver struct {
-    db *leveldb.DB
+	db *leveldb.DB
 }
 
 type Config struct {
-    DBFilePath string
-    Options opt.Options
+	DBFilePath string
+	Options    opt.Options
 }
 
 func (l *levelDBDriver) Stat() (state interface{}, err error) {
-    return l.db.GetProperty("leveldb.stats")
+	return l.db.GetProperty("leveldb.stats")
 }
 
 func (l *levelDBDriver) Close() {
-    if nil != l.db {
-        _ = l.db.Close()
-    }
+	if nil != l.db {
+		_ = l.db.Close()
+	}
 }
 
-
 func NewDriver(cfg interface{}) (driver kvDatabase.IDriver, err error) {
-    dbCfg, ok := cfg.(Config)
+	dbCfg, ok := cfg.(Config)
 
-    if !ok {
-        err = errors.New("incompatible config settings")
-        return
-    }
+	if !ok {
+		err = errors.New("incompatible config settings")
+		return
+	}
 
-    db, err := leveldb.OpenFile(dbCfg.DBFilePath, &opt.Options{
-        Filter: filter.NewBloomFilter(10),
-    })
+	db, err := leveldb.OpenFile(dbCfg.DBFilePath, &opt.Options{
+		Filter: filter.NewBloomFilter(10),
+	})
 
-    if _, failed := err.(*errors.ErrCorrupted); failed {
-        db, err = leveldb.RecoverFile(dbCfg.DBFilePath, nil)
-    }
+	if _, failed := err.(*errors.ErrCorrupted); failed {
+		db, err = leveldb.RecoverFile(dbCfg.DBFilePath, nil)
+	}
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    l := &levelDBDriver{}
-    l.db = db
+	l := &levelDBDriver{}
+	l.db = db
 
-    driver = l
-    return
+	driver = l
+	return
 }

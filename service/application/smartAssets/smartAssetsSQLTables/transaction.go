@@ -18,14 +18,14 @@
 package smartAssetsSQLTables
 
 import (
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/hex"
-	"encoding/json"
-	"fmt"
 	"time"
 )
 
@@ -110,4 +110,3 @@ func (t *TransactionRows) Insert(tx smartAssetsLedger.Transaction, blk block.Ent
 func (t *TransactionRows) Table() simpleSQLDatabase.ITable {
 	return &Transaction
 }
-

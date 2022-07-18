@@ -18,31 +18,31 @@
 package hotStuff
 
 import (
-    "github.com/SealSC/SealABC/crypto/hashes"
-    "github.com/SealSC/SealABC/crypto/signers"
-    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
-    "github.com/SealSC/SealABC/network"
-    "time"
+	"github.com/SealSC/SealABC/crypto/hashes"
+	"github.com/SealSC/SealABC/crypto/signers"
+	"github.com/SealSC/SealABC/crypto/signers/signerCommon"
+	"github.com/SealSC/SealABC/network"
+	"time"
 )
 
 type Config struct {
-    //signer and members
-    SelfSigner signerCommon.ISigner
+	//signer and members
+	SelfSigner signerCommon.ISigner
 
-    //member list
-    Members []Member
+	//member list
+	Members []Member
 
-    //timers config
-    MemberOnlineCheckInterval   time.Duration
-    ConsensusTimeout            time.Duration
+	//timers config
+	MemberOnlineCheckInterval time.Duration
+	ConsensusTimeout          time.Duration
 
-    //new consensus round interval
-    ConsensusInterval time.Duration
+	//new consensus round interval
+	ConsensusInterval time.Duration
 
-    //network
-    Network network.Service
+	//network
+	Network network.Service
 
-    //crypto
-    SingerGenerator signers.ISignerGenerator
-    HashCalc        hashes.IHashCalculator
+	//crypto
+	SingerGenerator signers.ISignerGenerator
+	HashCalc        hashes.IHashCalculator
 }

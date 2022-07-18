@@ -23,8 +23,8 @@ import (
 )
 
 type Storage struct {
-	queryHandlers map[string] queryHandler
-	Driver simpleSQLDatabase.IDriver
+	queryHandlers map[string]queryHandler
+	Driver        simpleSQLDatabase.IDriver
 }
 
 func Load() {
@@ -34,10 +34,10 @@ func Load() {
 
 func NewStorage(sqlDriver simpleSQLDatabase.IDriver) (s *Storage) {
 	s = &Storage{
-		Driver:        sqlDriver,
+		Driver: sqlDriver,
 	}
 
-	s.queryHandlers = map[string] queryHandler {
+	s.queryHandlers = map[string]queryHandler{
 		QueryTypes.TransactionList.String(): s.queryTransactionList,
 		QueryTypes.Transaction.String():     s.queryTransactionByHash,
 		QueryTypes.AccountList.String():     s.queryAccountList,

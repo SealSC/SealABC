@@ -20,11 +20,11 @@ package payload
 import "math/rand"
 
 type PingPongPayload struct {
-    Number    int
+	Number int
 }
 
 func NewPing() (next PingPongPayload) {
-    return PingPongPayload {
-        Number: rand.Int(),
-    }
+	return PingPongPayload{
+		Number: rand.Int(),
+	}
 }

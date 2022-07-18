@@ -20,5 +20,5 @@ package engine
 import "github.com/SealSC/SealABC/engine/engineStartup"
 
 func Startup(cfg engineStartup.Config) {
-    _ = engineStartup.Start(cfg)
+	_ = engineStartup.Start(cfg)
 }

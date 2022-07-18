@@ -18,16 +18,16 @@
 package http
 
 import (
-    "github.com/gin-gonic/gin"
-    "encoding/json"
+	"encoding/json"
+	"github.com/gin-gonic/gin"
 )
 
 func GetPostedJson(ctx *gin.Context, output interface{}) (rawData []byte, err error) {
-    rawData, err = ctx.GetRawData()
-    if nil != err {
-        return
-    }
+	rawData, err = ctx.GetRawData()
+	if nil != err {
+		return
+	}
 
-    err = json.Unmarshal(rawData, output)
-    return
+	err = json.Unmarshal(rawData, output)
+	return
 }

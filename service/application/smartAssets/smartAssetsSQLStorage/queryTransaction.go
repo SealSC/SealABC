@@ -18,8 +18,8 @@
 package smartAssetsSQLStorage
 
 import (
-	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 	"errors"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 )
 
 var txRowType = smartAssetsSQLTables.TransactionRow{}
@@ -29,9 +29,9 @@ func (s Storage) queryTransactionList(param queryParam) (interface{}, error) {
 	account := param[QueryParameterFields.Account.String()]
 
 	commonParam := commonPagingQueryParam{
-		queryParam:    param,
-		rowType:       txRowType,
-		table:         txTableName,
+		queryParam: param,
+		rowType:    txRowType,
+		table:      txTableName,
 	}
 
 	if account != "" {
@@ -42,7 +42,7 @@ func (s Storage) queryTransactionList(param queryParam) (interface{}, error) {
 	return s.commonPagingQuery(commonParam)
 }
 
-func (s Storage) queryTransactionByHash(param queryParam) (interface{}, error){
+func (s Storage) queryTransactionByHash(param queryParam) (interface{}, error) {
 	txHash := param[QueryParameterFields.TxHash.String()]
 	if txHash == "" {
 		return nil, errors.New("invalid parameters")

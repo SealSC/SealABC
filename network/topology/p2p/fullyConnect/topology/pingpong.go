@@ -18,54 +18,53 @@
 package topology
 
 import (
-    "encoding/json"
-    "github.com/SealSC/SealABC/network"
-    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message"
-    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message/payload"
-    "time"
+	"encoding/json"
+	"github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message"
+	"github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message/payload"
+	"time"
 )
 
 func doPing(link network.ILink) {
-    ping := payload.NewPing()
-    pingPayloadBytes, _ := json.Marshal(ping)
-    msg := message.NewMessage(message.Types.Ping, pingPayloadBytes)
-    link.SendMessage(msg)
+	ping := payload.NewPing()
+	pingPayloadBytes, _ := json.Marshal(ping)
+	msg := message.NewMessage(message.Types.Ping, pingPayloadBytes)
+	link.SendMessage(msg)
 }
 
-type pingMessageProcessor struct {}
+type pingMessageProcessor struct{}
 
-func (p *pingMessageProcessor)Process(msg network.Message, t *Topology, link network.ILink)  (err error) {
-    pingPayload := payload.PingPongPayload{}
-    err = payload.FromMessage(msg, &pingPayload)
-    if err != nil {
-        return
-    }
+func (p *pingMessageProcessor) Process(msg network.Message, t *Topology, link network.ILink) (err error) {
+	pingPayload := payload.PingPongPayload{}
+	err = payload.FromMessage(msg, &pingPayload)
+	if err != nil {
+		return
+	}
 
-    pong := payload.PingPongPayload{
-        Number: pingPayload.Number,
-    }
+	pong := payload.PingPongPayload{
+		Number: pingPayload.Number,
+	}
 
-    replayPayloadBytes, _ := json.Marshal(pong)
-    reply := message.NewMessage(message.Types.Pong, replayPayloadBytes)
-    link.SendMessage(reply)
+	replayPayloadBytes, _ := json.Marshal(pong)
+	reply := message.NewMessage(message.Types.Pong, replayPayloadBytes)
+	link.SendMessage(reply)
 
-    go func() {
-        time.Sleep(time.Second * 10)
+	go func() {
+		time.Sleep(time.Second * 10)
 
-        doPing(link)
-    }()
+		doPing(link)
+	}()
 
-
-    return
+	return
 }
 
-type pongMessageProcessor struct {}
-func (p *pongMessageProcessor)Process(msg network.Message, topology *Topology, _ network.ILink)  (err error) {
-    //todo: refresh neighbor's state
+type pongMessageProcessor struct{}
 
-    return
+func (p *pongMessageProcessor) Process(msg network.Message, topology *Topology, _ network.ILink) (err error) {
+	//todo: refresh neighbor's state
+
+	return
 }
-
 
 var PingMessageProcessor = &pingMessageProcessor{}
 var PongMessageProcessor = &pongMessageProcessor{}

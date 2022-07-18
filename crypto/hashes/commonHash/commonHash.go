@@ -18,15 +18,15 @@
 package commonHash
 
 import (
+	"crypto/hmac"
 	"encoding/hex"
 	"github.com/SealSC/SealABC/log"
-	"crypto/hmac"
 	"hash"
 )
 
 type hashMethod func() hash.Hash
 
-var hashMethodMap = map[string] func() hash.Hash {}
+var hashMethodMap = map[string]func() hash.Hash{}
 
 func calcHash(method hashMethod, data []byte) (hashBytes []byte) {
 	newHash := method()
@@ -38,24 +38,24 @@ func calcHash(method hashMethod, data []byte) (hashBytes []byte) {
 	return newHash.Sum(nil)
 }
 
-func calcHMAC(method hashMethod, data [] byte, key []byte) []byte {
+func calcHMAC(method hashMethod, data []byte, key []byte) []byte {
 	hm := hmac.New(method, key)
 	hm.Write(data)
 
 	return hm.Sum(nil)
 }
 
-type CommonHash struct { HashType string }
+type CommonHash struct{ HashType string }
 
 func (c CommonHash) Name() string {
 	return c.HashType
 }
 
-func (c CommonHash)Sum(data []byte) []byte {
+func (c CommonHash) Sum(data []byte) []byte {
 	return calcHash(hashMethodMap[c.HashType], data)
 }
 
-func (c CommonHash)SumHex(data []byte) string {
+func (c CommonHash) SumHex(data []byte) string {
 	result := calcHash(hashMethodMap[c.HashType], data)
 	return hex.EncodeToString(result)
 }
@@ -80,4 +80,3 @@ func RegisterHashMethod(key string, method hashMethod) {
 
 	hashMethodMap[key] = method
 }
-

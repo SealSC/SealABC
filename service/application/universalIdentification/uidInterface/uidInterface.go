@@ -40,8 +40,8 @@ type ActionList struct {
 type UniversalIdentificationApplication struct {
 	chainStructure.BlankApplication
 
-	reqPool map[string] blockchainRequest.Entity
-	reqList [] blockchainRequest.Entity
+	reqPool map[string]blockchainRequest.Entity
+	reqList []blockchainRequest.Entity
 
 	poolLock sync.Mutex
 
@@ -184,7 +184,7 @@ func (u *UniversalIdentificationApplication) RequestsForBlock(_ block.Entity) (r
 
 		Packed:      true,
 		PackedCount: cnt,
-		Seal:       seal.Entity{
+		Seal: seal.Entity{
 			Hash:            txRoot, //use merkle tree root as seal hash for packed actions
 			Signature:       nil,
 			SignerPublicKey: nil,
@@ -202,11 +202,11 @@ func (u *UniversalIdentificationApplication) Information() (info service.BasicIn
 
 	info.Api.Protocol = service.ApiProtocols.INTERNAL.String()
 	info.Api.Address = ""
-	info.Api.ApiList = []service.ApiInterface {}
+	info.Api.ApiList = []service.ApiInterface{}
 	return
 }
 
-func Load()  {}
+func Load() {}
 
 func NewApplicationInterface(kvDriver kvDatabase.IDriver, sqlDriver simpleSQLDatabase.IDriver) (app chainStructure.IBlockchainExternalApplication) {
 	uidApp := UniversalIdentificationApplication{}

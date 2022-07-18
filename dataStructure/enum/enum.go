@@ -20,51 +20,51 @@ package enum
 import "reflect"
 
 const (
-    elementDescriptionTag = "desc"
-    elementNameTag = "name"
+	elementDescriptionTag = "desc"
+	elementNameTag        = "name"
 )
 
 type IElement interface {
-    Int() int
-    String() string
-    Description() string
+	Int() int
+	String() string
+	Description() string
 }
 
 type Element struct {
-    value       int
-    name        string
-    description string
+	value       int
+	name        string
+	description string
 }
 
-func (t *Element)Int() int  {
-    return t.value
+func (t *Element) Int() int {
+	return t.value
 }
 
-func (t *Element)String() string  {
-    return t.name
+func (t *Element) String() string {
+	return t.name
 }
 
-func (t *Element)Description() string {
-    return t.name
+func (t *Element) Description() string {
+	return t.name
 }
 
 func Build(enums interface{}, begin int, prefix string) {
-    buildEnum(enums, false, func(value int, name string, tag reflect.StructTag) reflect.Value {
-        taggedName := tag.Get(elementNameTag)
-        enumName := prefix + name
-        if taggedName != "" {
-            enumName = taggedName
-        }
+	buildEnum(enums, false, func(value int, name string, tag reflect.StructTag) reflect.Value {
+		taggedName := tag.Get(elementNameTag)
+		enumName := prefix + name
+		if taggedName != "" {
+			enumName = taggedName
+		}
 
-        return reflect.ValueOf(Element{
-            value: value + begin,
-            name: enumName,
-            description: tag.Get(elementDescriptionTag),
-        })
-    })
-    return
+		return reflect.ValueOf(Element{
+			value:       value + begin,
+			name:        enumName,
+			description: tag.Get(elementDescriptionTag),
+		})
+	})
+	return
 }
 
 func SimpleBuild(enums interface{}) {
-    Build(enums, 0, "")
+	Build(enums, 0, "")
 }

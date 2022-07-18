@@ -18,13 +18,13 @@
 package chainTables
 
 import (
+	"encoding/hex"
+	"fmt"
 	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/metadata/blockchainRequest"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/hex"
-	"fmt"
 	"time"
 )
 
@@ -78,7 +78,7 @@ type AddressListRows struct {
 	simpleSQLDatabase.BasicRows
 }
 
-func (t *AddressListRows) UpdateAddress(blk block.Entity, req blockchainRequest.Entity)  {
+func (t *AddressListRows) UpdateAddress(blk block.Entity, req blockchainRequest.Entity) {
 	newRow := AddressListRow{}
 	newRow.FromRequest(blk.Header.Height, blk.Header.Timestamp, req)
 	t.Rows = append(t.Rows, newRow)

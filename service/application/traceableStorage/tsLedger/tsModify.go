@@ -40,7 +40,7 @@ func (t *TSLedger) GetLocalData(id string) (data tsData.TSData, err error) {
 	return
 }
 
-func (t *TSLedger)VerifyModifyRequest(data tsData.TSData) (err error) {
+func (t *TSLedger) VerifyModifyRequest(data tsData.TSData) (err error) {
 	//common verify
 	_, err = t.commonDataInRequestVerify(data)
 	if err != nil {
@@ -61,7 +61,7 @@ func (t *TSLedger)VerifyModifyRequest(data tsData.TSData) (err error) {
 	return
 }
 
-func (t *TSLedger)ExecuteModifyIdentification(data tsData.TSData) (ret interface{}, err error) {
+func (t *TSLedger) ExecuteModifyIdentification(data tsData.TSData) (ret interface{}, err error) {
 	prevData, err := t.GetLocalData(data.PrevOnChainID)
 	if err != nil {
 		return

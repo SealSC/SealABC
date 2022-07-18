@@ -18,65 +18,65 @@
 package basicAssetsSQLStorage
 
 import (
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-    "errors"
+	"errors"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
-var QueryTypes struct{
-    AssetsList              enum.Element
-    Assets                  enum.Element
+var QueryTypes struct {
+	AssetsList enum.Element
+	Assets     enum.Element
 
-    Transfer                enum.Element
-    TransferList            enum.Element
-    TransfersUnderAssets    enum.Element
-    BalancesUnderAssets     enum.Element
+	Transfer             enum.Element
+	TransferList         enum.Element
+	TransfersUnderAssets enum.Element
+	BalancesUnderAssets  enum.Element
 
-    AddressList             enum.Element
-    AddressActionRecord     enum.Element
-    AddressBalanceList      enum.Element
+	AddressList         enum.Element
+	AddressActionRecord enum.Element
+	AddressBalanceList  enum.Element
 
-    SellingHistory          enum.Element
+	SellingHistory enum.Element
 }
 
 type queryHandler func([]string) (interface{}, error)
 type Storage struct {
-    queryHandlers map[string] queryHandler
-    Driver simpleSQLDatabase.IDriver
+	queryHandlers map[string]queryHandler
+	Driver        simpleSQLDatabase.IDriver
 }
 
-func Load()  {
-    enum.SimpleBuild(&QueryTypes)
+func Load() {
+	enum.SimpleBuild(&QueryTypes)
 }
 
 func NewStorage(sqlDriver simpleSQLDatabase.IDriver) (s *Storage) {
-    s = &Storage{
-        Driver:        sqlDriver,
-    }
+	s = &Storage{
+		Driver: sqlDriver,
+	}
 
-    s.queryHandlers = map[string] queryHandler {
-        QueryTypes.AssetsList.String():             s.GetAssetsList,
-        QueryTypes.TransferList.String():           s.GetTransferList,
-        QueryTypes.Transfer.String():               s.GetTransfer,
-        QueryTypes.Assets.String():                 s.GetAssets,
-        QueryTypes.AddressList.String():            s.GetAddressesList,
-        QueryTypes.TransfersUnderAssets.String():   s.GetTransfersUnderAssets,
-        QueryTypes.BalancesUnderAssets.String():    s.GetBalancesUnderAssetsList,
+	s.queryHandlers = map[string]queryHandler{
+		QueryTypes.AssetsList.String():           s.GetAssetsList,
+		QueryTypes.TransferList.String():         s.GetTransferList,
+		QueryTypes.Transfer.String():             s.GetTransfer,
+		QueryTypes.Assets.String():               s.GetAssets,
+		QueryTypes.AddressList.String():          s.GetAddressesList,
+		QueryTypes.TransfersUnderAssets.String(): s.GetTransfersUnderAssets,
+		QueryTypes.BalancesUnderAssets.String():  s.GetBalancesUnderAssetsList,
 
-        QueryTypes.AddressActionRecord.String():    s.GetAddressActionRecord,
-        QueryTypes.AddressBalanceList.String():     s.GetAddressBalance,
+		QueryTypes.AddressActionRecord.String(): s.GetAddressActionRecord,
+		QueryTypes.AddressBalanceList.String():  s.GetAddressBalance,
 
-        QueryTypes.SellingHistory.String():     s.GetSellingHistory,
-    }
-    return
+		QueryTypes.SellingHistory.String(): s.GetSellingHistory,
+	}
+	return
 }
 
 func (s *Storage) DoQuery(queryReq basicAssetsLedger.QueryRequest) (result interface{}, err error) {
-    if handler, exists := s.queryHandlers[queryReq.QueryType]; !exists {
-        err = errors.New("no such query handler: " + queryReq.QueryType)
-        return
-    } else {
-        return handler(queryReq.Parameter)
-    }
+	if handler, exists := s.queryHandlers[queryReq.QueryType]; !exists {
+		err = errors.New("no such query handler: " + queryReq.QueryType)
+		return
+	} else {
+		return handler(queryReq.Parameter)
+	}
 }

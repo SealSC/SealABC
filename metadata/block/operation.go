@@ -18,24 +18,24 @@
 package block
 
 import (
-    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
-    "github.com/SealSC/SealABC/crypto"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+	"github.com/SealSC/SealABC/crypto"
 )
 
 func (e *Entity) Sign(tools crypto.Tools, privateKey []byte) (err error) {
-    blockHeaderBytes, _ := structSerializer.ToMFBytes(e.EntityData.Header)
-    err = e.Seal.Sign(blockHeaderBytes, tools, privateKey)
-    return
+	blockHeaderBytes, _ := structSerializer.ToMFBytes(e.EntityData.Header)
+	err = e.Seal.Sign(blockHeaderBytes, tools, privateKey)
+	return
 }
 
 func (e *Entity) Verify(tools crypto.Tools) (passed bool, err error) {
-    passed = false
-    blockHeaderBytes, _ := structSerializer.ToMFBytes(e.EntityData.Header)
+	passed = false
+	blockHeaderBytes, _ := structSerializer.ToMFBytes(e.EntityData.Header)
 
-    passed, err = e.Seal.Verify(blockHeaderBytes, tools.HashCalculator)
-    if err != nil {
-        return
-    }
+	passed, err = e.Seal.Verify(blockHeaderBytes, tools.HashCalculator)
+	if err != nil {
+		return
+	}
 
-    return
+	return
 }

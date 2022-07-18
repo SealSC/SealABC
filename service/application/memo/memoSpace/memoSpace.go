@@ -22,17 +22,16 @@ import "github.com/SealSC/SealABC/metadata/seal"
 const MaxMemoSize = 2 * 1024 * 1024
 
 type MemoData struct {
-    Type        string
-    Data        string
+	Type string
+	Data string
 }
 
-
 type QueryRequest struct {
-    QueryType   string
-    Parameter   []string
+	QueryType string
+	Parameter []string
 }
 
 type Memo struct {
-    MemoData
-    Seal seal.Entity
+	MemoData
+	Seal seal.Entity
 }

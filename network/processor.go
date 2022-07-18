@@ -18,6 +18,6 @@
 package network
 
 type IProcessor interface {
-    Handle(message Message, network *Service) (result interface{}, err error)
-    ForMessage() string
+	Handle(message Message, network *Service) (result interface{}, err error)
+	ForMessage() string
 }

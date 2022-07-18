@@ -18,14 +18,14 @@
 package system
 
 import (
-    "github.com/SealSC/SealABC/service/system/blockchain"
-    "github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/service/system/blockchain"
 )
 
 func Load() {
-    blockchain.Load()
+	blockchain.Load()
 }
 
 func NewBlockchainService(cfg blockchain.Config) service.IService {
-    return blockchain.NewService(cfg)
+	return blockchain.NewService(cfg)
 }

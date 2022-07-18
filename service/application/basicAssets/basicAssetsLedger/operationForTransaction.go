@@ -18,188 +18,188 @@
 package basicAssetsLedger
 
 import (
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/metadata/blockchainRequest"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-    "encoding/json"
-    "errors"
-    "time"
+	"encoding/json"
+	"errors"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/blockchainRequest"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+	"time"
 )
 
-func (l *Ledger) buildTransactionKey(txHash []byte) (key [] byte) {
-    //prefix + sender + transaction hash
-    key = []byte(StoragePrefixes.Transactions.String())
-    key = append(key, txHash...)
-    return
+func (l *Ledger) buildTransactionKey(txHash []byte) (key []byte) {
+	//prefix + sender + transaction hash
+	key = []byte(StoragePrefixes.Transactions.String())
+	key = append(key, txHash...)
+	return
 }
 
 func (l *Ledger) verifyTransaction(tx Transaction) (err error) {
-    validator, exists := l.txValidators[tx.TxType]
-    if !exists {
-        err = errors.New("no validator for this transaction: " + tx.TxType)
-        return
-    }
+	validator, exists := l.txValidators[tx.TxType]
+	if !exists {
+		err = errors.New("no validator for this transaction: " + tx.TxType)
+		return
+	}
 
-    _, err = validator(tx)
-    if err != nil {
-        log.Log.Error("invalid transaction: ", err.Error(), "\r\n", tx)
-        return
-    }
+	_, err = validator(tx)
+	if err != nil {
+		log.Log.Error("invalid transaction: ", err.Error(), "\r\n", tx)
+		return
+	}
 
-    return
+	return
 }
 
 func (l *Ledger) getLocalTransaction(txHash []byte) (tx TransactionWithBlockInfo, err error) {
-    key := l.buildTransactionKey(txHash)
+	key := l.buildTransactionKey(txHash)
 
-    kv, err := l.Storage.Get(key)
-    if err != nil {
-        return
-    }
+	kv, err := l.Storage.Get(key)
+	if err != nil {
+		return
+	}
 
-    if !kv.Exists {
-        err = errors.New("no such transaction")
-        return
-    }
+	if !kv.Exists {
+		err = errors.New("no such transaction")
+		return
+	}
 
-    err = json.Unmarshal(kv.Data, &tx)
-    return
+	err = json.Unmarshal(kv.Data, &tx)
+	return
 }
 
 func (l *Ledger) PushTransaction(req blockchainRequest.Entity) (err error) {
-    l.operateLock.Lock()
-    defer l.operateLock.Unlock()
+	l.operateLock.Lock()
+	defer l.operateLock.Unlock()
 
-    tx := Transaction{}
-    err = json.Unmarshal(req.Data, &tx)
-    if err != nil {
-        return
-    }
+	tx := Transaction{}
+	err = json.Unmarshal(req.Data, &tx)
+	if err != nil {
+		return
+	}
 
-    err = l.verifyTransaction(tx)
-    if err != nil {
-        return
-    }
+	err = l.verifyTransaction(tx)
+	if err != nil {
+		return
+	}
 
-    if tx.TxType == TransactionTypes.Transfer.String() {
-        usList, _, _ := l.getUnspentListFromTransaction(tx)
+	if tx.TxType == TransactionTypes.Transfer.String() {
+		usList, _, _ := l.getUnspentListFromTransaction(tx)
 
-        err = l.doubleSpentCheck(usList, l.memUTXORecord)
-        if err != nil {
-            return err
-        }
-    }
+		err = l.doubleSpentCheck(usList, l.memUTXORecord)
+		if err != nil {
+			return err
+		}
+	}
 
-    l.poolLock.Lock()
-    defer l.poolLock.Unlock()
+	l.poolLock.Lock()
+	defer l.poolLock.Unlock()
 
-    tx.CreateTime = time.Now().Unix()
-    l.txPool[tx.HashString()] = req
-    return
+	tx.CreateTime = time.Now().Unix()
+	l.txPool[tx.HashString()] = req
+	return
 }
 
 func (l *Ledger) GetTransactionsFromPool() (txList []blockchainRequest.Entity, count uint32) {
-    l.poolLock.Lock()
-    defer l.poolLock.Unlock()
+	l.poolLock.Lock()
+	defer l.poolLock.Unlock()
 
-    count = 0
-    for _, tx := range l.txPool {
-        count += 1
-        txList = append(txList, tx)
-    }
+	count = 0
+	for _, tx := range l.txPool {
+		count += 1
+		txList = append(txList, tx)
+	}
 
-    return
+	return
 }
 
 func (l *Ledger) RemoveTransactionFromPool(txKey string) {
-    l.poolLock.Lock()
-    defer l.poolLock.Unlock()
-    delete(l.txPool, txKey)
+	l.poolLock.Lock()
+	defer l.poolLock.Unlock()
+	delete(l.txPool, txKey)
 
-    return
+	return
 }
 
 //wrap verify transaction method to solve interlock
 func (l *Ledger) VerifyTransaction(tx Transaction) (err error) {
-    l.operateLock.Lock()
-    defer l.operateLock.Unlock()
+	l.operateLock.Lock()
+	defer l.operateLock.Unlock()
 
-    err = l.verifyTransaction(tx)
-    if err != nil {
-        return
-    }
+	err = l.verifyTransaction(tx)
+	if err != nil {
+		return
+	}
 
-    if tx.TxType == TransactionTypes.Transfer.String() {
-        usList, _, _ := l.getUnspentListFromTransaction(tx)
-        err = l.doubleSpentCheck(usList, l.execUTXORecord)
-        if err != nil{
-            return err
-        }
-    }
+	if tx.TxType == TransactionTypes.Transfer.String() {
+		usList, _, _ := l.getUnspentListFromTransaction(tx)
+		err = l.doubleSpentCheck(usList, l.execUTXORecord)
+		if err != nil {
+			return err
+		}
+	}
 
-    return
+	return
 }
 
 func (l *Ledger) ExecuteTransaction(tx Transaction) (ret interface{}, err error) {
-    handle, exists := l.txActuators[tx.TxType]
-    if !exists {
-        err = errors.New("no actuator for this transaction: " + tx.TxType)
-        return
-    }
+	handle, exists := l.txActuators[tx.TxType]
+	if !exists {
+		err = errors.New("no actuator for this transaction: " + tx.TxType)
+		return
+	}
 
-    ret, err = handle(tx)
-    if err != nil {
-        log.Log.Error("execute transaction failed: ", tx)
-        return
-    }
+	ret, err = handle(tx)
+	if err != nil {
+		log.Log.Error("execute transaction failed: ", tx)
+		return
+	}
 
-    return
+	return
 }
 
 func (l *Ledger) GetOriginalTransactionWithBlockInfo(hash []byte) (tx TransactionWithBlockInfo, err error) {
-    l.operateLock.Lock()
-    defer l.operateLock.Unlock()
+	l.operateLock.Lock()
+	defer l.operateLock.Unlock()
 
-    key := l.buildTransactionKey(hash)
-    kv, err := l.Storage.Get(key)
+	key := l.buildTransactionKey(hash)
+	kv, err := l.Storage.Get(key)
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    if !kv.Exists {
-        err = errors.New("no such transaction")
-        return
-    }
+	if !kv.Exists {
+		err = errors.New("no such transaction")
+		return
+	}
 
-    err = json.Unmarshal(kv.Data, &tx)
-    return
+	err = json.Unmarshal(kv.Data, &tx)
+	return
 }
 
 func (l *Ledger) SaveTransactionWithBlockInfo(tx Transaction, reqHash []byte, blockHeight uint64, actIndex uint32) (err error) {
-    l.operateLock.Lock()
-    defer l.operateLock.Unlock()
+	l.operateLock.Lock()
+	defer l.operateLock.Unlock()
 
-    key := l.buildTransactionKey(tx.Seal.Hash)
+	key := l.buildTransactionKey(tx.Seal.Hash)
 
-    txWithBlkInfo := TransactionWithBlockInfo {
-        Transaction:tx,
-    }
+	txWithBlkInfo := TransactionWithBlockInfo{
+		Transaction: tx,
+	}
 
-    txWithBlkInfo.BlockInfo.RequestHash = reqHash
-    txWithBlkInfo.BlockInfo.BlockHeight = blockHeight
-    txWithBlkInfo.BlockInfo.ActionIndex = actIndex
+	txWithBlkInfo.BlockInfo.RequestHash = reqHash
+	txWithBlkInfo.BlockInfo.BlockHeight = blockHeight
+	txWithBlkInfo.BlockInfo.ActionIndex = actIndex
 
-    txBytes, err := json.Marshal(txWithBlkInfo)
+	txBytes, err := json.Marshal(txWithBlkInfo)
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    err = l.Storage.Put(kvDatabase.KVItem{
-        Key:key,
-        Data: txBytes,
-    })
+	err = l.Storage.Put(kvDatabase.KVItem{
+		Key:  key,
+		Data: txBytes,
+	})
 
-    return
+	return
 }

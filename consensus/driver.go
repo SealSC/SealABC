@@ -18,30 +18,30 @@
 package consensus
 
 import (
-    "github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/network"
 )
 
 type driver struct {
-    service IConsensusService
+	service IConsensusService
 }
 
 var Driver driver
 
 func (d *driver) Start(cfg interface{}) (err error) {
-    return d.service.Start(cfg)
+	return d.service.Start(cfg)
 }
 
-func (d *driver)messageProcessor(msg network.Message) (reply *network.Message) {
-    replyMsg := d.service.Feed(msg.Message)
-    if nil != replyMsg {
-        reply = &network.Message{
-            Message: *replyMsg,
-        }
-    }
-    return
+func (d *driver) messageProcessor(msg network.Message) (reply *network.Message) {
+	replyMsg := d.service.Feed(msg.Message)
+	if nil != replyMsg {
+		reply = &network.Message{
+			Message: *replyMsg,
+		}
+	}
+	return
 }
 
-func (d *driver)consensusRegister(consensusService IConsensusService, networkService network.IService) {
-    d.service = consensusService
-    networkService.RegisterMessageProcessor(d.service.GetMessageFamily(), d.messageProcessor)
+func (d *driver) consensusRegister(consensusService IConsensusService, networkService network.IService) {
+	d.service = consensusService
+	networkService.RegisterMessageProcessor(d.service.GetMessageFamily(), d.messageProcessor)
 }

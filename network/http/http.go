@@ -18,52 +18,52 @@
 package http
 
 import (
-    "github.com/SealSC/SealABC/log"
-    "errors"
-    "github.com/gin-gonic/gin"
-    "net/http"
+	"errors"
+	"github.com/SealSC/SealABC/log"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type Server struct {
-    Config *Config
+	Config *Config
 }
 
-func (s *Server)Start() (err error) {
-    if s.Config == nil {
-        err = errors.New("no configure")
-        return
-    }
+func (s *Server) Start() (err error) {
+	if s.Config == nil {
+		err = errors.New("no configure")
+		return
+	}
 
-    router := gin.Default()
+	router := gin.Default()
 
-    router.Use(func(c *gin.Context) {
-       if s.Config.AllowCORS {
-           c.Header("Access-Control-Allow-Origin", "*")
-       }
+	router.Use(func(c *gin.Context) {
+		if s.Config.AllowCORS {
+			c.Header("Access-Control-Allow-Origin", "*")
+		}
 
-       if c.Request.Method == "OPTIONS" {
-           if len(c.Request.Header["Access-Control-Request-Headers"]) > 0 {
-               c.Header("Access-Control-Allow-Headers", c.Request.Header["Access-Control-Request-Headers"][0])
-           }
-           c.AbortWithStatus(http.StatusNoContent)
-       } else {
-           c.Next()
-       }
-    })
-    s.setRouters(router, *s.Config)
+		if c.Request.Method == "OPTIONS" {
+			if len(c.Request.Header["Access-Control-Request-Headers"]) > 0 {
+				c.Header("Access-Control-Allow-Headers", c.Request.Header["Access-Control-Request-Headers"][0])
+			}
+			c.AbortWithStatus(http.StatusNoContent)
+		} else {
+			c.Next()
+		}
+	})
+	s.setRouters(router, *s.Config)
 
-    go func() {
-        runSrvErr := router.Run(s.Config.Address)
-        if runSrvErr != nil {
-            log.Log.Warn("start http server failed: ", runSrvErr.Error())
-        }
-    }()
+	go func() {
+		runSrvErr := router.Run(s.Config.Address)
+		if runSrvErr != nil {
+			log.Log.Warn("start http server failed: ", runSrvErr.Error())
+		}
+	}()
 
-    return
+	return
 }
 
-func (s *Server)setRouters(router *gin.Engine, cfg Config) {
-    for _, v := range cfg.RequestHandler {
-        v.RouteRegister(router)
-    }
+func (s *Server) setRouters(router *gin.Engine, cfg Config) {
+	for _, v := range cfg.RequestHandler {
+		v.RouteRegister(router)
+	}
 }

@@ -18,16 +18,16 @@
 package smartAssetsSQLStorage
 
 import (
+	"errors"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"errors"
 )
 
-type queryParam map[string] string
+type queryParam map[string]string
 type queryHandler func(param queryParam) (interface{}, error)
 
-var QueryTypes struct{
+var QueryTypes struct {
 	TransactionList enum.Element
 	Transaction     enum.Element
 	AccountList     enum.Element
@@ -39,7 +39,7 @@ var QueryTypes struct{
 	TransferList    enum.Element
 }
 
-var QueryParameterFields struct{
+var QueryParameterFields struct {
 	Account  enum.Element
 	Contract enum.Element
 	TxHash   enum.Element

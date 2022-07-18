@@ -18,20 +18,20 @@
 package blockchainRequest
 
 import (
-    "github.com/SealSC/SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/metadata/seal"
 )
 
 type EntityData struct {
-    RequestApplication  string
-    RequestAction       string
-    Data                []byte
-    QueryString         string
+	RequestApplication string
+	RequestAction      string
+	Data               []byte
+	QueryString        string
 }
 
 type Entity struct {
-    EntityData
+	EntityData
 
-    Packed bool
-    PackedCount uint32
-    Seal   seal.Entity
+	Packed      bool
+	PackedCount uint32
+	Seal        seal.Entity
 }

@@ -18,29 +18,28 @@
 package engineStartup
 
 import (
-    "github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/network"
 )
 
 func startConsensusNetwork() (networkService network.IService, err error) {
-    netCfg := config.ConsensusNetwork
-    networkService = &network.Service{}
-    networkService.Create(netCfg)
+	netCfg := config.ConsensusNetwork
+	networkService = &network.Service{}
+	networkService.Create(netCfg)
 
+	if len(config.ConsensusNetwork.P2PSeeds) == 0 {
+		return
+	}
 
-    if len(config.ConsensusNetwork.P2PSeeds) == 0 {
-        return
-    }
+	var seedNodes []network.Node
+	for _, seed := range netCfg.P2PSeeds {
+		newP2PNode := network.Node{}
 
-    var seedNodes []network.Node
-    for _, seed := range netCfg.P2PSeeds {
-        newP2PNode := network.Node{}
+		newP2PNode.ServeAddress = seed
+		newP2PNode.Protocol = netCfg.ServiceProtocol
 
-        newP2PNode.ServeAddress = seed
-        newP2PNode.Protocol = netCfg.ServiceProtocol
+		seedNodes = append(seedNodes, newP2PNode)
+	}
 
-        seedNodes = append(seedNodes, newP2PNode)
-    }
-
-    err = networkService.Join(seedNodes, nil)
-    return
+	err = networkService.Join(seedNodes, nil)
+	return
 }

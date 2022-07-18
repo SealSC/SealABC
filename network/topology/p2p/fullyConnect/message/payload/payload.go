@@ -18,10 +18,10 @@
 package payload
 
 import (
-    "github.com/SealSC/SealABC/network"
-    "encoding/json"
+	"encoding/json"
+	"github.com/SealSC/SealABC/network"
 )
 
 func FromMessage(msg network.Message, payload interface{}) (err error) {
-    return json.Unmarshal(msg.Payload, payload)
+	return json.Unmarshal(msg.Payload, payload)
 }
