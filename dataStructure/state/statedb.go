@@ -3,10 +3,11 @@ package state
 import (
 	"fmt"
 	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/dataStructure/trie"
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/ethereum/go-ethereum/rlp"
 
 	"math/big"
@@ -28,10 +29,12 @@ type StateDB struct {
 	lock sync.Mutex
 
 	accountTool AccountTool
+
+	cryptoTools crypto.Tools
 }
 
-func New(root common.Hash, db Database, accountTool AccountTool) (*StateDB, error) {
-	tr, err := db.OpenTrie(root)
+func New(root common.Hash, db Database, cryptoTools crypto.Tools, accountTool AccountTool) (*StateDB, error) {
+	tr, err := db.OpenTrie(root, cryptoTools)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +44,7 @@ func New(root common.Hash, db Database, accountTool AccountTool) (*StateDB, erro
 		trie:              tr,
 		stateObjects:      make(map[common.Address]*stateObject),
 		stateObjectsDirty: make(map[common.Address]struct{}),
+		cryptoTools:       cryptoTools,
 		accountTool:       accountTool,
 	}, nil
 }
@@ -56,7 +60,7 @@ func (s *StateDB) Error() error {
 }
 
 func (s *StateDB) Reset(root common.Hash) error {
-	tr, err := s.db.OpenTrie(root)
+	tr, err := s.db.OpenTrie(root, s.cryptoTools)
 	if err != nil {
 		return err
 	}
@@ -182,7 +186,7 @@ func (s *StateDB) SetNonce(addr common.Address, nonce uint64) {
 func (s *StateDB) SetCode(addr common.Address, code []byte) {
 	stateObject := s.GetOrNewStateObject(addr)
 	if stateObject != nil {
-		stateObject.SetCode(common.Hash(crypto.Keccak256Hash(code)), code)
+		stateObject.SetCode(common.BytesToHash(s.cryptoTools.HashCalculator.Sum(code)), code)
 	}
 }
 
@@ -240,7 +244,7 @@ func (s *StateDB) getStateObject(addr common.Address) (stateObject *stateObject)
 	}
 
 	// Insert into the live set.
-	obj := newObject(s, addr, account, s.MarkStateObjectDirty)
+	obj := newObject(s, s.cryptoTools, addr, account, s.MarkStateObjectDirty)
 	s.setStateObject(obj)
 	return obj
 }
@@ -263,7 +267,7 @@ func (s *StateDB) MarkStateObjectDirty(addr common.Address) {
 
 func (s *StateDB) createObject(addr common.Address) (newObj, prev *stateObject) {
 	prev = s.getStateObject(addr)
-	newObj = newObject(s, addr, s.accountTool.NewAccount(), s.MarkStateObjectDirty)
+	newObj = newObject(s, s.cryptoTools, addr, s.accountTool.NewAccount(), s.MarkStateObjectDirty)
 	newObj.setNonce(0)
 	s.setStateObject(newObj)
 	return newObj, prev
@@ -297,6 +301,7 @@ func (s *StateDB) Copy() *StateDB {
 		trie:              s.trie,
 		stateObjects:      make(map[common.Address]*stateObject, len(s.stateObjectsDirty)),
 		stateObjectsDirty: make(map[common.Address]struct{}, len(s.stateObjectsDirty)),
+		cryptoTools:       s.cryptoTools,
 		accountTool:       s.accountTool,
 	}
 	for addr := range s.stateObjectsDirty {
