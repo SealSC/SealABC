@@ -20,5 +20,5 @@ package engineApi
 import "github.com/SealSC/SealABC/network/http"
 
 type Config struct {
-    HttpJSON http.Config
+	HttpJSON http.Config
 }

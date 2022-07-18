@@ -18,14 +18,15 @@
 package smartAssetsLedger
 
 import (
+	"errors"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealEVM/environment"
 	"github.com/SealSC/SealEVM/evmInt256"
-	"errors"
 )
 
 const ContractAddressLen = 24
+
 func ContractAddressPrefix() []byte {
 	return []byte("SC:")
 }
@@ -43,7 +44,7 @@ var StoragePrefixes struct {
 	ContractDestructs enum.Element
 }
 
-func BuildKey(el enum.Element, baseKey []byte, extra ...[]byte)  []byte {
+func BuildKey(el enum.Element, baseKey []byte, extra ...[]byte) []byte {
 	keyPrefix := []byte(el.String())
 
 	if baseKey == nil {

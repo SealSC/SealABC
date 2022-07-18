@@ -17,11 +17,11 @@
 
 package basicAssetsSQLTables
 
-func Load()  {
-    AssetsList.load()
-    Transfers.load()
-    AddressRecord.load()
-    AddressList.load()
-    Balance.load()
-    SellingList.load()
+func Load() {
+	AssetsList.load()
+	Transfers.load()
+	AddressRecord.load()
+	AddressList.load()
+	Balance.load()
+	SellingList.load()
 }

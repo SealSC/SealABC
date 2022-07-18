@@ -20,34 +20,34 @@ package basicAssetsLedger
 import "github.com/SealSC/SealABC/dataStructure/enum"
 
 var QueryTypes struct {
-    Assets      enum.Element
-    AllAssets   enum.Element
-    UnspentList enum.Element
-    Transaction enum.Element
-    SellingList enum.Element
-    Copyright   enum.Element
+	Assets      enum.Element
+	AllAssets   enum.Element
+	UnspentList enum.Element
+	Transaction enum.Element
+	SellingList enum.Element
+	Copyright   enum.Element
 }
 
 type AssetsList struct {
-    List []Assets
+	List []Assets
 }
 
 type UnspentUnderAssets struct {
-    Assets      Assets
-    UnspentList []Unspent
+	Assets      Assets
+	UnspentList []Unspent
 }
 
 type UnspentList struct {
-    List map[string] *UnspentUnderAssets
+	List map[string]*UnspentUnderAssets
 }
 
 type UnspentQueryParameter struct {
-    Address []byte
-    Assets  []byte
+	Address []byte
+	Assets  []byte
 }
 
 type QueryRequest struct {
-    DBType    string
-    QueryType string
-    Parameter []string
+	DBType    string
+	QueryType string
+	Parameter []string
 }

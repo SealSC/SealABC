@@ -18,8 +18,8 @@
 package smartAssetsSQLStorage
 
 import (
-	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 	"errors"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 )
 
 var contractRowType = smartAssetsSQLTables.ContractRow{}
@@ -29,9 +29,9 @@ func (s Storage) queryContractList(param queryParam) (interface{}, error) {
 	account := param[QueryParameterFields.Account.String()]
 
 	commonParam := commonPagingQueryParam{
-		queryParam:    param,
-		rowType:       contractRowType,
-		table:         contractTableName,
+		queryParam: param,
+		rowType:    contractRowType,
+		table:      contractTableName,
 	}
 
 	if account != "" {
@@ -42,7 +42,7 @@ func (s Storage) queryContractList(param queryParam) (interface{}, error) {
 	return s.commonPagingQuery(commonParam)
 }
 
-func (s Storage) queryContractByTx(param queryParam) (interface{}, error){
+func (s Storage) queryContractByTx(param queryParam) (interface{}, error) {
 	txHash := param[QueryParameterFields.TxHash.String()]
 	if txHash == "" {
 		return nil, errors.New("invalid parameters")
@@ -51,7 +51,7 @@ func (s Storage) queryContractByTx(param queryParam) (interface{}, error){
 	return s.Driver.SimpleSelect(contractRowType, contractTableName, `c_tx_hash`, txHash)
 }
 
-func (s Storage) queryContractByAddress(param queryParam) (interface{}, error){
+func (s Storage) queryContractByAddress(param queryParam) (interface{}, error) {
 	address := param[QueryParameterFields.Contract.String()]
 	if address == "" {
 		return nil, errors.New("invalid parameters")

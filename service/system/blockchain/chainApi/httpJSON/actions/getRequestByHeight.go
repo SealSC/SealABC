@@ -23,11 +23,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type getTransactionByHeight struct{
+type getTransactionByHeight struct {
 	baseHandler
 }
 
-func (g *getTransactionByHeight)Handle(ctx *gin.Context) {
+func (g *getTransactionByHeight) Handle(ctx *gin.Context) {
 	res := http.NewResponse(ctx)
 	height := ctx.Param(URLParameterKeys.Height.String())
 
@@ -40,11 +40,11 @@ func (g *getTransactionByHeight)Handle(ctx *gin.Context) {
 	res.OK(txList)
 }
 
-func (g *getTransactionByHeight)RouteRegister(router gin.IRouter) {
+func (g *getTransactionByHeight) RouteRegister(router gin.IRouter) {
 	router.GET(g.buildUrlPath(), g.Handle)
 }
 
-func (g *getTransactionByHeight)BasicInformation() (info http.HandlerBasicInformation)  {
+func (g *getTransactionByHeight) BasicInformation() (info http.HandlerBasicInformation) {
 	info.Description = "return requests list of the given block height."
 	info.Path = g.serverBasePath + g.buildUrlPath()
 	info.Method = service.ApiProtocolMethod.HttpGet.String()
@@ -54,13 +54,10 @@ func (g *getTransactionByHeight)BasicInformation() (info http.HandlerBasicInform
 	return
 }
 
-func (g *getTransactionByHeight) urlWithoutParameters() string  {
+func (g *getTransactionByHeight) urlWithoutParameters() string {
 	return "/get/request/by/height"
 }
-
 
 func (g *getTransactionByHeight) buildUrlPath() string {
 	return g.urlWithoutParameters() + "/:" + URLParameterKeys.Height.String()
 }
-
-

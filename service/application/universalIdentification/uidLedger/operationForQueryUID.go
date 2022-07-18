@@ -22,7 +22,7 @@ import (
 	"github.com/SealSC/SealABC/service/application/universalIdentification/uidData"
 )
 
-func (u *UIDLedger)QueryUID(queryData uidData.UIDQuery) (ret uidData.QueryResult, err error){
+func (u *UIDLedger) QueryUID(queryData uidData.UIDQuery) (ret uidData.QueryResult, err error) {
 	identification := u.calcIdentification(queryData.PublicKey, queryData.Namespace)
 	dataList := u.KVStorage.Traversal([]byte(identification))
 

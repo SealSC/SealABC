@@ -18,173 +18,173 @@
 package basicAssetsSQLStorage
 
 import (
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
-    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsSQLTables"
-    "encoding/hex"
+	"encoding/hex"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsSQLTables"
 )
 
 func (s *Storage) StoreAssets(tx basicAssetsLedger.TransactionWithBlockInfo) (err error) {
-    assetsRows := basicAssetsSQLTables.AssetsList.NewRows().(basicAssetsSQLTables.AssetsListRows)
-    assetsRows.InsertAssets(tx)
-    _, err = s.Driver.Insert(&assetsRows, true)
-    if err != nil {
-        log.Log.Error("insert assets to sql database failed: ", err.Error())
-    }
+	assetsRows := basicAssetsSQLTables.AssetsList.NewRows().(basicAssetsSQLTables.AssetsListRows)
+	assetsRows.InsertAssets(tx)
+	_, err = s.Driver.Insert(&assetsRows, true)
+	if err != nil {
+		log.Log.Error("insert assets to sql database failed: ", err.Error())
+	}
 
-    transfersRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
-    transfersRows.InsertTransferInsideIssueTransaction(tx)
-    _, err = s.Driver.Insert(&transfersRows, true)
-    if err != nil {
-        log.Log.Error("insert transfer to sql database failed: ", err.Error())
-    }
+	transfersRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
+	transfersRows.InsertTransferInsideIssueTransaction(tx)
+	_, err = s.Driver.Insert(&transfersRows, true)
+	if err != nil {
+		log.Log.Error("insert transfer to sql database failed: ", err.Error())
+	}
 
-    issueToAddr := hex.EncodeToString(tx.Assets.MetaSeal.SignerPublicKey)
+	issueToAddr := hex.EncodeToString(tx.Assets.MetaSeal.SignerPublicKey)
 
-    addressRecordRows := basicAssetsSQLTables.AddressRecord.NewRows().(basicAssetsSQLTables.AddressRecordRows)
-    addressRecordRows.InsertAddress(tx, issueToAddr, basicAssetsSQLTables.AddressRoles.Issuer)
-    _, err = s.Driver.Insert(&addressRecordRows, true)
-    if err != nil {
-        log.Log.Error("insert address record to sql database failed: ", err.Error())
-    }
+	addressRecordRows := basicAssetsSQLTables.AddressRecord.NewRows().(basicAssetsSQLTables.AddressRecordRows)
+	addressRecordRows.InsertAddress(tx, issueToAddr, basicAssetsSQLTables.AddressRoles.Issuer)
+	_, err = s.Driver.Insert(&addressRecordRows, true)
+	if err != nil {
+		log.Log.Error("insert address record to sql database failed: ", err.Error())
+	}
 
-    addressListRows := basicAssetsSQLTables.AddressList.NewRows().(basicAssetsSQLTables.AddressListRows)
-    addressListRows.InsertAddress(tx, issueToAddr)
-    _, err = s.Driver.Insert(&addressListRows, true)
-    if err != nil {
-        log.Log.Error("insert address to sql database failed: ", err.Error())
-    }
+	addressListRows := basicAssetsSQLTables.AddressList.NewRows().(basicAssetsSQLTables.AddressListRows)
+	addressListRows.InsertAddress(tx, issueToAddr)
+	_, err = s.Driver.Insert(&addressListRows, true)
+	if err != nil {
+		log.Log.Error("insert address to sql database failed: ", err.Error())
+	}
 
-    return
+	return
 }
 
 func (s *Storage) StoreUnspent(tx basicAssetsLedger.TransactionWithBlockInfo, inputUnspent []basicAssetsLedger.Unspent) (err error) {
-    transfersRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
-    transfersRows.InsertTransfer(tx, inputUnspent)
-    _, err = s.Driver.Insert(&transfersRows, true)
-    if err != nil {
-        log.Log.Error("insert transfer to sql database failed: ", err.Error())
-    }
+	transfersRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
+	transfersRows.InsertTransfer(tx, inputUnspent)
+	_, err = s.Driver.Insert(&transfersRows, true)
+	if err != nil {
+		log.Log.Error("insert transfer to sql database failed: ", err.Error())
+	}
 
-    addressRecordRows := basicAssetsSQLTables.AddressRecord.NewRows().(basicAssetsSQLTables.AddressRecordRows)
-    addressRecordRows.InsertAddressesInTransfer(tx, inputUnspent)
-    _, err = s.Driver.Insert(&addressRecordRows, true)
-    if err != nil {
-        log.Log.Error("insert address record to sql database failed: ", err.Error())
-    }
+	addressRecordRows := basicAssetsSQLTables.AddressRecord.NewRows().(basicAssetsSQLTables.AddressRecordRows)
+	addressRecordRows.InsertAddressesInTransfer(tx, inputUnspent)
+	_, err = s.Driver.Insert(&addressRecordRows, true)
+	if err != nil {
+		log.Log.Error("insert address record to sql database failed: ", err.Error())
+	}
 
-    addressListRows := basicAssetsSQLTables.AddressList.NewRows().(basicAssetsSQLTables.AddressListRows)
-    addrCache := map[string] bool {}
-    for _, out := range tx.Output {
-        outAddr := hex.EncodeToString(out.To)
-        if _, exists := addrCache[outAddr]; exists{
-            continue
-        }
+	addressListRows := basicAssetsSQLTables.AddressList.NewRows().(basicAssetsSQLTables.AddressListRows)
+	addrCache := map[string]bool{}
+	for _, out := range tx.Output {
+		outAddr := hex.EncodeToString(out.To)
+		if _, exists := addrCache[outAddr]; exists {
+			continue
+		}
 
-        addressListRows.InsertAddress(tx, outAddr)
-    }
+		addressListRows.InsertAddress(tx, outAddr)
+	}
 
-    for _, in := range inputUnspent {
-        inAddr := hex.EncodeToString(in.Owner)
-        if _, exists := addrCache[inAddr]; exists{
-            continue
-        }
+	for _, in := range inputUnspent {
+		inAddr := hex.EncodeToString(in.Owner)
+		if _, exists := addrCache[inAddr]; exists {
+			continue
+		}
 
-        addressListRows.InsertAddress(tx, inAddr)
-    }
-    _, err = s.Driver.Insert(&addressListRows, true)
-    if err != nil {
-        log.Log.Error("insert address to sql database failed: ", err.Error())
-    }
+		addressListRows.InsertAddress(tx, inAddr)
+	}
+	_, err = s.Driver.Insert(&addressListRows, true)
+	if err != nil {
+		log.Log.Error("insert address to sql database failed: ", err.Error())
+	}
 
-    return
+	return
 }
 
 func (s *Storage) StoreBalance(height uint64, tm int64, balanceList []basicAssetsLedger.Balance) (err error) {
-    rows := basicAssetsSQLTables.Balance.NewRows().(basicAssetsSQLTables.BalanceRows)
-    rows.InsertBalances(height, tm, balanceList)
+	rows := basicAssetsSQLTables.Balance.NewRows().(basicAssetsSQLTables.BalanceRows)
+	rows.InsertBalances(height, tm, balanceList)
 
-    _, err = s.Driver.Replace(&rows)
-    if err != nil {
-        log.Log.Error("insert balance failed: ", err.Error())
-    }
-    return
+	_, err = s.Driver.Replace(&rows)
+	if err != nil {
+		log.Log.Error("insert balance failed: ", err.Error())
+	}
+	return
 }
 
 func (s *Storage) StoreSelling(tx basicAssetsLedger.TransactionWithBlockInfo, result basicAssetsLedger.SellingOperationResult) (err error) {
-    //store transfer
-    transferRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
-    var outAddress []byte
-    switch tx.TxType {
-    case basicAssetsLedger.TransactionTypes.StartSelling.String():
-        outAddress = []byte(basicAssetsLedger.MarketAddress)
-        fallthrough
-    case basicAssetsLedger.TransactionTypes.StopSelling.String():
-        assets := result.SellingAssets
-        if len(outAddress) == 0 {
-            outAddress = result.Seller
-        }
-        in := result.UnspentList
-        out := []basicAssetsLedger.UTXOOutput{{
-            To: outAddress,
-            Value: result.Amount,
-        }}
-        transferRows.InsertTransferByDetail(tx, assets, in, out)
+	//store transfer
+	transferRows := basicAssetsSQLTables.Transfers.NewRows().(basicAssetsSQLTables.TransfersRows)
+	var outAddress []byte
+	switch tx.TxType {
+	case basicAssetsLedger.TransactionTypes.StartSelling.String():
+		outAddress = []byte(basicAssetsLedger.MarketAddress)
+		fallthrough
+	case basicAssetsLedger.TransactionTypes.StopSelling.String():
+		assets := result.SellingAssets
+		if len(outAddress) == 0 {
+			outAddress = result.Seller
+		}
+		in := result.UnspentList
+		out := []basicAssetsLedger.UTXOOutput{{
+			To:    outAddress,
+			Value: result.Amount,
+		}}
+		transferRows.InsertTransferByDetail(tx, assets, in, out)
 
-    case basicAssetsLedger.TransactionTypes.BuyAssets.String():
-        assets := result.PaymentAssets
-        unspentCount := len(result.UnspentList)
-        in := result.UnspentList[:unspentCount - 1]
+	case basicAssetsLedger.TransactionTypes.BuyAssets.String():
+		assets := result.PaymentAssets
+		unspentCount := len(result.UnspentList)
+		in := result.UnspentList[:unspentCount-1]
 
-        transferRows.InsertTransferByDetail(tx, assets, in, tx.Output)
+		transferRows.InsertTransferByDetail(tx, assets, in, tx.Output)
 
-        assets = result.SellingAssets
-        in = result.UnspentList[unspentCount - 1:]
-        out :=  []basicAssetsLedger.UTXOOutput{
-            {
-                To:    tx.Seal.SignerPublicKey,
-                Value: result.Amount,
-            },
-        }
-        transferRows.InsertTransferByDetail(tx, assets, in, out)
+		assets = result.SellingAssets
+		in = result.UnspentList[unspentCount-1:]
+		out := []basicAssetsLedger.UTXOOutput{
+			{
+				To:    tx.Seal.SignerPublicKey,
+				Value: result.Amount,
+			},
+		}
+		transferRows.InsertTransferByDetail(tx, assets, in, out)
 
-    }
+	}
 
-    _, err = s.Driver.Insert(&transferRows, false)
-    if err != nil {
-        log.Log.Warn("insert transfers in selling transaction failed: ", err.Error())
-    }
+	_, err = s.Driver.Insert(&transferRows, false)
+	if err != nil {
+		log.Log.Warn("insert transfers in selling transaction failed: ", err.Error())
+	}
 
-    //store selling list
-    rows := basicAssetsSQLTables.SellingList.NewRows().(basicAssetsSQLTables.SellingListRows)
-    rows.InsertRow(tx, result.SellingData)
+	//store selling list
+	rows := basicAssetsSQLTables.SellingList.NewRows().(basicAssetsSQLTables.SellingListRows)
+	rows.InsertRow(tx, result.SellingData)
 
-    switch tx.TxType {
-    case basicAssetsLedger.TransactionTypes.StartSelling.String():
-        log.Log.Warn("try store start selling data")
-        _, err = s.Driver.Insert(&rows, false)
+	switch tx.TxType {
+	case basicAssetsLedger.TransactionTypes.StartSelling.String():
+		log.Log.Warn("try store start selling data")
+		_, err = s.Driver.Insert(&rows, false)
 
-    case basicAssetsLedger.TransactionTypes.StopSelling.String():
-        log.Log.Warn("try store stop selling data")
-        fallthrough
-    case basicAssetsLedger.TransactionTypes.BuyAssets.String():
-        log.Log.Warn("try store buy data")
-        fields, condition := rows.GetUpdateInfo()
-        in := tx.Input
-        inputLen := len(in)
-        var targetTx = ""
-        if inputLen > 0 {
-            target := in[len(in) - 1]
-            targetTx = hex.EncodeToString(target.Transaction)
-        } else {
-            targetTx = hex.EncodeToString(result.Transaction)
-        }
+	case basicAssetsLedger.TransactionTypes.StopSelling.String():
+		log.Log.Warn("try store stop selling data")
+		fallthrough
+	case basicAssetsLedger.TransactionTypes.BuyAssets.String():
+		log.Log.Warn("try store buy data")
+		fields, condition := rows.GetUpdateInfo()
+		in := tx.Input
+		inputLen := len(in)
+		var targetTx = ""
+		if inputLen > 0 {
+			target := in[len(in)-1]
+			targetTx = hex.EncodeToString(target.Transaction)
+		} else {
+			targetTx = hex.EncodeToString(result.Transaction)
+		}
 
-        _, err = s.Driver.Update(&rows, fields, condition, []interface{}{targetTx})
-        if err != nil {
-            log.Log.Warn("update failed: ", err.Error())
-        }
-    }
+		_, err = s.Driver.Update(&rows, fields, condition, []interface{}{targetTx})
+		if err != nil {
+			log.Log.Warn("update failed: ", err.Error())
+		}
+	}
 
-    return
+	return
 }

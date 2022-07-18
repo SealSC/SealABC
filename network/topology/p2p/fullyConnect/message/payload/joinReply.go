@@ -18,7 +18,6 @@
 package payload
 
 type JoinReply struct {
-    PrevID string
-    RealID string
+	PrevID string
+	RealID string
 }
-

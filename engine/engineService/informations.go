@@ -18,25 +18,24 @@
 package engineService
 
 import (
-    "github.com/SealSC/SealABC/consensus"
-    "github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/consensus"
+	"github.com/SealSC/SealABC/service"
 )
 
 var consensusService consensus.IConsensusService
 
-func SetConsensusInformation(cs consensus.IConsensusService)  {
-    consensusService = cs
+func SetConsensusInformation(cs consensus.IConsensusService) {
+	consensusService = cs
 }
 
 func GetServicesBasicInformation() (consensusInfo interface{}, subService []service.BasicInformation) {
-    serviceLock.RLock()
-    defer serviceLock.RUnlock()
+	serviceLock.RLock()
+	defer serviceLock.RUnlock()
 
-    consensusInfo = consensusService.StaticInformation()
-    for _, s := range serviceMap {
-        subService = append(subService, s.Information())
-    }
+	consensusInfo = consensusService.StaticInformation()
+	for _, s := range serviceMap {
+		subService = append(subService, s.Information())
+	}
 
-    return
+	return
 }
-

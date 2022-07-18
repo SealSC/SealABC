@@ -18,11 +18,11 @@
 package smartAssetsSQLStorage
 
 import (
+	"bytes"
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
 	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
-	"bytes"
 	"math/big"
 )
 
@@ -68,7 +68,7 @@ func (s Storage) StoreTransaction(tx smartAssetsLedger.Transaction, blk block.En
 	if err != nil {
 		log.Log.Error("insert transaction to sql database failed: ", err.Error())
 	}
-	
+
 	classifiedRows := s.getClassifiedTableRows(tx.Type)
 	if classifiedRows == nil {
 		return
@@ -79,7 +79,6 @@ func (s Storage) StoreTransaction(tx smartAssetsLedger.Transaction, blk block.En
 	if err != nil {
 		log.Log.Error("insert classified rows [" + tx.Type + "] failed: " + err.Error())
 	}
-
 
 	addressListRows := smartAssetsSQLTables.AddressList.NewRows().(smartAssetsSQLTables.AddressListRows)
 	for _, v := range tx.TransactionResult.NewState {

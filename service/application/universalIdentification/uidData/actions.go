@@ -23,8 +23,8 @@ import (
 )
 
 type UIDCreation struct {
-	UID     UniversalIdentification
-	Seal    seal.Entity
+	UID  UniversalIdentification
+	Seal seal.Entity
 }
 
 type UIDAppendKeysData struct {
@@ -65,7 +65,7 @@ type QueryResult struct {
 	UIDList []UniversalIdentification
 }
 
-var UIDActionTypes struct{
+var UIDActionTypes struct {
 	Create enum.Element
 	Append enum.Element
 	Update enum.Element

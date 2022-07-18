@@ -18,9 +18,9 @@
 package topology
 
 import (
-    "github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/network"
 )
 
 type iMessageProcessor interface {
-    Process(msg network.Message, topology *Topology, link network.ILink) (err error)
+	Process(msg network.Message, topology *Topology, link network.ILink) (err error)
 }

@@ -39,7 +39,7 @@ type CopyrightStorageApplication struct {
 	chainStructure.BlankApplication
 
 	reqList []string
-	reqMap  map[string] blockchainRequest.Entity
+	reqMap  map[string]blockchainRequest.Entity
 
 	poolLimit int
 
@@ -98,7 +98,7 @@ func (t *CopyrightStorageApplication) PreExecute(req blockchainRequest.Entity, _
 }
 
 func (t *CopyrightStorageApplication) removeTransactionsFromPool(list RequestList) {
-	removedReq := map[string] bool {}
+	removedReq := map[string]bool{}
 
 	for _, req := range list.Requests {
 		reqKey := string(req.Seal.Hash)
@@ -119,7 +119,7 @@ func (t *CopyrightStorageApplication) removeTransactionsFromPool(list RequestLis
 	t.reqList = newTxPoolRecord
 }
 
-func (t *CopyrightStorageApplication) Execute (
+func (t *CopyrightStorageApplication) Execute(
 	req blockchainRequest.Entity,
 	blk block.Entity,
 	actIndex uint32,
@@ -160,10 +160,9 @@ func (t *CopyrightStorageApplication) Information() (info service.BasicInformati
 
 	info.Api.Protocol = service.ApiProtocols.INTERNAL.String()
 	info.Api.Address = ""
-	info.Api.ApiList = []service.ApiInterface {}
+	info.Api.ApiList = []service.ApiInterface{}
 	return
 }
-
 
 func (t *CopyrightStorageApplication) RequestsForBlock(_ block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
 	t.poolLock.Lock()
@@ -200,7 +199,7 @@ func (t *CopyrightStorageApplication) RequestsForBlock(_ block.Entity) (reqList 
 
 		Packed:      true,
 		PackedCount: cnt,
-		Seal:       seal.Entity{
+		Seal: seal.Entity{
 			Hash:            txRoot, //use merkle tree root as seal hash for packed actions
 			Signature:       nil,
 			SignerPublicKey: nil,
@@ -211,13 +210,13 @@ func (t *CopyrightStorageApplication) RequestsForBlock(_ block.Entity) (reqList 
 	return []blockchainRequest.Entity{packedReq}, 1
 }
 
-func Load()  {
+func Load() {
 	tsLedger.Load()
 }
 
 func NewApplicationInterface(kvDriver kvDatabase.IDriver, sqlDriver simpleSQLDatabase.IDriver) (app chainStructure.IBlockchainExternalApplication) {
 	ts := CopyrightStorageApplication{
-		reqList:   []string {},
+		reqList:   []string{},
 		reqMap:    map[string]blockchainRequest.Entity{},
 		poolLock:  sync.RWMutex{},
 		poolLimit: 1000,
@@ -227,4 +226,3 @@ func NewApplicationInterface(kvDriver kvDatabase.IDriver, sqlDriver simpleSQLDat
 	app = &ts
 	return
 }
-

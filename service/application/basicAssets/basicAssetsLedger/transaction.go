@@ -18,69 +18,69 @@
 package basicAssetsLedger
 
 import (
-    "github.com/SealSC/SealABC/metadata/seal"
-    "encoding/hex"
-    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
-    "github.com/SealSC/SealABC/crypto"
-    "github.com/SealSC/SealABC/dataStructure/enum"
+	"encoding/hex"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+	"github.com/SealSC/SealABC/crypto"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/metadata/seal"
 )
 
-var TransactionTypes struct{
-    IssueAssets    enum.Element
-    Transfer       enum.Element
-    IncreaseSupply enum.Element
+var TransactionTypes struct {
+	IssueAssets    enum.Element
+	Transfer       enum.Element
+	IncreaseSupply enum.Element
 
-    StartSelling enum.Element
-    StopSelling  enum.Element
-    BuyAssets    enum.Element
+	StartSelling enum.Element
+	StopSelling  enum.Element
+	BuyAssets    enum.Element
 }
 
 type SellingData struct {
-    Price         uint64 `json:",string"`
-    Amount        uint64 `json:",string"`
-    Seller        []byte
-    SellingAssets []byte
-    PaymentAssets []byte
-    Transaction   []byte
+	Price         uint64 `json:",string"`
+	Amount        uint64 `json:",string"`
+	Seller        []byte
+	SellingAssets []byte
+	PaymentAssets []byte
+	Transaction   []byte
 }
 
 type TransactionData struct {
-    TxType  string
-    Assets  Assets
-    Memo    string
+	TxType string
+	Assets Assets
+	Memo   string
 
-    Input   []UTXOInput
-    Output  []UTXOOutput
+	Input  []UTXOInput
+	Output []UTXOOutput
 
-    ExtraData []byte
+	ExtraData []byte
 }
 
 type Transaction struct {
-    TransactionData
+	TransactionData
 
-    CreateTime  int64
-    Seal        seal.Entity
+	CreateTime int64
+	Seal       seal.Entity
 }
 
 type TransactionWithBlockInfo struct {
-    Transaction
-    BlockInfo struct{
-        RequestHash []byte
-        BlockHeight uint64
-        ActionIndex uint32
-    }
+	Transaction
+	BlockInfo struct {
+		RequestHash []byte
+		BlockHeight uint64
+		ActionIndex uint32
+	}
 }
 
 func (t *Transaction) HashString() string {
-    return hex.EncodeToString(t.Seal.Hash)
+	return hex.EncodeToString(t.Seal.Hash)
 }
 
 func (t *Transaction) Verify(tools crypto.Tools) (err error) {
-    txBytes, err := structSerializer.ToMFBytes(t.TransactionData)
-    if err != nil {
-        return
-    }
+	txBytes, err := structSerializer.ToMFBytes(t.TransactionData)
+	if err != nil {
+		return
+	}
 
-    _, err = t.Seal.Verify(txBytes, tools.HashCalculator)
-    return
+	_, err = t.Seal.Verify(txBytes, tools.HashCalculator)
+	return
 }

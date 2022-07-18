@@ -18,75 +18,75 @@
 package basicAssetsSQLTables
 
 import (
-    "github.com/SealSC/SealABC/common"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-    "encoding/hex"
-    "fmt"
-    "time"
+	"encoding/hex"
+	"fmt"
+	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"time"
 )
 
 type BalanceTable struct {
-    ID              enum.Element `col:"c_id" ignoreInsert:"true"`
-    LastHeight      enum.Element `col:"c_last_height"`
-    Address         enum.Element `col:"c_address"`
-    Assets          enum.Element `col:"c_assets"`
-    AssetsName      enum.Element `col:"c_assets_name"`
-    AssetsSymbol    enum.Element `col:"c_assets_symbol"`
-    Amount          enum.Element `col:"c_amount"`
-    Time            enum.Element `col:"c_time"`
+	ID           enum.Element `col:"c_id" ignoreInsert:"true"`
+	LastHeight   enum.Element `col:"c_last_height"`
+	Address      enum.Element `col:"c_address"`
+	Assets       enum.Element `col:"c_assets"`
+	AssetsName   enum.Element `col:"c_assets_name"`
+	AssetsSymbol enum.Element `col:"c_assets_symbol"`
+	Amount       enum.Element `col:"c_amount"`
+	Time         enum.Element `col:"c_time"`
 
-    simpleSQLDatabase.BasicTable
+	simpleSQLDatabase.BasicTable
 }
 
 var Balance BalanceTable
 
 func (b BalanceTable) NewRows() interface{} {
-    return simpleSQLDatabase.NewRowsInstance(BalanceRows{})
+	return simpleSQLDatabase.NewRowsInstance(BalanceRows{})
 }
 
 func (b BalanceTable) Name() (name string) {
-    return "t_basic_assets_balance"
+	return "t_basic_assets_balance"
 }
 
 func (b *BalanceTable) load() {
-    enum.SimpleBuild(b)
-    b.Instance = *b
+	enum.SimpleBuild(b)
+	b.Instance = *b
 }
 
 type BalanceRow struct {
-    ID              string
-    LastHeight      string
-    Address         string
-    Assets          string
-    AssetsName      string
-    AssetsSymbol    string
-    Amount          string
-    Time            string
+	ID           string
+	LastHeight   string
+	Address      string
+	Assets       string
+	AssetsName   string
+	AssetsSymbol string
+	Amount       string
+	Time         string
 }
 
 type BalanceRows struct {
-    simpleSQLDatabase.BasicRows
+	simpleSQLDatabase.BasicRows
 }
 
-func (b *BalanceRows) InsertBalances(height uint64, tm int64, balanceList []basicAssetsLedger.Balance)  {
-    timestamp := time.Unix(tm, 0)
-    for _, balance := range balanceList {
-        newAddressRow := BalanceRow{
-            LastHeight: fmt.Sprintf("%d", height),
-            Address: hex.EncodeToString(balance.Address),
-            Assets: hex.EncodeToString(balance.Assets.MetaSeal.Hash),
-            AssetsName: balance.Assets.Name,
-            AssetsSymbol: balance.Assets.Symbol,
-            Amount: fmt.Sprintf("%d", balance.Amount),
-            Time:    timestamp.Format(common.BASIC_TIME_FORMAT),
-        }
+func (b *BalanceRows) InsertBalances(height uint64, tm int64, balanceList []basicAssetsLedger.Balance) {
+	timestamp := time.Unix(tm, 0)
+	for _, balance := range balanceList {
+		newAddressRow := BalanceRow{
+			LastHeight:   fmt.Sprintf("%d", height),
+			Address:      hex.EncodeToString(balance.Address),
+			Assets:       hex.EncodeToString(balance.Assets.MetaSeal.Hash),
+			AssetsName:   balance.Assets.Name,
+			AssetsSymbol: balance.Assets.Symbol,
+			Amount:       fmt.Sprintf("%d", balance.Amount),
+			Time:         timestamp.Format(common.BASIC_TIME_FORMAT),
+		}
 
-        b.Rows = append(b.Rows, newAddressRow)
-    }
+		b.Rows = append(b.Rows, newAddressRow)
+	}
 }
 
 func (b *BalanceRows) Table() simpleSQLDatabase.ITable {
-    return &Balance
+	return &Balance
 }

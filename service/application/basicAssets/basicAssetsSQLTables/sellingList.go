@@ -18,12 +18,12 @@
 package basicAssetsSQLTables
 
 import (
+	"encoding/hex"
+	"fmt"
 	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/hex"
-	"fmt"
 	"time"
 )
 
@@ -54,7 +54,6 @@ func (s SellingListTable) NewRows() interface{} {
 	return simpleSQLDatabase.NewRowsInstance(SellingListRows{})
 }
 
-
 func (s *SellingListTable) load() {
 	enum.SimpleBuild(s)
 	s.Instance = *s
@@ -75,7 +74,7 @@ type SellingListRow struct {
 	StopTime         string
 }
 
-func (s *SellingListRow) FromTransaction(tx basicAssetsLedger.TransactionWithBlockInfo, sellingData basicAssetsLedger.SellingData)  {
+func (s *SellingListRow) FromTransaction(tx basicAssetsLedger.TransactionWithBlockInfo, sellingData basicAssetsLedger.SellingData) {
 	s.Height = fmt.Sprintf("%d", tx.BlockInfo.BlockHeight)
 
 	s.Seller = hex.EncodeToString(sellingData.Seller)
@@ -116,13 +115,13 @@ func (s *SellingListRows) InsertRow(tx basicAssetsLedger.TransactionWithBlockInf
 
 func (s *SellingListRows) GetUpdateInfo() ([]string, string) {
 	return []string{
-		"Height",
-		"StopTransaction",
-		"Buyer",
-		"Status",
-		"StopTime",
-	},
-	"where c_start_transaction=?"
+			"Height",
+			"StopTransaction",
+			"Buyer",
+			"Status",
+			"StopTime",
+		},
+		"where c_start_transaction=?"
 }
 
 func (s *SellingListRows) Table() simpleSQLDatabase.ITable {

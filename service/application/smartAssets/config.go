@@ -33,17 +33,17 @@ type Config struct {
 }
 
 func DefaultConfig() *Config {
-	return &Config {
+	return &Config{
 		Config: commonCfg.Config{
 			KVDBName: dbInterface.LevelDB,
 			KVDBConfig: levelDB.Config{
 				DBFilePath: "./smartAssets",
 			},
 
-			EnableSQLDB:  false,
-			SQLStorage:   nil,
+			EnableSQLDB: false,
+			SQLStorage:  nil,
 
-			CryptoTools:  crypto.Tools{
+			CryptoTools: crypto.Tools{
 				HashCalculator:  sha3.Sha256,
 				SignerGenerator: ed25519.SignerGenerator,
 			},
@@ -54,7 +54,7 @@ func DefaultConfig() *Config {
 			Symbol:      "SST",
 			Supply:      "1000000000", //one billion
 			Increasable: false,
-			Owner:     "",
+			Owner:       "",
 		},
 	}
 }

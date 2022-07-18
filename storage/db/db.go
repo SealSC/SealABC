@@ -18,43 +18,44 @@
 package db
 
 import (
-    "github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
-    "github.com/SealSC/SealABC/storage/db/dbDrivers/simpleMysql"
-    "github.com/SealSC/SealABC/storage/db/dbInterface"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
+	"github.com/SealSC/SealABC/storage/db/dbDrivers/simpleMysql"
+	"github.com/SealSC/SealABC/storage/db/dbInterface"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type kvDriverLoader func(cfg interface{}) (engine kvDatabase.IDriver, err error)
 type simpleSQLDriverLoader func(cfg interface{}) (engine simpleSQLDatabase.IDriver, err error)
+
 var kvDBDriverLoader = map[string]kvDriverLoader{
-    dbInterface.LevelDB: levelDB.NewDriver,
+	dbInterface.LevelDB: levelDB.NewDriver,
 }
 
-var simpleSQLDBDriverLoader = map[string] simpleSQLDriverLoader {
-    dbInterface.MySQL: simpleMysql.NewDriver,
+var simpleSQLDBDriverLoader = map[string]simpleSQLDriverLoader{
+	dbInterface.MySQL: simpleMysql.NewDriver,
 }
 
-func Load()  {
-    simpleMysql.Load()
+func Load() {
+	simpleMysql.Load()
 }
 
-func NewKVDatabaseDriver(name string, cfg interface{}) (driver kvDatabase.IDriver, err error){
-    driverLoader, supported := kvDBDriverLoader[name]
-    if !supported {
-        return
-    }
+func NewKVDatabaseDriver(name string, cfg interface{}) (driver kvDatabase.IDriver, err error) {
+	driverLoader, supported := kvDBDriverLoader[name]
+	if !supported {
+		return
+	}
 
-    driver, err = driverLoader(cfg)
-    return
+	driver, err = driverLoader(cfg)
+	return
 }
 
-func NewSimpleSQLDatabaseDriver(name string, cfg interface{}) (driver simpleSQLDatabase.IDriver, err error)  {
-    driverLoader, supported := simpleSQLDBDriverLoader[name]
-    if !supported {
-        return
-    }
+func NewSimpleSQLDatabaseDriver(name string, cfg interface{}) (driver simpleSQLDatabase.IDriver, err error) {
+	driverLoader, supported := simpleSQLDBDriverLoader[name]
+	if !supported {
+		return
+	}
 
-    driver, err = driverLoader(cfg)
-    return
+	driver, err = driverLoader(cfg)
+	return
 }

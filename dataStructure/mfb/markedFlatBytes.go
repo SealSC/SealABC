@@ -18,58 +18,58 @@
 package mfb
 
 import (
-    "encoding/binary"
-    "bytes"
+	"bytes"
+	"encoding/binary"
 )
 
 const mark_bytes_count = 4
 
 type MarkedFlatBytes []byte
 
-func (m *MarkedFlatBytes)FromByteSlice(bufferList [][]byte) {
-    //buffer := bytes.Buffer{}
+func (m *MarkedFlatBytes) FromByteSlice(bufferList [][]byte) {
+	//buffer := bytes.Buffer{}
 
-    for _, b := range bufferList {
-        var lenBuf = make([]byte, mark_bytes_count)
-        binary.BigEndian.PutUint32(lenBuf, uint32(len(b)))
+	for _, b := range bufferList {
+		var lenBuf = make([]byte, mark_bytes_count)
+		binary.BigEndian.PutUint32(lenBuf, uint32(len(b)))
 
-        //buffer.Write(lenBuf)
-        //buffer.Write(b)
-        *m = append(*m, lenBuf...)
-        *m = append(*m, b...)
-    }
+		//buffer.Write(lenBuf)
+		//buffer.Write(b)
+		*m = append(*m, lenBuf...)
+		*m = append(*m, b...)
+	}
 
-    //*m = buffer.Bytes()
-    return
+	//*m = buffer.Bytes()
+	return
 }
 
-func (m MarkedFlatBytes)ToByteSlice() (bufferList [][]byte, err error) {
-    if len(m) < mark_bytes_count {
-        return
-    }
+func (m MarkedFlatBytes) ToByteSlice() (bufferList [][]byte, err error) {
+	if len(m) < mark_bytes_count {
+		return
+	}
 
-    buffer := bytes.Buffer{}
-    buffer.Write(m)
+	buffer := bytes.Buffer{}
+	buffer.Write(m)
 
-    for {
-        if buffer.Len() <= 0 {
-            break
-        }
+	for {
+		if buffer.Len() <= 0 {
+			break
+		}
 
-        lenBytes := make([]byte, mark_bytes_count)
-        _, err = buffer.Read(lenBytes)
-        if err != nil {
-            return
-        }
+		lenBytes := make([]byte, mark_bytes_count)
+		_, err = buffer.Read(lenBytes)
+		if err != nil {
+			return
+		}
 
-        elLength := int(binary.BigEndian.Uint32(lenBytes))
+		elLength := int(binary.BigEndian.Uint32(lenBytes))
 
-        if elLength > buffer.Len() {
-            break
-        }
+		if elLength > buffer.Len() {
+			break
+		}
 
-        bufferList = append(bufferList, buffer.Next(elLength))
-    }
+		bufferList = append(bufferList, buffer.Next(elLength))
+	}
 
-    return
+	return
 }

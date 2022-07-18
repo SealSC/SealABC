@@ -18,11 +18,10 @@
 package message
 
 type Message struct {
-    Family    string
-    Version   string
-    Type      string
-    Payload   []byte
-    Hash      []byte
-    Signature []byte
+	Family    string
+	Version   string
+	Type      string
+	Payload   []byte
+	Hash      []byte
+	Signature []byte
 }
-

@@ -18,10 +18,10 @@
 package basicAssetsLedger
 
 import (
-	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
 func (l *Ledger) storeCopyright(assets Assets, owner []byte) error {
@@ -33,8 +33,8 @@ func (l *Ledger) storeCopyright(assets Assets, owner []byte) error {
 	key := l.buildCopyrightKey(assets.getUniqueHash())
 	data, _ := json.Marshal(copyright)
 	return l.Storage.Put(kvDatabase.KVItem{
-		Key:    key,
-		Data:   data,
+		Key:  key,
+		Data: data,
 	})
 }
 

@@ -18,8 +18,8 @@
 package kdf
 
 type IKeyDerivationFunction interface {
-    Name() string
-    NewKey(password []byte, keyLen int) (key []byte, salt []byte, param []byte, err error)
-    NewKeyWithParam(password []byte, keyLen int, param []byte) (key []byte, salt []byte, err error)
-    RebuildKey(password []byte, keyLen int, salt []byte, param []byte) (key []byte, err error)
+	Name() string
+	NewKey(password []byte, keyLen int) (key []byte, salt []byte, param []byte, err error)
+	NewKeyWithParam(password []byte, keyLen int, param []byte) (key []byte, salt []byte, err error)
+	RebuildKey(password []byte, keyLen int, salt []byte, param []byte) (key []byte, err error)
 }

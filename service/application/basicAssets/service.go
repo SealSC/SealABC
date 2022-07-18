@@ -18,30 +18,30 @@
 package basicAssets
 
 import (
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsInterface"
 	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsSQLTables"
-    "github.com/SealSC/SealABC/storage/db"
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsInterface"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/storage/db"
 )
 
 func Load() {
-    basicAssetsSQLTables.Load()
-    basicAssetsInterface.Load()
+	basicAssetsSQLTables.Load()
+	basicAssetsInterface.Load()
 }
 
 func NewBasicAssetsApplication(config Config) (app chainStructure.IBlockchainExternalApplication, err error) {
-    kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
-    if err != nil {
-        log.Log.Error("can't load basic assets app for now: ", err.Error())
-        return
-    }
+	kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
+	if err != nil {
+		log.Log.Error("can't load basic assets app for now: ", err.Error())
+		return
+	}
 
-    sqlStorage := config.SQLStorage
-    if !config.EnableSQLDB {
-        sqlStorage = nil
-    }
-    app = basicAssetsInterface.NewApplicationInterface(kvDriver, sqlStorage)
+	sqlStorage := config.SQLStorage
+	if !config.EnableSQLDB {
+		sqlStorage = nil
+	}
+	app = basicAssetsInterface.NewApplicationInterface(kvDriver, sqlStorage)
 
-    return
+	return
 }

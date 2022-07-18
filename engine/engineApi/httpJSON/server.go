@@ -18,17 +18,17 @@
 package httpJSON
 
 import (
-    "github.com/SealSC/SealABC/network/http"
-    "github.com/SealSC/SealABC/engine/engineApi/httpJSON/actions"
+	"github.com/SealSC/SealABC/engine/engineApi/httpJSON/actions"
+	"github.com/SealSC/SealABC/network/http"
 )
 
 func Start(cfg http.Config) {
-    httpServer := http.Server {
-        Config: &cfg,
-    }
+	httpServer := http.Server{
+		Config: &cfg,
+	}
 
-    httpServer.Config.AllowCORS = true
-    httpServer.Config.RequestHandler = actions.Load(cfg)
+	httpServer.Config.AllowCORS = true
+	httpServer.Config.RequestHandler = actions.Load(cfg)
 
-    httpServer.Start()
+	httpServer.Start()
 }

@@ -18,15 +18,15 @@
 package engineStartup
 
 import (
-    "github.com/SealSC/SealABC/consensus"
-    "github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/consensus"
+	"github.com/SealSC/SealABC/network"
 )
 
 func startConsensus(service consensus.IConsensusService, ns network.IService, processor consensus.ExternalProcessor) (err error) {
-    //load service to consensus driver
-    service = consensus.Load(service, ns, processor)
+	//load service to consensus driver
+	service = consensus.Load(service, ns, processor)
 
-    //start consensus
-    err = consensus.Driver.Start(config.Consensus)
-    return
+	//start consensus
+	err = consensus.Driver.Start(config.Consensus)
+	return
 }

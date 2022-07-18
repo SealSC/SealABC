@@ -18,9 +18,9 @@
 package chainApi
 
 import (
-    "github.com/SealSC/SealABC/network/http"
+	"github.com/SealSC/SealABC/network/http"
 )
 
 type Config struct {
-    HttpJSON http.Config
+	HttpJSON http.Config
 }

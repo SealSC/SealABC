@@ -25,7 +25,7 @@ import (
 
 func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
 	if tx.Type != TxType.CreateContract.String() {
-		return  nil, cache, Errors.InvalidTransactionType
+		return nil, cache, Errors.InvalidTransactionType
 	}
 
 	if len(tx.To) != 0 {
@@ -49,11 +49,11 @@ func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk bl
 
 		contractAddr := contract.Namespace.Bytes()
 		newState = append(newState,
-			StateData {
+			StateData{
 				Key:    BuildKey(StoragePrefixes.ContractCode, contractAddr),
 				NewVal: ret.ResultData,
 			},
-			StateData {
+			StateData{
 				Key:    BuildKey(StoragePrefixes.ContractHash, contractAddr),
 				NewVal: contract.Hash.Bytes(),
 			},

@@ -45,4 +45,3 @@ func NewUniversalIdentificationApplication(config Config) (app chainStructure.IB
 
 	return
 }
-

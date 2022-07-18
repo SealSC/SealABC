@@ -18,16 +18,16 @@
 package tsData
 
 import (
+	"bytes"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/crypto/hashes"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/seal"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-	"bytes"
-	"encoding/hex"
-	"encoding/json"
-	"errors"
 )
 
 type TSMetaData struct {
@@ -149,8 +149,8 @@ func (i *TSData) FromKVStoreItem(data []byte) (err error) {
 }
 
 var RequestTypes struct {
-	Store   enum.Element
-	Modify  enum.Element
+	Store  enum.Element
+	Modify enum.Element
 }
 
 type TSServiceRequest struct {

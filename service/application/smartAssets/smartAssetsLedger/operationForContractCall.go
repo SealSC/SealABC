@@ -25,7 +25,7 @@ import (
 
 func (l *Ledger) preContractCall(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
 	if tx.Type != TxType.ContractCall.String() {
-		return  nil, cache, Errors.InvalidTransactionType
+		return nil, cache, Errors.InvalidTransactionType
 	}
 
 	if len(tx.To) == 0 {

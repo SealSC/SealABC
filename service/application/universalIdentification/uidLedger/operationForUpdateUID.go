@@ -25,7 +25,7 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
-func (u *UIDLedger) verifyUIDKeysUpdate(reqData []byte) (ret interface{}, err error){
+func (u *UIDLedger) verifyUIDKeysUpdate(reqData []byte) (ret interface{}, err error) {
 	actionData := uidData.UIDUpdateKeys{}
 	err = json.Unmarshal(reqData, &actionData)
 	if err != nil {
@@ -55,7 +55,6 @@ func (u *UIDLedger) verifyUIDKeysUpdate(reqData []byte) (ret interface{}, err er
 			return nil, errors.New("type of oracle proof key was not supported for now")
 		}
 
-
 		if len(newKey.KeyProof) != 0 {
 			return nil, errors.New("self proof was in seal field, key proof field must be empty")
 		}
@@ -77,7 +76,7 @@ func (u *UIDLedger) verifyUIDKeysUpdate(reqData []byte) (ret interface{}, err er
 	return nil, nil
 }
 
-func (u* UIDLedger) updateUIDKeys(reqData []byte) (err error) {
+func (u *UIDLedger) updateUIDKeys(reqData []byte) (err error) {
 	actionData := uidData.UIDUpdateKeys{}
 	_ = json.Unmarshal(reqData, &actionData)
 
@@ -92,7 +91,7 @@ func (u* UIDLedger) updateUIDKeys(reqData []byte) (err error) {
 
 	newData, _ := json.Marshal(&uid)
 
-	_ = u.KVStorage.Put(kvDatabase.KVItem {
+	_ = u.KVStorage.Put(kvDatabase.KVItem{
 		Key:    []byte(uid.Identification),
 		Data:   newData,
 		Exists: true,

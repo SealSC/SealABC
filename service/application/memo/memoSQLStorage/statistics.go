@@ -17,59 +17,59 @@
 
 package memoSQLStorage
 
-type  countStatistics struct {
-    Count   uint64
+type countStatistics struct {
+	Count uint64
 }
 
 type distributed struct {
-    Count   uint64
-    Group   string
+	Count uint64
+	Group string
 }
 
 type statistic struct {
-    RecorderDistributed []interface{}
-    TypeDistributed     []interface{}
-    SizeDistributed     []interface{}
-    TotalMemo           uint64
-    TotalRecorder       uint64
+	RecorderDistributed []interface{}
+	TypeDistributed     []interface{}
+	SizeDistributed     []interface{}
+	TotalMemo           uint64
+	TotalRecorder       uint64
 }
 
 func (s *Storage) GetStatistics(_ []string) (ret interface{}, err error) {
-    memoCount, err := s.Driver.RowCount(`t_memo_list`, "", nil)
-    if err != nil {
-        return
-    }
+	memoCount, err := s.Driver.RowCount(`t_memo_list`, "", nil)
+	if err != nil {
+		return
+	}
 
-    addressCount, err := s.Driver.RowCount(`t_memo_address_list`, "", nil)
-    if err != nil {
-        return
-    }
+	addressCount, err := s.Driver.RowCount(`t_memo_address_list`, "", nil)
+	if err != nil {
+		return
+	}
 
-    pSQL := "SELECT COUNT(*) as `count`, `c_recorder` FROM `t_memo_list` WHERE 1 GROUP BY `c_recorder` ORDER BY `count` DESC limit 0, 20"
-    recorderRows, err := s.Driver.Query(distributed{}, pSQL, nil)
-    if err != nil {
-        return
-    }
+	pSQL := "SELECT COUNT(*) as `count`, `c_recorder` FROM `t_memo_list` WHERE 1 GROUP BY `c_recorder` ORDER BY `count` DESC limit 0, 20"
+	recorderRows, err := s.Driver.Query(distributed{}, pSQL, nil)
+	if err != nil {
+		return
+	}
 
-    pSQL = "SELECT COUNT(*) as `count`, `c_type`  FROM `t_memo_list` WHERE 1 GROUP BY `c_type` ORDER BY `count` DESC limit 0, 20"
-    typeRows, err := s.Driver.Query(distributed{}, pSQL, nil)
-    if err != nil {
-        return
-    }
+	pSQL = "SELECT COUNT(*) as `count`, `c_type`  FROM `t_memo_list` WHERE 1 GROUP BY `c_type` ORDER BY `count` DESC limit 0, 20"
+	typeRows, err := s.Driver.Query(distributed{}, pSQL, nil)
+	if err != nil {
+		return
+	}
 
-    pSQL = "SELECT COUNT(*) as `count`, `c_size` FROM `t_memo_list` WHERE 1 GROUP BY `c_size` ORDER BY `count` DESC limit 0, 20"
-    sizeRows, err := s.Driver.Query(distributed{}, pSQL, nil)
-    if err != nil {
-        return
-    }
+	pSQL = "SELECT COUNT(*) as `count`, `c_size` FROM `t_memo_list` WHERE 1 GROUP BY `c_size` ORDER BY `count` DESC limit 0, 20"
+	sizeRows, err := s.Driver.Query(distributed{}, pSQL, nil)
+	if err != nil {
+		return
+	}
 
-    ret = statistic {
-        RecorderDistributed: recorderRows,
-        TypeDistributed: typeRows,
-        SizeDistributed: sizeRows,
-        TotalMemo: memoCount,
-        TotalRecorder: addressCount,
-    }
+	ret = statistic{
+		RecorderDistributed: recorderRows,
+		TypeDistributed:     typeRows,
+		SizeDistributed:     sizeRows,
+		TotalMemo:           memoCount,
+		TotalRecorder:       addressCount,
+	}
 
-    return
+	return
 }

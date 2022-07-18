@@ -18,9 +18,9 @@
 package cli
 
 type parameters struct {
-    ConfigFile  string
+	ConfigFile string
 }
 
 var Parameters = parameters{
-    "",
+	"",
 }

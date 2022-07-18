@@ -18,7 +18,6 @@
 package dbInterface
 
 const (
-    LevelDB = "levelDB"
-    MySQL   = "MySQL"
+	LevelDB = "levelDB"
+	MySQL   = "MySQL"
 )
-

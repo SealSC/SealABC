@@ -18,52 +18,52 @@
 package basicAssetsSQLStorage
 
 import (
-    "encoding/hex"
-    "errors"
-    "strconv"
+	"encoding/hex"
+	"errors"
+	"strconv"
 )
 
 func pageFromParam(param []string) (page uint64, err error) {
-    if len(param) != 1 {
-        err = errors.New("invalid parameters")
-        return
-    }
+	if len(param) != 1 {
+		err = errors.New("invalid parameters")
+		return
+	}
 
-    page, err = strconv.ParseUint(param[0], 10, 64)
-    return
+	page, err = strconv.ParseUint(param[0], 10, 64)
+	return
 }
 
 func hashFromParam(param []string) (hash string, err error) {
-    if len(param) != 1 {
-        err = errors.New("invalid parameters")
-        return
-    }
+	if len(param) != 1 {
+		err = errors.New("invalid parameters")
+		return
+	}
 
-    _, err = hex.DecodeString(param[0])
-    if err != nil {
-        return
-    }
+	_, err = hex.DecodeString(param[0])
+	if err != nil {
+		return
+	}
 
-    hash = param[0]
-    return
+	hash = param[0]
+	return
 }
 
 func pageAndHashFromParam(param []string) (page uint64, hash string, err error) {
-    if len(param) != 2 {
-        err = errors.New("invalid parameters")
-        return
-    }
+	if len(param) != 2 {
+		err = errors.New("invalid parameters")
+		return
+	}
 
-    page, err = strconv.ParseUint(param[0], 10, 64)
-    if err != nil {
-        return
-    }
+	page, err = strconv.ParseUint(param[0], 10, 64)
+	if err != nil {
+		return
+	}
 
-    _, err = hex.DecodeString(param[1])
-    if err != nil {
-        return
-    }
+	_, err = hex.DecodeString(param[1])
+	if err != nil {
+		return
+	}
 
-    hash = param[1]
-    return
+	hash = param[1]
+	return
 }
