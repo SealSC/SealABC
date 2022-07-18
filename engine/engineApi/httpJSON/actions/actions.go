@@ -18,36 +18,36 @@
 package actions
 
 import (
-    "github.com/SealSC/SealABC/network/http"
-    "github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/network/http"
+	"github.com/SealSC/SealABC/service"
 )
 
 var actionList []http.IRequestHandler
 var serverConfig http.Config
 
 func Load(cfg http.Config) []http.IRequestHandler {
-    serverConfig = cfg
+	serverConfig = cfg
 
-    actionList = []http.IRequestHandler{
-        ListServices,
-    }
+	actionList = []http.IRequestHandler{
+		ListServices,
+	}
 
-    return actionList
+	return actionList
 }
 
 func ApiInformation() (list []service.ApiInterface) {
 
-    for _, act := range actionList {
-        actInfo := act.BasicInformation()
-        ai := service.ApiInterface{}
+	for _, act := range actionList {
+		actInfo := act.BasicInformation()
+		ai := service.ApiInterface{}
 
-        ai.Description = actInfo.Description
-        ai.Path = actInfo.Path
-        ai.Method = actInfo.Method
-        ai.Parameters = (service.Parameters)(actInfo.Parameters)
+		ai.Description = actInfo.Description
+		ai.Path = actInfo.Path
+		ai.Method = actInfo.Method
+		ai.Parameters = (service.Parameters)(actInfo.Parameters)
 
-        list = append(list, ai)
-    }
+		list = append(list, ai)
+	}
 
-    return
+	return
 }

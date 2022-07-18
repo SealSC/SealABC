@@ -18,25 +18,25 @@
 package signers
 
 import (
-    "github.com/SealSC/SealABC/crypto/signers/ecdsa/secp256k1"
-    "github.com/SealSC/SealABC/crypto/signers/ed25519"
-    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
+	"github.com/SealSC/SealABC/crypto/signers/ecdsa/secp256k1"
+	"github.com/SealSC/SealABC/crypto/signers/ed25519"
+	"github.com/SealSC/SealABC/crypto/signers/signerCommon"
 )
 
-var signerGenerators = map[string] ISignerGenerator{
-    ed25519.SignerGenerator.Type(): ed25519.SignerGenerator,
-    secp256k1.SignerGenerator.Type(): secp256k1.SignerGenerator,
+var signerGenerators = map[string]ISignerGenerator{
+	ed25519.SignerGenerator.Type():   ed25519.SignerGenerator,
+	secp256k1.SignerGenerator.Type(): secp256k1.SignerGenerator,
 }
 
 type ISignerGenerator interface {
-    Type() string
-    NewSigner(param interface{}) (signer signerCommon.ISigner, err error)
-    FromKeyPairData(kpData []byte) (kp signerCommon.ISigner, err error)
-    FromRawPrivateKey(key interface{}) (signer signerCommon.ISigner, err error)
-    FromRawPublicKey(key interface{}) (signer signerCommon.ISigner, err error)
-    FromRawKeyPair(kp interface{}) (signer signerCommon.ISigner, err error)
+	Type() string
+	NewSigner(param interface{}) (signer signerCommon.ISigner, err error)
+	FromKeyPairData(kpData []byte) (kp signerCommon.ISigner, err error)
+	FromRawPrivateKey(key interface{}) (signer signerCommon.ISigner, err error)
+	FromRawPublicKey(key interface{}) (signer signerCommon.ISigner, err error)
+	FromRawKeyPair(kp interface{}) (signer signerCommon.ISigner, err error)
 }
 
-func SignerGeneratorByAlgorithmType(sType string) ISignerGenerator  {
-    return signerGenerators[sType]
+func SignerGeneratorByAlgorithmType(sType string) ISignerGenerator {
+	return signerGenerators[sType]
 }

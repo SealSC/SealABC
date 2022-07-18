@@ -28,7 +28,7 @@ type ISQLRows interface {
 	Insert(tx smartAssetsLedger.Transaction, blk block.Entity)
 }
 
-func Load()  {
+func Load() {
 	AddressList.load()
 	ContractCall.load()
 	Contract.load()

@@ -20,7 +20,7 @@ package applicationResult
 import "github.com/SealSC/SealABC/metadata/seal"
 
 type Entity struct {
-    Data interface{}
+	Data interface{}
 
-    Seal *seal.Entity
+	Seal *seal.Entity
 }

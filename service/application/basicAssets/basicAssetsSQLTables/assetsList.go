@@ -18,104 +18,103 @@
 package basicAssetsSQLTables
 
 import (
-    "github.com/SealSC/SealABC/common"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-    "encoding/hex"
-    "fmt"
-    "time"
+	"encoding/hex"
+	"fmt"
+	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"time"
 )
 
 type AssetsListTable struct {
-    ID              enum.Element `col:"c_id" ignoreInsert:"true"`
-    Height          enum.Element `col:"c_height"`
-    ReqHash         enum.Element `col:"c_req_hash"`
-    TxHash          enum.Element `col:"c_tx_hash"`
-    AssetsName      enum.Element `col:"c_name"`
-    AssetsSymbol    enum.Element `col:"c_symbol"`
-    Supply          enum.Element `col:"c_supply"`
-    Increasable     enum.Element `col:"c_increasable"`
-    MetaHash        enum.Element `col:"c_meta_hash"`
-    MetaSignature   enum.Element `col:"c_meta_signature"`
-    IssuedHash      enum.Element `col:"c_issued_hash"`
-    IssuedSignature enum.Element `col:"c_issued_signature"`
-    IssueTo         enum.Element `col:"c_issue_to"`
-    Time            enum.Element `col:"c_time"`
+	ID              enum.Element `col:"c_id" ignoreInsert:"true"`
+	Height          enum.Element `col:"c_height"`
+	ReqHash         enum.Element `col:"c_req_hash"`
+	TxHash          enum.Element `col:"c_tx_hash"`
+	AssetsName      enum.Element `col:"c_name"`
+	AssetsSymbol    enum.Element `col:"c_symbol"`
+	Supply          enum.Element `col:"c_supply"`
+	Increasable     enum.Element `col:"c_increasable"`
+	MetaHash        enum.Element `col:"c_meta_hash"`
+	MetaSignature   enum.Element `col:"c_meta_signature"`
+	IssuedHash      enum.Element `col:"c_issued_hash"`
+	IssuedSignature enum.Element `col:"c_issued_signature"`
+	IssueTo         enum.Element `col:"c_issue_to"`
+	Time            enum.Element `col:"c_time"`
 
-    simpleSQLDatabase.BasicTable
+	simpleSQLDatabase.BasicTable
 }
 
 var AssetsList AssetsListTable
 
 func (a AssetsListTable) Name() (name string) {
-    return "t_basic_assets_list"
+	return "t_basic_assets_list"
 }
 
 func (a AssetsListTable) NewRows() interface{} {
-    return simpleSQLDatabase.NewRowsInstance(AssetsListRows{})
+	return simpleSQLDatabase.NewRowsInstance(AssetsListRows{})
 }
 
-
 func (a *AssetsListTable) load() {
-    enum.SimpleBuild(a)
-    a.Instance = *a
+	enum.SimpleBuild(a)
+	a.Instance = *a
 }
 
 type AssetsListRow struct {
-    ID              string
-    Height          string
-    ReqHash         string
-    TxHash          string
-    AssetsName      string
-    AssetsSymbol    string
-    Supply          string
-    Increasable     string
-    MetaHash        string
-    MetaSignature   string
-    IssuedHash      string
-    IssuedSignature string
-    IssueTo         string
-    Time            string
+	ID              string
+	Height          string
+	ReqHash         string
+	TxHash          string
+	AssetsName      string
+	AssetsSymbol    string
+	Supply          string
+	Increasable     string
+	MetaHash        string
+	MetaSignature   string
+	IssuedHash      string
+	IssuedSignature string
+	IssueTo         string
+	Time            string
 }
 
-func (b *AssetsListRow) FromTransaction(tx basicAssetsLedger.TransactionWithBlockInfo)  {
-    b.Height = fmt.Sprintf("%d", tx.BlockInfo.BlockHeight)
-    b.ReqHash = hex.EncodeToString(tx.BlockInfo.RequestHash)
-    b.TxHash = hex.EncodeToString(tx.Seal.Hash)
-    b.AssetsName = tx.Assets.Name
-    b.AssetsSymbol = tx.Assets.Symbol
-    b.Supply = fmt.Sprintf("%d", tx.Assets.Supply)
-    if tx.Assets.Increasable {
-        b.Increasable = "1"
-    } else {
-        b.Increasable = "0"
-    }
+func (b *AssetsListRow) FromTransaction(tx basicAssetsLedger.TransactionWithBlockInfo) {
+	b.Height = fmt.Sprintf("%d", tx.BlockInfo.BlockHeight)
+	b.ReqHash = hex.EncodeToString(tx.BlockInfo.RequestHash)
+	b.TxHash = hex.EncodeToString(tx.Seal.Hash)
+	b.AssetsName = tx.Assets.Name
+	b.AssetsSymbol = tx.Assets.Symbol
+	b.Supply = fmt.Sprintf("%d", tx.Assets.Supply)
+	if tx.Assets.Increasable {
+		b.Increasable = "1"
+	} else {
+		b.Increasable = "0"
+	}
 
-    b.MetaHash = hex.EncodeToString(tx.Assets.MetaSeal.Hash)
-    b.MetaSignature = hex.EncodeToString(tx.Assets.MetaSeal.Signature)
+	b.MetaHash = hex.EncodeToString(tx.Assets.MetaSeal.Hash)
+	b.MetaSignature = hex.EncodeToString(tx.Assets.MetaSeal.Signature)
 
-    b.IssuedHash = hex.EncodeToString(tx.Assets.IssuedSeal.Hash)
-    b.IssuedSignature = hex.EncodeToString(tx.Assets.IssuedSeal.Signature)
+	b.IssuedHash = hex.EncodeToString(tx.Assets.IssuedSeal.Hash)
+	b.IssuedSignature = hex.EncodeToString(tx.Assets.IssuedSeal.Signature)
 
-    b.IssueTo = hex.EncodeToString(tx.Assets.MetaSeal.SignerPublicKey)
+	b.IssueTo = hex.EncodeToString(tx.Assets.MetaSeal.SignerPublicKey)
 
-    timestamp := time.Unix(int64(tx.CreateTime), 0)
-    b.Time = timestamp.Format(common.BASIC_TIME_FORMAT)
+	timestamp := time.Unix(int64(tx.CreateTime), 0)
+	b.Time = timestamp.Format(common.BASIC_TIME_FORMAT)
 
-    return
+	return
 }
 
 type AssetsListRows struct {
-    simpleSQLDatabase.BasicRows
+	simpleSQLDatabase.BasicRows
 }
 
 func (b *AssetsListRows) InsertAssets(issueTX basicAssetsLedger.TransactionWithBlockInfo) {
-    newRow := AssetsListRow{}
-    newRow.FromTransaction(issueTX)
-    b.Rows = append(b.Rows, newRow)
+	newRow := AssetsListRow{}
+	newRow.FromTransaction(issueTX)
+	b.Rows = append(b.Rows, newRow)
 }
 
 func (b *AssetsListRows) Table() simpleSQLDatabase.ITable {
-    return &AssetsList
+	return &AssetsList
 }

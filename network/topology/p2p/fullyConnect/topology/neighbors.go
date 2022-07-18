@@ -18,70 +18,71 @@
 package topology
 
 import (
-    "github.com/SealSC/SealABC/network"
-    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message"
-    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message/payload"
-    "encoding/json"
-    "github.com/SealSC/SealABC/log"
-    "sync"
+	"encoding/json"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message"
+	"github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message/payload"
+	"sync"
 )
 
 func getNeighbors(seed network.LinkNode) {
-    log.Log.Println("get neighbors from: ", seed.ID)
-    msg := message.NewMessage(message.Types.GetNeighbors, []byte{})
-    _, err := seed.Link.SendMessage(msg)
-    if err != nil {
-        log.Log.Error("send get neighbors message failed: ", err.Error())
-    }
+	log.Log.Println("get neighbors from: ", seed.ID)
+	msg := message.NewMessage(message.Types.GetNeighbors, []byte{})
+	_, err := seed.Link.SendMessage(msg)
+	if err != nil {
+		log.Log.Error("send get neighbors message failed: ", err.Error())
+	}
 }
 
+type getNeighborsMessageProcessor struct{}
 
-type getNeighborsMessageProcessor struct {}
-func (j *getNeighborsMessageProcessor)Process(msg network.Message, t *Topology, link network.ILink)  (err error) {
-    allNodes := t.GetAllNodes()
-    neighbors := payload.NeighborsPayload {}
+func (j *getNeighborsMessageProcessor) Process(msg network.Message, t *Topology, link network.ILink) (err error) {
+	allNodes := t.GetAllNodes()
+	neighbors := payload.NeighborsPayload{}
 
-    for _, n := range allNodes {
-        neighbors.Neighbors = append(neighbors.Neighbors, n.Node)
-    }
+	for _, n := range allNodes {
+		neighbors.Neighbors = append(neighbors.Neighbors, n.Node)
+	}
 
-    replyPayload, _ := json.Marshal(neighbors)
-    replyMsg := message.NewMessage(message.Types.GetNeighborsReply, replyPayload)
+	replyPayload, _ := json.Marshal(neighbors)
+	replyMsg := message.NewMessage(message.Types.GetNeighborsReply, replyPayload)
 
-    _, err = link.SendMessage(replyMsg)
+	_, err = link.SendMessage(replyMsg)
 
-    return
+	return
 }
 
 var GetNeighborsMessageProcessor = &getNeighborsMessageProcessor{}
 
 type getNeighborsReplyMessageProcessor struct {
-    joinLock sync.Mutex
+	joinLock sync.Mutex
 }
-func (j *getNeighborsReplyMessageProcessor)Process(msg network.Message, topology *Topology, link network.ILink)  (err error) {
-    neighbors := payload.NeighborsPayload{}
-    err = payload.FromMessage(msg, & neighbors)
-    if err != nil {
-        log.Log.Warn("invalid get neighbor reply message: ", err.Error())
-        return err
-    }
 
-    for _, n := range neighbors.Neighbors {
-        if topology.isJoined(n.ID) {
-            continue
-        }
+func (j *getNeighborsReplyMessageProcessor) Process(msg network.Message, topology *Topology, link network.ILink) (err error) {
+	neighbors := payload.NeighborsPayload{}
+	err = payload.FromMessage(msg, &neighbors)
+	if err != nil {
+		log.Log.Warn("invalid get neighbor reply message: ", err.Error())
+		return err
+	}
 
-        j.joinLock.Lock()
-        err := topology.router.JoinTopology(n)
-        j.joinLock.Unlock()
+	for _, n := range neighbors.Neighbors {
+		if topology.isJoined(n.ID) {
+			continue
+		}
 
-        if err != nil {
-            log.Log.Warn("join neighbor: ", n, " failed.")
-            continue
-        }
-    }
+		j.joinLock.Lock()
+		err := topology.router.JoinTopology(n)
+		j.joinLock.Unlock()
 
-    return
+		if err != nil {
+			log.Log.Warn("join neighbor: ", n, " failed.")
+			continue
+		}
+	}
+
+	return
 }
 
 var GetNeighborsReplyMessageProcessor = &getNeighborsReplyMessageProcessor{}

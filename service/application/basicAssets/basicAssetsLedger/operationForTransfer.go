@@ -18,72 +18,71 @@
 package basicAssetsLedger
 
 import (
-    "errors"
-    "fmt"
+	"errors"
+	"fmt"
 )
 
 func (l *Ledger) verifyTransfer(tx Transaction) (ret interface{}, err error) {
-    unspentList, totalIn, err := l.getUnspentListFromTransaction(tx)
+	unspentList, totalIn, err := l.getUnspentListFromTransaction(tx)
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    //verify transfer input is equal to output
-    var totalOut uint64 = 0
-    for _, output := range tx.Output {
-        totalOut += output.Value
-    }
+	//verify transfer input is equal to output
+	var totalOut uint64 = 0
+	for _, output := range tx.Output {
+		totalOut += output.Value
+	}
 
-    if totalIn != totalOut {
-        err = errors.New("input not equal output")
-        return
-    }
+	if totalIn != totalOut {
+		err = errors.New("input not equal output")
+		return
+	}
 
-    ret = unspentList
-    return
+	ret = unspentList
+	return
 }
 
-func (l *Ledger) doubleSpentCheck(usList []Unspent, cachePool map[string] bool) (err error) {
-    for _, utxo := range usList {
-        key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
-        if cachePool[key] {
-            err = errors.New("double spent")
-            break
-        } else {
-            cachePool[key] = true
-        }
-    }
+func (l *Ledger) doubleSpentCheck(usList []Unspent, cachePool map[string]bool) (err error) {
+	for _, utxo := range usList {
+		key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
+		if cachePool[key] {
+			err = errors.New("double spent")
+			break
+		} else {
+			cachePool[key] = true
+		}
+	}
 
-    return
+	return
 }
 
-func (l *Ledger)updateDoubleSpentCache(usList []Unspent)  {
-    for _, utxo := range usList {
-        key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
-        delete(l.memUTXORecord, key)
-        delete(l.execUTXORecord, key)
-    }
+func (l *Ledger) updateDoubleSpentCache(usList []Unspent) {
+	for _, utxo := range usList {
+		key := string(utxo.Transaction) + fmt.Sprintf("%d", utxo.OutputIndex)
+		delete(l.memUTXORecord, key)
+		delete(l.execUTXORecord, key)
+	}
 }
 
 func (l *Ledger) confirmTransfer(tx Transaction) (ret interface{}, err error) {
-    l.operateLock.Lock()
-    defer l.operateLock.Unlock()
+	l.operateLock.Lock()
+	defer l.operateLock.Unlock()
 
-    //tx in this phase was verified, get unspent list directly
-    usList, _, err := l.getUnspentListFromTransaction(tx)
-    if err != nil {
-        return
-    }
+	//tx in this phase was verified, get unspent list directly
+	usList, _, err := l.getUnspentListFromTransaction(tx)
+	if err != nil {
+		return
+	}
 
-    localAssets, _ := l.localAssetsFromHash(tx.Assets.getUniqueHash())
+	localAssets, _ := l.localAssetsFromHash(tx.Assets.getUniqueHash())
 
-    //save transaction
-    ret, err = l.saveUnspent(localAssets, tx, usList)
+	//save transaction
+	ret, err = l.saveUnspent(localAssets, tx, usList)
 
-    if err == nil {
-        l.updateDoubleSpentCache(usList)
-    }
-    return
+	if err == nil {
+		l.updateDoubleSpentCache(usList)
+	}
+	return
 }
-

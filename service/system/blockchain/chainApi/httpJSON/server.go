@@ -18,42 +18,42 @@
 package httpJSON
 
 import (
-    "github.com/SealSC/SealABC/network/http"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON/actions"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
+	"github.com/SealSC/SealABC/network/http"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON/actions"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 )
 
 type ApiServer struct {
-    server  http.Server
-    Actions *actions.ChainApiActions
+	server  http.Server
+	Actions *actions.ChainApiActions
 }
 
 func (a ApiServer) Address() string {
-    return a.server.Config.Address
+	return a.server.Config.Address
 }
 
 func NewApiServer(cfg http.Config,
-    chain *chainStructure.Blockchain,
-    p2p *chainNetwork.P2PService,
-    sqlStorage *chainSQLStorage.Storage) *ApiServer {
+	chain *chainStructure.Blockchain,
+	p2p *chainNetwork.P2PService,
+	sqlStorage *chainSQLStorage.Storage) *ApiServer {
 
-    httpServer := http.Server {
-        Config: &cfg,
-    }
+	httpServer := http.Server{
+		Config: &cfg,
+	}
 
-    httpServer.Config.AllowCORS = true
+	httpServer.Config.AllowCORS = true
 
-    newActions := actions.NewActions(cfg.BasePath, chain, p2p, sqlStorage)
-    httpServer.Config.RequestHandler = []http.IRequestHandler{newActions}
+	newActions := actions.NewActions(cfg.BasePath, chain, p2p, sqlStorage)
+	httpServer.Config.RequestHandler = []http.IRequestHandler{newActions}
 
-    _ = httpServer.Start()
+	_ = httpServer.Start()
 
-    as := ApiServer {
-        server: httpServer,
-        Actions: newActions,
-    }
+	as := ApiServer{
+		server:  httpServer,
+		Actions: newActions,
+	}
 
-    return &as
+	return &as
 }

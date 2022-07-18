@@ -18,139 +18,137 @@
 package aes
 
 import (
-    "github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
-    "bytes"
-    "crypto/aes"
-    "crypto/cipher"
-    "crypto/rand"
-    "errors"
-    "io"
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"errors"
+	"github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
+	"io"
 )
 
-type aesCipher struct {}
+type aesCipher struct{}
 
-var encrypterBuilder = map[string] interface{} {
-    cipherCommon.CBC: cipher.NewCBCEncrypter,
-    cipherCommon.CFB: cipher.NewCFBEncrypter,
-    cipherCommon.CTR: cipher.NewCTR,
-    cipherCommon.OFB: cipher.NewOFB,
+var encrypterBuilder = map[string]interface{}{
+	cipherCommon.CBC: cipher.NewCBCEncrypter,
+	cipherCommon.CFB: cipher.NewCFBEncrypter,
+	cipherCommon.CTR: cipher.NewCTR,
+	cipherCommon.OFB: cipher.NewOFB,
 }
 
-var decrypterBuilder = map[string] interface{} {
-    cipherCommon.CBC: cipher.NewCBCDecrypter,
-    cipherCommon.CFB: cipher.NewCFBDecrypter,
-    cipherCommon.CTR: cipher.NewCTR,
-    cipherCommon.OFB: cipher.NewOFB,
+var decrypterBuilder = map[string]interface{}{
+	cipherCommon.CBC: cipher.NewCBCDecrypter,
+	cipherCommon.CFB: cipher.NewCFBDecrypter,
+	cipherCommon.CTR: cipher.NewCTR,
+	cipherCommon.OFB: cipher.NewOFB,
 }
 
 func (a aesCipher) Type() string {
-    return "AES"
+	return "AES"
 }
 
 func (a aesCipher) Encrypt(plaintext []byte, key []byte, encMode interface{}) (encrypted cipherCommon.EncryptedData, err error) {
-    defer func() {
-        if e := recover(); e != nil {
-            err = e.(error)
-        }
-    }()
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
 
-    mode, ok := encMode.(string)
-    if !ok {
-        err = errors.New("invalid parameter")
-        return
-    }
+	mode, ok := encMode.(string)
+	if !ok {
+		err = errors.New("invalid parameter")
+		return
+	}
 
-    iv := make([]byte, aes.BlockSize)
-    _, err = io.ReadFull(rand.Reader, iv)
-    if err != nil {
-        return
-    }
+	iv := make([]byte, aes.BlockSize)
+	_, err = io.ReadFull(rand.Reader, iv)
+	if err != nil {
+		return
+	}
 
-    block, err := aes.NewCipher(key)
-    if err != nil {
-        return
-    }
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return
+	}
 
+	encrypterMethod, exist := encrypterBuilder[mode]
+	if !exist {
+		err = errors.New("not supported mode: " + mode)
+		return
+	}
 
-    encrypterMethod, exist := encrypterBuilder[mode]
-    if !exist {
-        err = errors.New("not supported mode: " + mode)
-        return
-    }
+	if cipherCommon.CBC == mode {
+		builder := encrypterMethod.(func(b cipher.Block, iv []byte) cipher.BlockMode)
+		encrypter := builder(block, iv)
+		blockSize := block.BlockSize()
+		plaintext = PKCS5Padding(plaintext, blockSize)
 
-    if cipherCommon.CBC == mode {
-        builder := encrypterMethod.(func(b cipher.Block, iv []byte) cipher.BlockMode)
-        encrypter := builder(block, iv)
-        blockSize := block.BlockSize()
-        plaintext = PKCS5Padding(plaintext, blockSize)
+		encrypted.CipherText = make([]byte, len(plaintext))
+		encrypter.CryptBlocks(encrypted.CipherText, plaintext)
+	} else {
+		encrypted.CipherText = make([]byte, len(plaintext))
+		builder := encrypterMethod.(func(cipher.Block, []byte) cipher.Stream)
+		encrypter := builder(block, iv)
+		encrypter.XORKeyStream(encrypted.CipherText, plaintext)
+	}
 
-        encrypted.CipherText = make([]byte, len(plaintext))
-        encrypter.CryptBlocks(encrypted.CipherText, plaintext)
-    } else {
-        encrypted.CipherText = make([]byte, len(plaintext))
-        builder := encrypterMethod.(func(cipher.Block, []byte) cipher.Stream)
-        encrypter := builder(block, iv)
-        encrypter.XORKeyStream(encrypted.CipherText, plaintext)
-    }
-
-    encrypted.ExternalData = iv
-    return
+	encrypted.ExternalData = iv
+	return
 }
 
 func (a aesCipher) Decrypt(encrypted cipherCommon.EncryptedData, key []byte, encMode interface{}) (plaintext []byte, err error) {
-    defer func() {
-        if e := recover(); e != nil {
-            err = e.(error)
-        }
-    }()
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
 
-    mode, ok := encMode.(string)
-    if !ok {
-        err = errors.New("invalid parameter")
-        return
-    }
+	mode, ok := encMode.(string)
+	if !ok {
+		err = errors.New("invalid parameter")
+		return
+	}
 
-    iv := encrypted.ExternalData
-    if !ok {
-        err = errors.New("not valid iv")
-        return
-    }
+	iv := encrypted.ExternalData
+	if !ok {
+		err = errors.New("not valid iv")
+		return
+	}
 
-    block, err := aes.NewCipher(key)
-    if err != nil {
-        return
-    }
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return
+	}
 
-    decryptMethod, exist := decrypterBuilder[mode]
-    if !exist {
-        err = errors.New("not supported mode: " + mode)
-        return
-    }
+	decryptMethod, exist := decrypterBuilder[mode]
+	if !exist {
+		err = errors.New("not supported mode: " + mode)
+		return
+	}
 
-    plaintext = make([]byte, len(encrypted.CipherText))
-    if cipherCommon.CBC == mode {
-        builder := decryptMethod.(func(b cipher.Block, iv []byte) cipher.BlockMode)
-        decrypter := builder(block, iv)
-        decrypter.CryptBlocks(plaintext, encrypted.CipherText)
-        plaintext = PKCS5Trimming(plaintext)
-    } else {
-        builder := decryptMethod.(func(cipher.Block, []byte) cipher.Stream)
-        decrypter := builder(block, iv)
-        decrypter.XORKeyStream(plaintext, encrypted.CipherText)
-    }
-    return
+	plaintext = make([]byte, len(encrypted.CipherText))
+	if cipherCommon.CBC == mode {
+		builder := decryptMethod.(func(b cipher.Block, iv []byte) cipher.BlockMode)
+		decrypter := builder(block, iv)
+		decrypter.CryptBlocks(plaintext, encrypted.CipherText)
+		plaintext = PKCS5Trimming(plaintext)
+	} else {
+		builder := decryptMethod.(func(cipher.Block, []byte) cipher.Stream)
+		decrypter := builder(block, iv)
+		decrypter.XORKeyStream(plaintext, encrypted.CipherText)
+	}
+	return
 }
 
-
 func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
-    padding := blockSize - len(ciphertext)%blockSize
-    padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-    return append(ciphertext, padtext...)
+	padding := blockSize - len(ciphertext)%blockSize
+	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(ciphertext, padtext...)
 }
 
 func PKCS5Trimming(encrypt []byte) []byte {
-    padding := encrypt[len(encrypt)-1]
-    return encrypt[:len(encrypt)-int(padding)]
+	padding := encrypt[len(encrypt)-1]
+	return encrypt[:len(encrypt)-int(padding)]
 }
 
 var Cipher aesCipher

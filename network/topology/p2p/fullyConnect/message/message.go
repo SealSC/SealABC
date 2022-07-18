@@ -18,21 +18,20 @@
 package message
 
 import (
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/network"
 )
 
 type messageTypes struct {
-    Join                enum.Element
-    JoinReply           enum.Element
-    Leave               enum.Element
-    Ping                enum.Element
-    Pong                enum.Element
-    GetNeighbors        enum.Element
-    GetNeighborsReply   enum.Element
-    Neighbors           enum.Element
-    PushNeighbors       enum.Element
-
+	Join              enum.Element
+	JoinReply         enum.Element
+	Leave             enum.Element
+	Ping              enum.Element
+	Pong              enum.Element
+	GetNeighbors      enum.Element
+	GetNeighborsReply enum.Element
+	Neighbors         enum.Element
+	PushNeighbors     enum.Element
 }
 
 const Family = "full-connected-p2p"
@@ -40,17 +39,16 @@ const Family = "full-connected-p2p"
 var Types messageTypes
 
 func LoadMessageTypes() {
-    enum.Build(&Types, 0, "p2p-protocol-msg-")
+	enum.Build(&Types, 0, "p2p-protocol-msg-")
 }
 
 func NewMessage(msgType enum.Element, payload []byte) (msg network.Message) {
-    //msg :=  network.Message{}
+	//msg :=  network.Message{}
 
-    msg.Version = "0.0.1"
-    msg.Family = Family
-    msg.Type = msgType.String()
-    msg.Payload = payload
+	msg.Version = "0.0.1"
+	msg.Family = Family
+	msg.Type = msgType.String()
+	msg.Payload = payload
 
-    return
+	return
 }
-

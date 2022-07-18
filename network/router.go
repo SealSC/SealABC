@@ -18,10 +18,10 @@
 package network
 
 import (
-    "net"
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/metadata/message"
-    "sync"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/message"
+	"net"
+	"sync"
 )
 
 type RawMessageProcessor func(data []byte, link ILink)
@@ -29,234 +29,234 @@ type MessageProcessor func(msg Message) (reply *Message)
 type LinkClosed func(link ILink)
 
 type IRouter interface {
-    Self() Node
+	Self() Node
 
-    TopologyName() string
+	TopologyName() string
 
-    Start(cfg Config) (err error)
-    Listen(listener net.Listener)
-    ConnectTo(node Node) (linkedNode LinkNode, err error)
+	Start(cfg Config) (err error)
+	Listen(listener net.Listener)
+	ConnectTo(node Node) (linkedNode LinkNode, err error)
 
-    LinkClosed(link ILink)
+	LinkClosed(link ILink)
 
-    JoinTopology(seed Node) (err error)
-    LeaveTopology()
-    GetAllLinkedNode() (nodes []Node)
+	JoinTopology(seed Node) (err error)
+	LeaveTopology()
+	GetAllLinkedNode() (nodes []Node)
 
-    RawMessageProcessor(data []byte, link ILink)
-    RegisterMessageProcessor(msgFamily string, processor MessageProcessor)
+	RawMessageProcessor(data []byte, link ILink)
+	RegisterMessageProcessor(msgFamily string, processor MessageProcessor)
 
-    SendTo(node Node, msg Message) (n int, err error)
-    Broadcast(msg message.Message) (err error)
+	SendTo(node Node, msg Message) (n int, err error)
+	Broadcast(msg message.Message) (err error)
 }
 
 type Router struct {
-    Topology            ITopology
-    MessageProcessorMap map[string]MessageProcessor
-    LocalNode           LinkNode
+	Topology            ITopology
+	MessageProcessorMap map[string]MessageProcessor
+	LocalNode           LinkNode
 
-    rawProcessorLock    sync.Mutex
+	rawProcessorLock sync.Mutex
 }
 
-func (r *Router) Self() Node{
-    return r.LocalNode.Node
+func (r *Router) Self() Node {
+	return r.LocalNode.Node
 }
 
 func (r *Router) TopologyName() string {
-    return r.Topology.Name()
+	return r.Topology.Name()
 }
 
 func (r *Router) Start(cfg Config) (err error) {
-    r.MessageProcessorMap = map[string]MessageProcessor{}
-    if cfg.Topology != nil {
-        r.Topology = cfg.Topology
-    } else {
-        r.Topology = &directConnect{}
-    }
+	r.MessageProcessorMap = map[string]MessageProcessor{}
+	if cfg.Topology != nil {
+		r.Topology = cfg.Topology
+	} else {
+		r.Topology = &directConnect{}
+	}
 
-    r.Topology.MountTo(r)
+	r.Topology.MountTo(r)
 
-    localNode := LinkNode{}
-    localNode.Protocol = cfg.ServiceProtocol
-    localNode.ServeAddress = cfg.ServiceAddress
-    if cfg.ID == "" {
-        localNode.ID = r.Topology.BuildNodeID(localNode.Node)
-    } else {
-        localNode.ID = cfg.ID
-    }
+	localNode := LinkNode{}
+	localNode.Protocol = cfg.ServiceProtocol
+	localNode.ServeAddress = cfg.ServiceAddress
+	if cfg.ID == "" {
+		localNode.ID = r.Topology.BuildNodeID(localNode.Node)
+	} else {
+		localNode.ID = cfg.ID
+	}
 
-    r.LocalNode = localNode
-    r.Topology.SetLocalNode(localNode)
+	r.LocalNode = localNode
+	r.Topology.SetLocalNode(localNode)
 
-    log.Log.Println("[ I am ]: ", localNode.ID)
+	log.Log.Println("[ I am ]: ", localNode.ID)
 
-    var listener net.Listener
-    if !cfg.ClientOnly {
-        listener, err = net.Listen(cfg.ServiceProtocol, cfg.ServiceAddress)
-        if err != nil {
-            return
-        }
+	var listener net.Listener
+	if !cfg.ClientOnly {
+		listener, err = net.Listen(cfg.ServiceProtocol, cfg.ServiceAddress)
+		if err != nil {
+			return
+		}
 
-        go r.Listen(listener)
-    }
+		go r.Listen(listener)
+	}
 
-    return
+	return
 }
 
 func (r *Router) Listen(listener net.Listener) {
-    for {
-        conn, err := listener.Accept()
-        if err != nil {
-            log.Log.Println("accept error:", err)
-            break
-        }
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Log.Println("accept error:", err)
+			break
+		}
 
-        newLink := Link{
-            Connection:          conn,
-            ConnectOut:          false,
-            RawMessageProcessor: r.RawMessageProcessor,
-            LinkClosed:          r.LinkClosed,
-        }
+		newLink := Link{
+			Connection:          conn,
+			ConnectOut:          false,
+			RawMessageProcessor: r.RawMessageProcessor,
+			LinkClosed:          r.LinkClosed,
+		}
 
-        r.Topology.AddLink(&newLink)
-        newLink.Start()
-    }
+		r.Topology.AddLink(&newLink)
+		newLink.Start()
+	}
 }
 
-func (r *Router)ConnectTo(node Node) (linkedNode LinkNode, err error) {
-    conn, err := net.Dial(node.Protocol, node.ServeAddress)
-    if err != nil {
-        log.Log.Println("got an error: ", err)
-        return
-    }
+func (r *Router) ConnectTo(node Node) (linkedNode LinkNode, err error) {
+	conn, err := net.Dial(node.Protocol, node.ServeAddress)
+	if err != nil {
+		log.Log.Println("got an error: ", err)
+		return
+	}
 
-    link := Link{
-        Connection: conn,
-        ConnectOut: true,
-        RawMessageProcessor: r.RawMessageProcessor,
-        LinkClosed: r.LinkClosed,
-    }
-    link.Start()
+	link := Link{
+		Connection:          conn,
+		ConnectOut:          true,
+		RawMessageProcessor: r.RawMessageProcessor,
+		LinkClosed:          r.LinkClosed,
+	}
+	link.Start()
 
-    linkedNode = NewNetworkNodeFromLink(&link)
-    linkedNode.ServeAddress = node.ServeAddress
-    linkedNode.ID = r.Topology.BuildNodeID(linkedNode.Node)
+	linkedNode = NewNetworkNodeFromLink(&link)
+	linkedNode.ServeAddress = node.ServeAddress
+	linkedNode.ID = r.Topology.BuildNodeID(linkedNode.Node)
 
-    return
+	return
 }
 
-func (r *Router)LinkClosed(link ILink) {
-    r.Topology.RemoveLink(link)
-    return
+func (r *Router) LinkClosed(link ILink) {
+	r.Topology.RemoveLink(link)
+	return
 }
 
-func (r *Router)JoinTopology(seed Node) (err error) {
-    if seed.ID == "" {
-        seed.ID = r.Topology.BuildNodeID(seed)
-    }
+func (r *Router) JoinTopology(seed Node) (err error) {
+	if seed.ID == "" {
+		seed.ID = r.Topology.BuildNodeID(seed)
+	}
 
-    if _, err = r.Topology.GetLink(seed); err == nil {
-        return
-    }
+	if _, err = r.Topology.GetLink(seed); err == nil {
+		return
+	}
 
-    linkedNode, err := r.ConnectTo(seed)
-    if err != nil {
-        return
-    }
+	linkedNode, err := r.ConnectTo(seed)
+	if err != nil {
+		return
+	}
 
-    log.Log.Println("connect to seed: ", seed)
-    err = r.Topology.Join(linkedNode)
+	log.Log.Println("connect to seed: ", seed)
+	err = r.Topology.Join(linkedNode)
 
-    return
+	return
 }
 
-func (r *Router)LeaveTopology()  {
-    r.Topology.Leave()
+func (r *Router) LeaveTopology() {
+	r.Topology.Leave()
 }
 
-func (r *Router)GetAllLinkedNode() (nodes []Node) {
-    linkedNodes := r.Topology.GetAllNodes()
-    for _, n := range linkedNodes {
-        nodes = append(nodes, n.Node)
-    }
+func (r *Router) GetAllLinkedNode() (nodes []Node) {
+	linkedNodes := r.Topology.GetAllNodes()
+	for _, n := range linkedNodes {
+		nodes = append(nodes, n.Node)
+	}
 
-    return
+	return
 }
 
 func (r *Router) RegisterMessageProcessor(msgFamily string, processor MessageProcessor) {
-    r.MessageProcessorMap[msgFamily] = processor
+	r.MessageProcessorMap[msgFamily] = processor
 }
 
 func (r *Router) RawMessageProcessor(data []byte, link ILink) {
-    r.rawProcessorLock.Lock()
-    defer r.rawProcessorLock.Unlock()
+	r.rawProcessorLock.Lock()
+	defer r.rawProcessorLock.Unlock()
 
-    newMsg := Message{}
-    err := newMsg.FromRawMessage(data)
-    if err != nil {
-        return
-    }
+	newMsg := Message{}
+	err := newMsg.FromRawMessage(data)
+	if err != nil {
+		return
+	}
 
-    if r.Topology.InterestedMessage(newMsg) {
-        r.Topology.MessageProcessor(newMsg, link)
-    }
+	if r.Topology.InterestedMessage(newMsg) {
+		r.Topology.MessageProcessor(newMsg, link)
+	}
 
-    msgProcessor, exists := r.MessageProcessorMap[newMsg.Family]
-    if !exists {
-        return
-    }
+	msgProcessor, exists := r.MessageProcessorMap[newMsg.Family]
+	if !exists {
+		return
+	}
 
-    replyMsg := msgProcessor(newMsg)
-    if replyMsg == nil {
-        return
-    }
+	replyMsg := msgProcessor(newMsg)
+	if replyMsg == nil {
+		return
+	}
 
-    replyMsg.From = r.LocalNode.Node
-    rawMsg, err := replyMsg.ToRawMessage()
-    if err != nil {
-        return
-    }
+	replyMsg.From = r.LocalNode.Node
+	rawMsg, err := replyMsg.ToRawMessage()
+	if err != nil {
+		return
+	}
 
-    n, err := link.SendData(rawMsg)
+	n, err := link.SendData(rawMsg)
 
-    if err != nil {
-        log.Log.Println("reply message failed. ", err)
-        log.Log.Printf("\r\nshould sent %d real sent %d \r\n", len(rawMsg), n)
-    }
+	if err != nil {
+		log.Log.Println("reply message failed. ", err)
+		log.Log.Printf("\r\nshould sent %d real sent %d \r\n", len(rawMsg), n)
+	}
 
-    rawMsg = nil
+	rawMsg = nil
 }
 
-func (r *Router)SendTo(node Node, msg Message) (n int, err error)  {
-    link, err := r.Topology.GetLink(node)
-    if err != nil {
-        return
-    }
+func (r *Router) SendTo(node Node, msg Message) (n int, err error) {
+	link, err := r.Topology.GetLink(node)
+	if err != nil {
+		return
+	}
 
-    msg.From = r.LocalNode.Node
-    rawMsg, err := msg.ToRawMessage()
-    if err != nil {
-        return
-    }
+	msg.From = r.LocalNode.Node
+	rawMsg, err := msg.ToRawMessage()
+	if err != nil {
+		return
+	}
 
-    n, err = link.SendData(rawMsg)
-    if err != nil {
-        log.Log.Error("send data failed: data length ", len(rawMsg), " error: ", err.Error())
-    }
+	n, err = link.SendData(rawMsg)
+	if err != nil {
+		log.Log.Error("send data failed: data length ", len(rawMsg), " error: ", err.Error())
+	}
 
-    return
+	return
 }
 
-func (r *Router)Broadcast(msg message.Message) (err error) {
-    networkMsg := Message{
-        Message: msg,
-        From: r.LocalNode.Node,
-    }
+func (r *Router) Broadcast(msg message.Message) (err error) {
+	networkMsg := Message{
+		Message: msg,
+		From:    r.LocalNode.Node,
+	}
 
-    targets := r.Topology.GetAllNodes()
-    for _, t := range targets {
-        n := t.Node
-        go r.SendTo(n, networkMsg)
-    }
-    return
+	targets := r.Topology.GetAllNodes()
+	for _, t := range targets {
+		n := t.Node
+		go r.SendTo(n, networkMsg)
+	}
+	return
 }

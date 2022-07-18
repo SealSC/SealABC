@@ -26,7 +26,7 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
-func Load()  {
+func Load() {
 	enum.SimpleBuild(&uidData.UIDKeyTypes)
 	enum.SimpleBuild(&uidData.UIDActionTypes)
 }
@@ -34,13 +34,13 @@ func Load()  {
 func NewLedger(kvDriver kvDatabase.IDriver, sqlDriver simpleSQLDatabase.IDriver) (ledger UIDLedger) {
 	ledger.KVStorage = kvDriver
 
-	ledger.validators = map[string]actionValidator {
+	ledger.validators = map[string]actionValidator{
 		uidData.UIDActionTypes.Create.String(): ledger.verifyUIDCreation,
 		uidData.UIDActionTypes.Append.String(): ledger.verifyUIDKeysAppend,
 		uidData.UIDActionTypes.Update.String(): ledger.verifyUIDKeysUpdate,
 	}
 
-	ledger.executors = map[string]actionExecutor {
+	ledger.executors = map[string]actionExecutor{
 		uidData.UIDActionTypes.Create.String(): ledger.createUID,
 		uidData.UIDActionTypes.Append.String(): ledger.appendUIDKeys,
 		uidData.UIDActionTypes.Update.String(): ledger.updateUIDKeys,
@@ -53,14 +53,14 @@ type actionValidator func(actData []byte) (ret interface{}, err error)
 type actionExecutor func(actData []byte) (err error)
 
 type UIDLedger struct {
-	validators map[string] actionValidator
-	executors map[string] actionExecutor
+	validators map[string]actionValidator
+	executors  map[string]actionExecutor
 
 	CryptoTools crypto.Tools
 	KVStorage   kvDatabase.IDriver
 }
 
-func (u *UIDLedger) VerifyAction(action string, data []byte) (ret interface{}, err error){
+func (u *UIDLedger) VerifyAction(action string, data []byte) (ret interface{}, err error) {
 	if validate, exists := u.validators[action]; exists {
 		return validate(data)
 	}
@@ -68,7 +68,7 @@ func (u *UIDLedger) VerifyAction(action string, data []byte) (ret interface{}, e
 	return nil, errors.New("action not supported")
 }
 
-func (u *UIDLedger) ExecuteAction(action string, data []byte) (err error)  {
+func (u *UIDLedger) ExecuteAction(action string, data []byte) (err error) {
 	if executor, exists := u.executors[action]; exists {
 		return executor(data)
 	}

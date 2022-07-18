@@ -18,259 +18,259 @@
 package simpleMysql
 
 import (
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-    "database/sql"
-    "errors"
-    _ "github.com/go-sql-driver/mysql"
-    "strings"
+	"database/sql"
+	"errors"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	_ "github.com/go-sql-driver/mysql"
+	"strings"
 )
 
-var Charsets struct{
-    UTF8 enum.Element
+var Charsets struct {
+	UTF8 enum.Element
 }
 
 type Config struct {
-    User            string
-    Password        string
-    DBName          string
-    Charset         string
-    MaxConnection   int
+	User          string
+	Password      string
+	DBName        string
+	Charset       string
+	MaxConnection int
 }
 
 type simpleMySQLDriver struct {
-    db *sql.DB
+	db *sql.DB
 }
 
-func (s *simpleMySQLDriver) exec(pSQL string, data []interface{}) (result sql.Result, err error)  {
-    stmt, err := s.db.Prepare(pSQL)
-    if err != nil {
-        return
-    }
+func (s *simpleMySQLDriver) exec(pSQL string, data []interface{}) (result sql.Result, err error) {
+	stmt, err := s.db.Prepare(pSQL)
+	if err != nil {
+		return
+	}
 
-    defer func() {
-        closeErr := stmt.Close()
+	defer func() {
+		closeErr := stmt.Close()
 
-        errText := ""
-        if err != nil {
-            errText = "execute error: " + err.Error()
-        }
+		errText := ""
+		if err != nil {
+			errText = "execute error: " + err.Error()
+		}
 
-        if closeErr != nil {
-            errText = " close error: " + closeErr.Error()
-        }
+		if closeErr != nil {
+			errText = " close error: " + closeErr.Error()
+		}
 
-        if errText != "" {
-            err = errors.New(errText)
-        }
-    }()
+		if errText != "" {
+			err = errors.New(errText)
+		}
+	}()
 
-    result, err = stmt.Exec(data...)
-    return
+	result, err = stmt.Exec(data...)
+	return
 }
 
-func (s *simpleMySQLDriver) getInsertContentSQL(sqlPrefix string, rows simpleSQLDatabase.IRows) (pSQL string, data []interface{})  {
-    pSQL = sqlPrefix
+func (s *simpleMySQLDriver) getInsertContentSQL(sqlPrefix string, rows simpleSQLDatabase.IRows) (pSQL string, data []interface{}) {
+	pSQL = sqlPrefix
 
-    rowCount := rows.Count()
-    table := rows.Table()
+	rowCount := rows.Count()
+	table := rows.Table()
 
-    columns := table.ColumnsForInsert()
-    tName := table.Name()
+	columns := table.ColumnsForInsert()
+	tName := table.Name()
 
-    qm := make([]string, len(columns))
-    for i := 0; i < len(columns); i++ {
-        qm[i] = "?"
-    }
-    pSQL += " `" + tName + "` (`" + strings.Join(columns[:], "`,`") + "`)"
+	qm := make([]string, len(columns))
+	for i := 0; i < len(columns); i++ {
+		qm[i] = "?"
+	}
+	pSQL += " `" + tName + "` (`" + strings.Join(columns[:], "`,`") + "`)"
 
-    var values []string
-    for i := 0; i < rowCount; i++ {
-        values = append(values, "("+strings.Join(qm[:], ",")+")")
-    }
+	var values []string
+	for i := 0; i < rowCount; i++ {
+		values = append(values, "("+strings.Join(qm[:], ",")+")")
+	}
 
-    pSQL += " values " + strings.Join(values, ",")
-    data =  rows.DataForInsert()
-    return
+	pSQL += " values " + strings.Join(values, ",")
+	data = rows.DataForInsert()
+	return
 }
 
 func (s *simpleMySQLDriver) insert(sqlPrefix string, rows simpleSQLDatabase.IRows) (result sql.Result, err error) {
-    pSQL, data := s.getInsertContentSQL(sqlPrefix, rows)
-    result, err = s.exec(pSQL , data)
+	pSQL, data := s.getInsertContentSQL(sqlPrefix, rows)
+	result, err = s.exec(pSQL, data)
 
-    return
+	return
 }
 
 func (s *simpleMySQLDriver) Insert(rows simpleSQLDatabase.IRows, ignoreKey bool) (result sql.Result, err error) {
-    if rows.Count() == 0 {
-        return
-    }
+	if rows.Count() == 0 {
+		return
+	}
 
-    var pSQL string
-    if ignoreKey {
-        pSQL = "insert ignore into "
-    } else {
-        pSQL = "insert into "
-    }
+	var pSQL string
+	if ignoreKey {
+		pSQL = "insert ignore into "
+	} else {
+		pSQL = "insert into "
+	}
 
-    result, err = s.insert(pSQL , rows)
-    return
+	result, err = s.insert(pSQL, rows)
+	return
 }
 
 func (s *simpleMySQLDriver) Replace(rows simpleSQLDatabase.IRows) (result sql.Result, err error) {
-    if rows.Count() == 0 {
-        return
-    }
+	if rows.Count() == 0 {
+		return
+	}
 
-    pSQL := "replace into "
-    result, err = s.insert(pSQL , rows)
-    return
+	pSQL := "replace into "
+	result, err = s.insert(pSQL, rows)
+	return
 }
 
 func (s *simpleMySQLDriver) Update(rows simpleSQLDatabase.IRows, fileds []string, condition string, args []interface{}) (result sql.Result, err error) {
-    if rows.Count() == 0 {
-        return
-    }
+	if rows.Count() == 0 {
+		return
+	}
 
-    pSQL := "update `" + rows.Table().Name() + "` set "
-    var data []interface{}
+	pSQL := "update `" + rows.Table().Name() + "` set "
+	var data []interface{}
 
-    columnCount := len(fileds)
+	columnCount := len(fileds)
 
-    dataSegment := make([]string, columnCount)
-    uData := rows.Data(fileds)
-    columns := rows.Table().FieldsToColumns(fileds)
+	dataSegment := make([]string, columnCount)
+	uData := rows.Data(fileds)
+	columns := rows.Table().FieldsToColumns(fileds)
 
-    for i:=0; i<columnCount; i++ {
-        dataSegment[i] = columns[i] + "=?"
-        data = append(data, uData[i])
-    }
+	for i := 0; i < columnCount; i++ {
+		dataSegment[i] = columns[i] + "=?"
+		data = append(data, uData[i])
+	}
 
-    pSQL += strings.Join(dataSegment[:], ",")
-    pSQL += " " + condition
+	pSQL += strings.Join(dataSegment[:], ",")
+	pSQL += " " + condition
 
-    if nil != args {
-        data = append(data, args...)
-    }
+	if nil != args {
+		data = append(data, args...)
+	}
 
-    return s.exec(pSQL, data)
+	return s.exec(pSQL, data)
 }
 
 func (s *simpleMySQLDriver) Query(rowType interface{}, query string, args []interface{}) (rows []interface{}, err error) {
-    sqlRows, err := s.db.Query(query, args...)
-    if err != nil {
-        return
-    }
-    defer func() {
-       _ = sqlRows.Close()
-    }()
+	sqlRows, err := s.db.Query(query, args...)
+	if err != nil {
+		return
+	}
+	defer func() {
+		_ = sqlRows.Close()
+	}()
 
-    rows, err = simpleSQLDatabase.SQLRowsToStructureRows(sqlRows, rowType)
-    return
+	rows, err = simpleSQLDatabase.SQLRowsToStructureRows(sqlRows, rowType)
+	return
 }
 
 func (s *simpleMySQLDriver) SimpleSelect(rowType interface{}, table string, col string, equalVal interface{}) (rows []interface{}, err error) {
-    query := "select * from `" + table + "` where `" + col + "`=?"
+	query := "select * from `" + table + "` where `" + col + "`=?"
 
-    sqlRows, err := s.db.Query(query, equalVal)
-    if err != nil {
-        return
-    }
-    defer func() {
-        sqlRows.Close()
-    }()
+	sqlRows, err := s.db.Query(query, equalVal)
+	if err != nil {
+		return
+	}
+	defer func() {
+		sqlRows.Close()
+	}()
 
-    rows, err = simpleSQLDatabase.SQLRowsToStructureRows(sqlRows, rowType)
+	rows, err = simpleSQLDatabase.SQLRowsToStructureRows(sqlRows, rowType)
 
-    return
+	return
 }
 
 func (s *simpleMySQLDriver) RowCount(table string, condition string, args []interface{}) (cnt uint64, err error) {
-    pSQL := strings.Join([]string{
-        "select count(*) from",
-        "`" + table + "`",
-        condition,
-    }, " ")
+	pSQL := strings.Join([]string{
+		"select count(*) from",
+		"`" + table + "`",
+		condition,
+	}, " ")
 
-    if args == nil {
-        args = []interface{}{}
-    }
+	if args == nil {
+		args = []interface{}{}
+	}
 
-    sqlRow, err := s.db.Query(pSQL, args...)
-    if err != nil {
-        return
-    }
-    defer func() {
-        sqlRow.Close()
-    }()
+	sqlRow, err := s.db.Query(pSQL, args...)
+	if err != nil {
+		return
+	}
+	defer func() {
+		sqlRow.Close()
+	}()
 
-    for sqlRow.Next() {
-        err = sqlRow.Scan(&cnt)
-        break
-    }
+	for sqlRow.Next() {
+		err = sqlRow.Scan(&cnt)
+		break
+	}
 
-    return
+	return
 }
 
 func (s *simpleMySQLDriver) SimplePagingQuery(param simpleSQLDatabase.SimplePagingQueryParam) (ret *simpleSQLDatabase.SimplePagingQueryResult, err error) {
 
-    count, err := s.RowCount(param.Table, param.Condition, param.ConditionArgs)
-    if err != nil {
-        return nil, err
-    }
+	count, err := s.RowCount(param.Table, param.Condition, param.ConditionArgs)
+	if err != nil {
+		return nil, err
+	}
 
-    start := param.Page * param.Count
-    queryData := append(param.ConditionArgs, start, param.Count)
+	start := param.Page * param.Count
+	queryData := append(param.ConditionArgs, start, param.Count)
 
-    pSQL := "select * from " +
-        "`" + param.Table + "` " +
-        param.Condition +
-        " order by `c_id` desc limit ?,?"
+	pSQL := "select * from " +
+		"`" + param.Table + "` " +
+		param.Condition +
+		" order by `c_id` desc limit ?,?"
 
-    rows, err := s.Query(param.RowType, pSQL, queryData)
-    if err != nil {
-        return nil, err
-    }
+	rows, err := s.Query(param.RowType, pSQL, queryData)
+	if err != nil {
+		return nil, err
+	}
 
-    result := &simpleSQLDatabase.SimplePagingQueryResult {
-        Rows: rows,
-        Total: count,
-    }
+	result := &simpleSQLDatabase.SimplePagingQueryResult{
+		Rows:  rows,
+		Total: count,
+	}
 
-    return result, err
+	return result, err
 }
 
-func Load()  {
-    enum.SimpleBuild(&Charsets)
+func Load() {
+	enum.SimpleBuild(&Charsets)
 }
 
 func NewDriver(cfg interface{}) (driver simpleSQLDatabase.IDriver, err error) {
-    s := &simpleMySQLDriver{}
+	s := &simpleMySQLDriver{}
 
-    dbCfg, ok := cfg.(Config)
-    if !ok {
-        err = errors.New("incompatible config settings")
-        return
-    }
+	dbCfg, ok := cfg.(Config)
+	if !ok {
+		err = errors.New("incompatible config settings")
+		return
+	}
 
-    openStr := dbCfg.User + ":" + dbCfg.Password + "@/" + dbCfg.DBName
-    if dbCfg.Charset != "" {
-        openStr += "?charset=" + dbCfg.Charset
-    }
+	openStr := dbCfg.User + ":" + dbCfg.Password + "@/" + dbCfg.DBName
+	if dbCfg.Charset != "" {
+		openStr += "?charset=" + dbCfg.Charset
+	}
 
-    s.db, err = sql.Open("mysql", openStr)
+	s.db, err = sql.Open("mysql", openStr)
 
-    if nil != err {
-        return
-    }
+	if nil != err {
+		return
+	}
 
-    if dbCfg.MaxConnection == 0 {
-        dbCfg.MaxConnection = 100
-    }
+	if dbCfg.MaxConnection == 0 {
+		dbCfg.MaxConnection = 100
+	}
 
-    s.db.SetMaxOpenConns(dbCfg.MaxConnection)
-    s.db.SetMaxIdleConns(dbCfg.MaxConnection)
+	s.db.SetMaxOpenConns(dbCfg.MaxConnection)
+	s.db.SetMaxIdleConns(dbCfg.MaxConnection)
 
-    driver = s
-    return
+	driver = s
+	return
 }

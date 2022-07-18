@@ -30,7 +30,7 @@ type SellingOperationResult struct {
 	SellingData
 }
 
-func (l *Ledger) sellingDataVerify(tx Transaction) (data SellingData, err error)  {
+func (l *Ledger) sellingDataVerify(tx Transaction) (data SellingData, err error) {
 	err = json.Unmarshal(tx.ExtraData, &data)
 	if err != nil {
 		return
@@ -54,7 +54,7 @@ func (l *Ledger) verifyStartSelling(tx Transaction) (ret interface{}, err error)
 	}
 
 	sellingData, err := l.sellingDataVerify(tx)
-	if  err != nil {
+	if err != nil {
 		return
 	}
 
@@ -85,7 +85,7 @@ func (l *Ledger) verifyStopSelling(tx Transaction) (ret interface{}, err error) 
 		return nil, errors.New("invalid input or output count")
 	}
 	sellingData, err := l.sellingDataVerify(tx)
-	if  err != nil {
+	if err != nil {
 		return
 	}
 
@@ -109,7 +109,7 @@ func (l *Ledger) verifyBuyAssets(tx Transaction) (ret interface{}, err error) {
 		return nil, errors.New("invalid input or output count")
 	}
 
-	target := tx.Input[inCount - 1]
+	target := tx.Input[inCount-1]
 	sellingKey := l.buildAssetsSellingKey(target.Transaction)
 	data, err := l.Storage.Get(sellingKey)
 	if err != nil {
@@ -126,7 +126,7 @@ func (l *Ledger) verifyBuyAssets(tx Transaction) (ret interface{}, err error) {
 	inAmount := uint64(0)
 	var uList []Unspent
 
-	for i:=0; i < inCount - 1; i++ {
+	for i := 0; i < inCount-1; i++ {
 		key := l.buildUnspentStorageKey(tx.Seal.SignerPublicKey, tx.Assets.getUniqueHash(), tx.Input[i].Transaction, tx.Input[i].OutputIndex)
 		unspent, dbErr := l.getUnspent(key)
 		if dbErr != nil {
@@ -189,9 +189,7 @@ func (l *Ledger) confirmStartSelling(tx Transaction) (ret interface{}, err error
 		return
 	}
 
-
-
-	ret = SellingOperationResult {
+	ret = SellingOperationResult{
 		UnspentListWithBalance: ul,
 		SellingData:            sellingData,
 	}
@@ -232,7 +230,7 @@ func (l *Ledger) confirmStopSelling(tx Transaction) (ret interface{}, err error)
 
 	_ = l.deleteSellingData(sellingData.Transaction)
 
-	ret = SellingOperationResult {
+	ret = SellingOperationResult{
 		UnspentListWithBalance: ul,
 		SellingData:            sellingData,
 	}
@@ -244,7 +242,7 @@ func (l *Ledger) confirmBuyAssets(tx Transaction) (ret interface{}, err error) {
 	defer l.operateLock.Unlock()
 
 	inCount := len(tx.Input)
-	target := tx.Input[inCount - 1]
+	target := tx.Input[inCount-1]
 
 	sellingKey := l.buildAssetsSellingKey(target.Transaction)
 	data, err := l.Storage.Get(sellingKey)
@@ -257,7 +255,7 @@ func (l *Ledger) confirmBuyAssets(tx Transaction) (ret interface{}, err error) {
 
 	var uList []Unspent
 
-	for i:=0; i < inCount - 1; i++ {
+	for i := 0; i < inCount-1; i++ {
 		key := l.buildUnspentStorageKey(tx.Seal.SignerPublicKey, tx.Assets.getUniqueHash(), tx.Input[i].Transaction, tx.Input[i].OutputIndex)
 		unspent, dbErr := l.getUnspent(key)
 		if dbErr != nil {
@@ -284,7 +282,7 @@ func (l *Ledger) confirmBuyAssets(tx Transaction) (ret interface{}, err error) {
 
 	sellAssets, _ := l.localAssetsFromHash(sellingData.SellingAssets)
 	tx.Input = []UTXOInput{}
-	tx.Output =[]UTXOOutput{{
+	tx.Output = []UTXOOutput{{
 		To:    tx.Seal.SignerPublicKey,
 		Value: sellingData.Amount,
 	}}

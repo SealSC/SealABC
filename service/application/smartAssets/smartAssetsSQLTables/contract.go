@@ -18,13 +18,13 @@
 package smartAssetsSQLTables
 
 import (
+	"encoding/hex"
+	"fmt"
 	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/hex"
-	"fmt"
 	"time"
 )
 

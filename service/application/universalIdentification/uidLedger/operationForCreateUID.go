@@ -25,7 +25,7 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
-func (u *UIDLedger) verifyUIDCreation(reqData []byte) (ret interface{}, err error){
+func (u *UIDLedger) verifyUIDCreation(reqData []byte) (ret interface{}, err error) {
 	actionData := uidData.UIDCreation{}
 	err = json.Unmarshal(reqData, &actionData)
 	if err != nil {
@@ -73,7 +73,7 @@ func (u *UIDLedger) verifyUIDCreation(reqData []byte) (ret interface{}, err erro
 	return nil, nil
 }
 
-func (u* UIDLedger) createUID(reqData []byte) (err error) {
+func (u *UIDLedger) createUID(reqData []byte) (err error) {
 	actionData := uidData.UIDCreation{}
 	_ = json.Unmarshal(reqData, &actionData)
 

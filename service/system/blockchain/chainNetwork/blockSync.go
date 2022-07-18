@@ -18,62 +18,61 @@
 package chainNetwork
 
 import (
-    "sync"
-    "github.com/SealSC/SealABC/network"
-    "time"
-    "github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/network"
+	"sync"
+	"time"
 )
 
 var syncBlockWait sync.WaitGroup
 var Syncing = false
 
 func (p *P2PService) StartSync(nodes []network.Node, targetHeight uint64) {
-    if Syncing {
-        return
-    }
+	if Syncing {
+		return
+	}
 
-    p.syncLock.Lock()
-    Syncing = true
+	p.syncLock.Lock()
+	Syncing = true
 
-    defer func() {
-        if r := recover(); r != nil {
-            log.Log.Error("got a panic: ", r)
-        }
+	defer func() {
+		if r := recover(); r != nil {
+			log.Log.Error("got a panic: ", r)
+		}
 
-        Syncing = false
-        p.syncLock.Unlock()
-    }()
+		Syncing = false
+		p.syncLock.Unlock()
+	}()
 
-    seedsCnt := len(nodes)
-    for s := p.chain.CurrentHeight(); s < targetHeight; s++ {
-        var syncErr error = nil
-        seedIdx := 0
-        for i := 0; i< seedsCnt; i++ {
-            seedIdx = (int(s) + 1) % seedsCnt
-            syncErr = p.syncBlockFrom(nodes[seedIdx], s + 1)
+	seedsCnt := len(nodes)
+	for s := p.chain.CurrentHeight(); s < targetHeight; s++ {
+		var syncErr error = nil
+		seedIdx := 0
+		for i := 0; i < seedsCnt; i++ {
+			seedIdx = (int(s) + 1) % seedsCnt
+			syncErr = p.syncBlockFrom(nodes[seedIdx], s+1)
 
-            if syncErr == nil {
-                syncBlockWait.Add(1)
-                break
-            }
-        }
+			if syncErr == nil {
+				syncBlockWait.Add(1)
+				break
+			}
+		}
 
-        if syncErr != nil {
-            log.Log.Error("sync block ", s, " failed")
-            time.Sleep(time.Second)
-            continue
-        }
+		if syncErr != nil {
+			log.Log.Error("sync block ", s, " failed")
+			time.Sleep(time.Second)
+			continue
+		}
 
-        log.Log.Println("waiting for block ",  s + 1, " from node ", nodes[seedIdx].ServeAddress)
-        syncBlockWait.Wait()
-        log.Log.Println("sync block ",  s + 1, " over.")
-    }
-    return
+		log.Log.Println("waiting for block ", s+1, " from node ", nodes[seedIdx].ServeAddress)
+		syncBlockWait.Wait()
+		log.Log.Println("sync block ", s+1, " over.")
+	}
+	return
 }
 
 func (p *P2PService) syncBlockFrom(node network.Node, height uint64) (err error) {
-    reqMsg := newSyncBlockMessage(height)
-    p.NetworkService.SendTo(node, reqMsg)
-    return
+	reqMsg := newSyncBlockMessage(height)
+	p.NetworkService.SendTo(node, reqMsg)
+	return
 }
-

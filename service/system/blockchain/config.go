@@ -18,20 +18,20 @@
 package blockchain
 
 import (
-    "github.com/SealSC/SealABC/network"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainApi"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainApi"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type Config struct {
-    ServiceName string
+	ServiceName string
 
-    Blockchain  chainStructure.Config
-    Network     network.Config
-    Api         chainApi.Config
+	Blockchain chainStructure.Config
+	Network    network.Config
+	Api        chainApi.Config
 
-    EnableSQLDB bool
-    SQLStorage  simpleSQLDatabase.IDriver
-    ExternalExecutors []chainStructure.IBlockchainExternalApplication
+	EnableSQLDB       bool
+	SQLStorage        simpleSQLDatabase.IDriver
+	ExternalExecutors []chainStructure.IBlockchainExternalApplication
 }

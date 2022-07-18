@@ -23,9 +23,9 @@ import (
 
 func newConfigFlag() cliV2.Flag {
 	return &(cliV2.StringFlag{
-		Name:   Config,
-		Usage:  "set config file name",
-		Hidden: false,
+		Name:     Config,
+		Usage:    "set config file name",
+		Hidden:   false,
 		Required: true,
 	})
 }

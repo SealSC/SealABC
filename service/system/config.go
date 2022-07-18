@@ -20,5 +20,5 @@ package system
 import "github.com/SealSC/SealABC/service/system/blockchain"
 
 type Config struct {
-    Chain blockchain.Config
+	Chain blockchain.Config
 }

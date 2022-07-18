@@ -18,64 +18,63 @@
 package chainSQLStorage
 
 import (
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/metadata/applicationResult"
-    "github.com/SealSC/SealABC/metadata/block"
-    "github.com/SealSC/SealABC/metadata/blockchainRequest"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainTables"
-    "encoding/hex"
+	"encoding/hex"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/applicationResult"
+	"github.com/SealSC/SealABC/metadata/block"
+	"github.com/SealSC/SealABC/metadata/blockchainRequest"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainTables"
 )
 
-func (s *Storage) StoreBlock(blk block.Entity) (err error)  {
-    rows := chainTables.BlockList.NewRows().(chainTables.BlockListRows)
-    rows.InsertBlock(blk)
+func (s *Storage) StoreBlock(blk block.Entity) (err error) {
+	rows := chainTables.BlockList.NewRows().(chainTables.BlockListRows)
+	rows.InsertBlock(blk)
 
-    _, err = s.Driver.Insert(&rows, true)
-    if err != nil {
-        log.Log.Error("insert to sql database failed: ", err.Error())
-    }
-    return
+	_, err = s.Driver.Insert(&rows, true)
+	if err != nil {
+		log.Log.Error("insert to sql database failed: ", err.Error())
+	}
+	return
 }
 
 func (s *Storage) StoreTransaction(blk block.Entity, req blockchainRequest.Entity, result applicationResult.Entity) (err error) {
-    rows := chainTables.Requests.NewRows().(chainTables.RequestRows)
-    rows.InsertTransaction(blk, req, result)
+	rows := chainTables.Requests.NewRows().(chainTables.RequestRows)
+	rows.InsertTransaction(blk, req, result)
 
-    _, err = s.Driver.Insert(&rows, true)
-    if err != nil {
-        log.Log.Error("insert transaction to block transaction list failed: ", err.Error())
-    }
+	_, err = s.Driver.Insert(&rows, true)
+	if err != nil {
+		log.Log.Error("insert transaction to block transaction list failed: ", err.Error())
+	}
 
-    return
+	return
 }
 
 func (s *Storage) StoreAddress(blk block.Entity, req blockchainRequest.Entity) (err error) {
-    defer func() {
-        if r := recover(); r != nil {
-            log.Log.Error("got panic: ", r)
-        }
+	defer func() {
+		if r := recover(); r != nil {
+			log.Log.Error("got panic: ", r)
+		}
 
-        if err != nil {
-            log.Log.Error(err.Error())
-            return
-        }
-    }()
+		if err != nil {
+			log.Log.Error(err.Error())
+			return
+		}
+	}()
 
-    cnt, err := s.Driver.RowCount(
-        chainTables.AddressList.Name(),
-        "where `c_address`=?",
-        []interface{}{
-            hex.EncodeToString(req.Seal.SignerPublicKey),
-        })
+	cnt, err := s.Driver.RowCount(
+		chainTables.AddressList.Name(),
+		"where `c_address`=?",
+		[]interface{}{
+			hex.EncodeToString(req.Seal.SignerPublicKey),
+		})
 
+	rows := chainTables.AddressList.NewRows().(chainTables.AddressListRows)
+	rows.UpdateAddress(blk, req)
+	if cnt == 0 {
+		_, err = s.Driver.Insert(&rows, true)
+	} else {
+		_, err = s.Driver.Replace(&rows)
+	}
 
-    rows := chainTables.AddressList.NewRows().(chainTables.AddressListRows)
-    rows.UpdateAddress(blk, req)
-    if cnt == 0 {
-        _, err = s.Driver.Insert(&rows, true)
-    } else {
-        _, err = s.Driver.Replace(&rows)
-    }
-
-    return
+	return
 }

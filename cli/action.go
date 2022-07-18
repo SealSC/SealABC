@@ -18,13 +18,13 @@
 package cli
 
 import (
-	"github.com/SealSC/SealABC/cli/cliFlags"
 	"errors"
+	"github.com/SealSC/SealABC/cli/cliFlags"
 	cliV2 "github.com/urfave/cli/v2"
 )
 
 func SetAction(app *cliV2.App) {
-    app.Action = func(c *cliV2.Context) error {
+	app.Action = func(c *cliV2.Context) error {
 		cfgFile := c.String(cliFlags.Config)
 
 		//config file

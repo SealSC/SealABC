@@ -23,18 +23,18 @@ import (
 )
 
 type ServiceResult struct {
-    Code                int64 `json:"code"`
-    Success             bool `json:"success"`
-    Data interface{}    `json:"data"`
+	Code    int64       `json:"code"`
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data"`
 }
 
 type Response struct {
-	ctx   *gin.Context
+	ctx *gin.Context
 }
 
 func NewResponse(ctx *gin.Context) *Response {
 	return &Response{
-		ctx:   ctx,
+		ctx: ctx,
 	}
 }
 
@@ -60,13 +60,13 @@ func (c *Response) OK(data interface{}) {
 
 //service response will always set http status to 200.
 func (c *Response) ServiceError(code int64, data interface{}) {
-    c.ctx.JSON(http.StatusOK, &ServiceResult{
-        code, false,data,
-    })
+	c.ctx.JSON(http.StatusOK, &ServiceResult{
+		code, false, data,
+	})
 }
 
 func (c *Response) ServiceSuccess(data interface{}) {
-    c.ctx.JSON(http.StatusOK, &ServiceResult{
-        0, true,data,
-    })
+	c.ctx.JSON(http.StatusOK, &ServiceResult{
+		0, true, data,
+	})
 }

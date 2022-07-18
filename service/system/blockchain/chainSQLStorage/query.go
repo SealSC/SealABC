@@ -18,212 +18,210 @@
 package chainSQLStorage
 
 import (
-    "github.com/SealSC/SealABC/metadata/httpJSONResult/rowsWithCount"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainTables"
-    "errors"
-    "strings"
+	"errors"
+	"github.com/SealSC/SealABC/metadata/httpJSONResult/rowsWithCount"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainTables"
+	"strings"
 )
 
 const rowsPerPage = 20
 
 func (s *Storage) GetBlockList(start uint64) (blocks []chainTables.BlockListRow, err error) {
-    result, err := s.Driver.Query(chainTables.BlockListRow{},
-        "select * from `t_block_list` where `c_height`>=? order by `c_height` asc limit 0,?",
-        []interface{}{start, rowsPerPage})
+	result, err := s.Driver.Query(chainTables.BlockListRow{},
+		"select * from `t_block_list` where `c_height`>=? order by `c_height` asc limit 0,?",
+		[]interface{}{start, rowsPerPage})
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    for _, r := range result {
-        newBlk := r.(chainTables.BlockListRow)
-        newBlk.Payload = ""
-        blocks = append(blocks, newBlk)
-    }
+	for _, r := range result {
+		newBlk := r.(chainTables.BlockListRow)
+		newBlk.Payload = ""
+		blocks = append(blocks, newBlk)
+	}
 
-    return
+	return
 }
 
 func (s *Storage) GetBlock(height uint64) (blk chainTables.BlockListRow, err error) {
-    result, err := s.Driver.Query(chainTables.BlockListRow{},
-        "select * from `t_block_list` where `c_height`=? ",
-        []interface{}{height})
+	result, err := s.Driver.Query(chainTables.BlockListRow{},
+		"select * from `t_block_list` where `c_height`=? ",
+		[]interface{}{height})
 
-    if len(result) != 1 {
-        err = errors.New("no such block")
-        return
-    }
+	if len(result) != 1 {
+		err = errors.New("no such block")
+		return
+	}
 
-    blk, _  = result[0].(chainTables.BlockListRow)
-    return
+	blk, _ = result[0].(chainTables.BlockListRow)
+	return
 }
 
 func (s *Storage) GetRequestList(page uint64) (ret rowsWithCount.Entity, err error) {
-    table := chainTables.Requests.Name()
+	table := chainTables.Requests.Name()
 
-    count, err := s.Driver.RowCount(table, "", nil)
-    if err != nil {
-        return
-    }
+	count, err := s.Driver.RowCount(table, "", nil)
+	if err != nil {
+		return
+	}
 
-    startPage := page * rowsPerPage
+	startPage := page * rowsPerPage
 
-    pSQL := "select * from " +
-        "`" + table + "`" +
-        " order by `c_id` desc limit ?,?"
+	pSQL := "select * from " +
+		"`" + table + "`" +
+		" order by `c_id` desc limit ?,?"
 
-    row := chainTables.RequestRow{}
-    rows, err := s.Driver.Query(row, pSQL, []interface{} {
-        startPage,
-        rowsPerPage,
-    })
+	row := chainTables.RequestRow{}
+	rows, err := s.Driver.Query(row, pSQL, []interface{}{
+		startPage,
+		rowsPerPage,
+	})
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
+	list := rowsWithCount.Entity{
+		Rows:  rows,
+		Total: count,
+	}
 
-
-    list := rowsWithCount.Entity {
-        Rows:  rows,
-        Total: count,
-    }
-
-    return list, err
+	return list, err
 }
 
 func (s *Storage) GetBlockByHash(hash string) (blk chainTables.BlockListRow, err error) {
-    rows, err := s.Driver.SimpleSelect (
-        chainTables.BlockListRow{},
-        chainTables.BlockList.Name(),
-        `c_hash`,
-        hash,
-    )
+	rows, err := s.Driver.SimpleSelect(
+		chainTables.BlockListRow{},
+		chainTables.BlockList.Name(),
+		`c_hash`,
+		hash,
+	)
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    if len(rows) != 1 {
-        err = errors.New("no such block")
-        return
-    }
+	if len(rows) != 1 {
+		err = errors.New("no such block")
+		return
+	}
 
-    blk = rows[0].(chainTables.BlockListRow)
-    return
+	blk = rows[0].(chainTables.BlockListRow)
+	return
 }
 
 func (s *Storage) GetRequestByHash(hash string) (req chainTables.RequestRow, err error) {
-    table := chainTables.Requests.Name()
-    pSQL := "select * from `" + table + "` where `c_hash`=?"
+	table := chainTables.Requests.Name()
+	pSQL := "select * from `" + table + "` where `c_hash`=?"
 
-    rows, err := s.Driver.Query(chainTables.RequestRow{}, pSQL, []interface{}{hash})
-    if err != nil {
-        return
-    }
+	rows, err := s.Driver.Query(chainTables.RequestRow{}, pSQL, []interface{}{hash})
+	if err != nil {
+		return
+	}
 
-    if len(rows) == 0 {
-        err = errors.New("no such transaction")
-        return
-    }
+	if len(rows) == 0 {
+		err = errors.New("no such transaction")
+		return
+	}
 
-    req = rows[0].(chainTables.RequestRow)
-    return
+	req = rows[0].(chainTables.RequestRow)
+	return
 }
 
 func (s *Storage) GetRequestByHeight(height string) (ret rowsWithCount.Entity, err error) {
 
-    table := chainTables.Requests.Name()
-    pSQL := "select * from " +
-        "`" + table + "`" +
-        " where `c_height`=? order by `c_id` desc"
+	table := chainTables.Requests.Name()
+	pSQL := "select * from " +
+		"`" + table + "`" +
+		" where `c_height`=? order by `c_id` desc"
 
-    row := chainTables.RequestRow{}
-    rows, err := s.Driver.Query(row, pSQL, []interface{} {height})
+	row := chainTables.RequestRow{}
+	rows, err := s.Driver.Query(row, pSQL, []interface{}{height})
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    list := rowsWithCount.Entity {
-        Rows:  rows,
-        Total: uint64(len(rows)),
-    }
+	list := rowsWithCount.Entity{
+		Rows:  rows,
+		Total: uint64(len(rows)),
+	}
 
-    return list, err
+	return list, err
 }
 
 func (s *Storage) GetRequestByApplicationAndAction(app string, act string, page uint64) (ret rowsWithCount.Entity, err error) {
-    table := chainTables.Requests.Name()
+	table := chainTables.Requests.Name()
 
-    condition := []string{" `c_application`=? "}
+	condition := []string{" `c_application`=? "}
 
-    if act != "*" {
-        condition = append(condition, " `c_action`=? ")
-    }
+	if act != "*" {
+		condition = append(condition, " `c_action`=? ")
+	}
 
-    conditionStr := " where " + strings.Join(condition, " and ")
+	conditionStr := " where " + strings.Join(condition, " and ")
 
-    sqlParam := []interface{} {app}
-    if act != "*" {
-        sqlParam = append(sqlParam, act)
-    }
+	sqlParam := []interface{}{app}
+	if act != "*" {
+		sqlParam = append(sqlParam, act)
+	}
 
-    count, err := s.Driver.RowCount(table, conditionStr, sqlParam)
-    if err != nil {
-        return
-    }
+	count, err := s.Driver.RowCount(table, conditionStr, sqlParam)
+	if err != nil {
+		return
+	}
 
-    pSQL := "select * from " +
-        "`" + table + "`" +
-        conditionStr +
-        " order by `c_id` desc limit ?,?"
+	pSQL := "select * from " +
+		"`" + table + "`" +
+		conditionStr +
+		" order by `c_id` desc limit ?,?"
 
-    start := page * rowsPerPage
-    sqlParam = append(sqlParam, start, rowsPerPage)
+	start := page * rowsPerPage
+	sqlParam = append(sqlParam, start, rowsPerPage)
 
-    row := chainTables.RequestRow{}
-    rows, err := s.Driver.Query(row, pSQL, sqlParam)
+	row := chainTables.RequestRow{}
+	rows, err := s.Driver.Query(row, pSQL, sqlParam)
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    list := rowsWithCount.Entity {
-        Rows:  rows,
-        Total: count,
-    }
+	list := rowsWithCount.Entity{
+		Rows:  rows,
+		Total: count,
+	}
 
-    return list, err
+	return list, err
 }
 
 func (s *Storage) GetAddressList(page uint64) (ret rowsWithCount.Entity, err error) {
-    table := chainTables.AddressList.Name()
+	table := chainTables.AddressList.Name()
 
-    count, err := s.Driver.RowCount(table, "", nil)
-    if err != nil {
-        return
-    }
+	count, err := s.Driver.RowCount(table, "", nil)
+	if err != nil {
+		return
+	}
 
-    pSQL := "select * from " +
-        "`" + table + "`" +
-        " order by `c_time` desc limit ?,?"
+	pSQL := "select * from " +
+		"`" + table + "`" +
+		" order by `c_time` desc limit ?,?"
 
-    start := page * rowsPerPage
+	start := page * rowsPerPage
 
-    row := chainTables.AddressListRow{}
-    rows, err := s.Driver.Query(row, pSQL, []interface{}{
-        start, rowsPerPage,
-    })
+	row := chainTables.AddressListRow{}
+	rows, err := s.Driver.Query(row, pSQL, []interface{}{
+		start, rowsPerPage,
+	})
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    list := rowsWithCount.Entity {
-        Rows:  rows,
-        Total: count,
-    }
+	list := rowsWithCount.Entity{
+		Rows:  rows,
+		Total: count,
+	}
 
-    return list, err
+	return list, err
 }

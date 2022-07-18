@@ -18,6 +18,7 @@
 package log
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
@@ -25,7 +26,6 @@ import (
 	"runtime"
 	"strconv"
 	"time"
-    "fmt"
 )
 
 type scLog struct {
@@ -33,8 +33,8 @@ type scLog struct {
 }
 
 type Config struct {
-    Level   logrus.Level
-    LogFile string
+	Level   logrus.Level
+	LogFile string
 }
 
 var Log *scLog
@@ -51,10 +51,10 @@ func SetUpLogger(cfg Config) {
 	}
 
 	Log.Formatter = &logrus.TextFormatter{
-		ForceColors: true,
+		ForceColors:      true,
 		DisableTimestamp: false,
-		FullTimestamp:true,
-		TimestampFormat: time.StampMilli,
+		FullTimestamp:    true,
+		TimestampFormat:  time.StampMilli,
 	}
 
 	// Only log the warning severity or above.
@@ -72,50 +72,49 @@ func (l *scLog) Tracef(format string, args ...interface{}) {
 }
 
 func (l *scLog) Error(args ...interface{}) {
-    args = getTraceInfo(args)
-    l.Logger.Error(args)
+	args = getTraceInfo(args)
+	l.Logger.Error(args)
 }
 
 func (l *scLog) Errorf(format string, args ...interface{}) {
-    args = getTraceInfo(args)
-    l.Logger.Errorf("%s "+format, args...)
+	args = getTraceInfo(args)
+	l.Logger.Errorf("%s "+format, args...)
 }
-
 
 func getTraceInfo(args ...interface{}) []interface{} {
 	pc := make([]uintptr, 10)
 
 	runtime.Callers(3, pc)
-	var stackRows  = []interface{} {"\r\n"}
-	for i := 0; i<10; i++ {
-        f := runtime.FuncForPC(pc[i])
-        if nil == f {
-            break
-        }
-        file, line := f.FileLine(pc[i])
-        fileName := filepath.Base(file)
-        nameFull := f.Name()
+	var stackRows = []interface{}{"\r\n"}
+	for i := 0; i < 10; i++ {
+		f := runtime.FuncForPC(pc[i])
+		if nil == f {
+			break
+		}
+		file, line := f.FileLine(pc[i])
+		fileName := filepath.Base(file)
+		nameFull := f.Name()
 
-        stackRows = append(stackRows, "func " + nameFull + "@" + fileName + ":" + strconv.Itoa(line - 1) + "\r\n")
-    }
+		stackRows = append(stackRows, "func "+nameFull+"@"+fileName+":"+strconv.Itoa(line-1)+"\r\n")
+	}
 
-    ret :=  append([]interface{}{}, args...)
-	return  append(ret, stackRows...)
+	ret := append([]interface{}{}, args...)
+	return append(ret, stackRows...)
 }
 
 func TracePanic() {
-    r := recover()
-    if nil != r {
-        printPanic(r)
-    }
+	r := recover()
+	if nil != r {
+		printPanic(r)
+	}
 }
 
-func printPanic(r interface{})  {
-    if nil == Log {
-        trace := getTraceInfo()
-        fmt.Println(trace...)
-        fmt.Println("got a panic: ", r)
-    } else {
-        Log.Errorf("got a panic: %#v", r)
-    }
+func printPanic(r interface{}) {
+	if nil == Log {
+		trace := getTraceInfo()
+		fmt.Println(trace...)
+		fmt.Println("got a panic: ", r)
+	} else {
+		Log.Errorf("got a panic: %#v", r)
+	}
 }

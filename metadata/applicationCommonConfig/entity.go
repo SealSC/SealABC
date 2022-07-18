@@ -18,17 +18,17 @@
 package applicationCommonConfig
 
 import (
-    "github.com/SealSC/SealABC/crypto"
-    "github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/crypto"
+	"github.com/SealSC/SealABC/storage/db/dbDrivers/levelDB"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type Config struct {
-    KVDBName   string
-    KVDBConfig levelDB.Config
+	KVDBName   string
+	KVDBConfig levelDB.Config
 
-    EnableSQLDB bool
-    SQLStorage  simpleSQLDatabase.IDriver
+	EnableSQLDB bool
+	SQLStorage  simpleSQLDatabase.IDriver
 
-    CryptoTools crypto.Tools
+	CryptoTools crypto.Tools
 }

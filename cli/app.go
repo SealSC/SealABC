@@ -18,43 +18,43 @@
 package cli
 
 import (
-    "github.com/SealSC/SealABC/cli/cliFlags"
-    cliV2 "github.com/urfave/cli/v2"
-    "io"
-    "os"
+	"github.com/SealSC/SealABC/cli/cliFlags"
+	cliV2 "github.com/urfave/cli/v2"
+	"io"
+	"os"
 )
 
 func Run() (app *cliV2.App) {
 
-    oldHelpPrinter := cliV2.HelpPrinter
-    cliV2.HelpPrinter = func(w io.Writer, templ string, data interface{}) {
-        oldHelpPrinter(w, templ, data)
-        os.Exit(0)
-    }
+	oldHelpPrinter := cliV2.HelpPrinter
+	cliV2.HelpPrinter = func(w io.Writer, templ string, data interface{}) {
+		oldHelpPrinter(w, templ, data)
+		os.Exit(0)
+	}
 
-    oldVersionPrinter := cliV2.VersionPrinter
-    cliV2.VersionPrinter = func(c *cliV2.Context) {
-        oldVersionPrinter(c)
-        os.Exit(0)
-    }
+	oldVersionPrinter := cliV2.VersionPrinter
+	cliV2.VersionPrinter = func(c *cliV2.Context) {
+		oldVersionPrinter(c)
+		os.Exit(0)
+	}
 
-    app = cliV2.NewApp()
-    app.Name = "SealABC"
-    app.Version = "0.1"
-    app.HelpName = "SealABC"
-    app.Usage = "SealABC"
-    app.UsageText = "SealABC [options] [args]"
-    app.HideHelp = false
-    app.HideVersion = false
+	app = cliV2.NewApp()
+	app.Name = "SealABC"
+	app.Version = "0.1"
+	app.HelpName = "SealABC"
+	app.Usage = "SealABC"
+	app.UsageText = "SealABC [options] [args]"
+	app.HideHelp = false
+	app.HideVersion = false
 
-    cliFlags.SetFlags(app)
-    SetAction(app)
+	cliFlags.SetFlags(app)
+	SetAction(app)
 
-    //run
-    err := app.Run(os.Args)
-    if nil != err {
-        os.Exit(-1)
-    }
+	//run
+	err := app.Run(os.Args)
+	if nil != err {
+		os.Exit(-1)
+	}
 
-    return
+	return
 }

@@ -18,341 +18,342 @@
 package basicAssetsLedger
 
 import (
-    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-    "encoding/binary"
-    "encoding/json"
-    "errors"
+	"encoding/binary"
+	"encoding/json"
+	"errors"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 )
 
 type UTXOInput struct {
-    Transaction  []byte
-    OutputIndex  uint64 `json:",string"`
+	Transaction []byte
+	OutputIndex uint64 `json:",string"`
 }
 
 type UTXOOutput struct {
-    To      []byte
-    Value   uint64 `json:",string"`
+	To    []byte
+	Value uint64 `json:",string"`
 }
 
 type Unspent struct {
-    Owner       []byte
-    AssetsHash  []byte
-    Transaction []byte
-    Singer      []byte
-    OutputIndex uint64 `json:",string"`
-    Value       uint64 `json:",string"`
+	Owner       []byte
+	AssetsHash  []byte
+	Transaction []byte
+	Singer      []byte
+	OutputIndex uint64 `json:",string"`
+	Value       uint64 `json:",string"`
 }
 
 type Balance struct {
-    Address []byte
-    Assets  Assets
-    Amount  uint64
+	Address []byte
+	Assets  Assets
+	Amount  uint64
 }
 
 type UnspentListWithBalance struct {
-    UnspentList []Unspent
-    BalanceList []Balance
+	UnspentList []Unspent
+	BalanceList []Balance
 }
 
-func (l *Ledger) buildUnspentStorageKey(addr []byte, assets []byte, txHash []byte, outputIdx uint64) (key []byte){
-    //prefix + addr + assets hash + transaction hash + output index
-    key = []byte(StoragePrefixes.Unspent.String())
-    key = append(key, addr...)
-    key = append(key, assets...)
-    key = append(key, txHash...)
-    outputIdxBytes := make([]byte, 8, 8)
-    binary.BigEndian.PutUint64(outputIdxBytes, outputIdx)
+func (l *Ledger) buildUnspentStorageKey(addr []byte, assets []byte, txHash []byte, outputIdx uint64) (key []byte) {
+	//prefix + addr + assets hash + transaction hash + output index
+	key = []byte(StoragePrefixes.Unspent.String())
+	key = append(key, addr...)
+	key = append(key, assets...)
+	key = append(key, txHash...)
+	outputIdxBytes := make([]byte, 8, 8)
+	binary.BigEndian.PutUint64(outputIdxBytes, outputIdx)
 
-    key = append(key, outputIdxBytes...)
-    return
+	key = append(key, outputIdxBytes...)
+	return
 }
 
 func (l *Ledger) buildBalanceKey(address []byte, assets Assets) (addressBalanceKey []byte, assetsBalanceKey []byte) {
-    baseKey := []byte(StoragePrefixes.Balance.String())
+	baseKey := []byte(StoragePrefixes.Balance.String())
 
-    assetsHash := assets.getUniqueHash()
-    addressBalanceKey = append(address, assetsHash...)
-    addressBalanceKey = append(baseKey, addressBalanceKey...)
+	assetsHash := assets.getUniqueHash()
+	addressBalanceKey = append(address, assetsHash...)
+	addressBalanceKey = append(baseKey, addressBalanceKey...)
 
-    assetsBalanceKey = append(assetsHash, address...)
-    assetsBalanceKey = append(baseKey, assetsBalanceKey...)
+	assetsBalanceKey = append(assetsHash, address...)
+	assetsBalanceKey = append(baseKey, assetsBalanceKey...)
 
-    return
+	return
 }
 
-func (l *Ledger) buildUnspentQueryPrefix(addr []byte, assets []byte) (prefix []byte){
-    prefix = []byte(StoragePrefixes.Unspent.String())
-    prefix = append(prefix, addr...)
-    prefix = append(prefix, assets...)
-    return
+func (l *Ledger) buildUnspentQueryPrefix(addr []byte, assets []byte) (prefix []byte) {
+	prefix = []byte(StoragePrefixes.Unspent.String())
+	prefix = append(prefix, addr...)
+	prefix = append(prefix, assets...)
+	return
 }
 
 func (l *Ledger) buildAssetsSellingKey(txHash []byte) []byte {
-    baseKey := []byte(StoragePrefixes.SellingList.String())
+	baseKey := []byte(StoragePrefixes.SellingList.String())
 
-    return append(baseKey, txHash...)
+	return append(baseKey, txHash...)
 }
 
-func (l *Ledger) buildCopyrightQueryPrefix(addr []byte) (prefix []byte){
-    prefix = []byte(StoragePrefixes.Unspent.String())
-    prefix = append(prefix, addr...)
-    return
+func (l *Ledger) buildCopyrightQueryPrefix(addr []byte) (prefix []byte) {
+	prefix = []byte(StoragePrefixes.Unspent.String())
+	prefix = append(prefix, addr...)
+	return
 }
 
 func (l *Ledger) buildCopyrightKey(assetsHash []byte) []byte {
-    baseKey := []byte(StoragePrefixes.Copyright.String())
-    return append(baseKey, assetsHash...)
+	baseKey := []byte(StoragePrefixes.Copyright.String())
+	return append(baseKey, assetsHash...)
 }
 
 func (l *Ledger) getUnspent(key []byte) (unspent Unspent, err error) {
-    kv, err := l.Storage.Get(key)
-    if err != nil {
-        return
-    }
+	kv, err := l.Storage.Get(key)
+	if err != nil {
+		return
+	}
 
-    if !kv.Exists {
-        err = errors.New("no such unspent")
-        return
-    }
+	if !kv.Exists {
+		err = errors.New("no such unspent")
+		return
+	}
 
-    err = json.Unmarshal(kv.Data, &unspent)
-    return
+	err = json.Unmarshal(kv.Data, &unspent)
+	return
 }
 
 func (l *Ledger) getUnspentListFromTransaction(tx Transaction) (list []Unspent, amount uint64, err error) {
-    amount = 0
-    for _, ref := range tx.Input {
-        key := l.buildUnspentStorageKey(tx.Seal.SignerPublicKey, tx.Assets.getUniqueHash(), ref.Transaction, ref.OutputIndex)
-        unspent, dbErr := l.getUnspent(key)
-        if dbErr != nil {
-            err = errors.New("get Unspent failed: " + dbErr.Error())
-            break
-        }
+	amount = 0
+	for _, ref := range tx.Input {
+		key := l.buildUnspentStorageKey(tx.Seal.SignerPublicKey, tx.Assets.getUniqueHash(), ref.Transaction, ref.OutputIndex)
+		unspent, dbErr := l.getUnspent(key)
+		if dbErr != nil {
+			err = errors.New("get Unspent failed: " + dbErr.Error())
+			break
+		}
 
-        amount += unspent.Value
-        list = append(list, unspent)
-    }
+		amount += unspent.Value
+		list = append(list, unspent)
+	}
 
-    return
+	return
 }
 
 func (l *Ledger) deleteUnspent(in []Unspent) (err error) {
-    var keyForDel [][]byte
-    for _, ref := range in {
-        key := l.buildUnspentStorageKey(ref.Owner, ref.AssetsHash, ref.Transaction, ref.OutputIndex)
-        keyForDel = append(keyForDel, key)
-    }
+	var keyForDel [][]byte
+	for _, ref := range in {
+		key := l.buildUnspentStorageKey(ref.Owner, ref.AssetsHash, ref.Transaction, ref.OutputIndex)
+		keyForDel = append(keyForDel, key)
+	}
 
-    err = l.Storage.BatchDelete(keyForDel)
-    return
+	err = l.Storage.BatchDelete(keyForDel)
+	return
 }
 
 func (l *Ledger) storeBalance(key []byte, change uint64, isIncrease bool) (amount uint64, err error) {
-    bKV, err :=l.Storage.Get(key)
-    if err != nil || !bKV.Exists {
-        if !isIncrease {
-            err = errors.New("invalid address")
-            return
-        }
-        amount = change
-    } else {
-        current := binary.BigEndian.Uint64(bKV.Data)
-        if isIncrease {
-            amount = current + change
-        } else {
-            if current < change {
-                err = errors.New("reduce must <= current")
-                return
-            }
+	bKV, err := l.Storage.Get(key)
+	if err != nil || !bKV.Exists {
+		if !isIncrease {
+			err = errors.New("invalid address")
+			return
+		}
+		amount = change
+	} else {
+		current := binary.BigEndian.Uint64(bKV.Data)
+		if isIncrease {
+			amount = current + change
+		} else {
+			if current < change {
+				err = errors.New("reduce must <= current")
+				return
+			}
 
-            amount = current - change
-        }
-    }
+			amount = current - change
+		}
+	}
 
-    varBytes := make([]byte, 8)
-    binary.BigEndian.PutUint64(varBytes, amount)
-    kv := kvDatabase.KVItem{
-        Key:    key,
-        Data:   varBytes,
-    }
+	varBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(varBytes, amount)
+	kv := kvDatabase.KVItem{
+		Key:  key,
+		Data: varBytes,
+	}
 
-    err = l.Storage.Put(kv)
+	err = l.Storage.Put(kv)
 
-    return
+	return
 }
 
 func (l *Ledger) updateBalance(address []byte, assets Assets, change uint64, isIncrease bool) (amount uint64, err error) {
-    addressKey, assetsKey := l.buildBalanceKey(address, assets)
-    amount, err = l.storeBalance(addressKey, change, isIncrease)
-    if err != nil {
-        return
-    }
+	addressKey, assetsKey := l.buildBalanceKey(address, assets)
+	amount, err = l.storeBalance(addressKey, change, isIncrease)
+	if err != nil {
+		return
+	}
 
-    _, err = l.storeBalance(assetsKey, change, isIncrease)
-    if err != nil {
-        return
-    }
+	_, err = l.storeBalance(assetsKey, change, isIncrease)
+	if err != nil {
+		return
+	}
 
-    return
+	return
 
 }
 
 type balanceDataInTx struct {
-    address     []byte
-    assets      Assets
-    val         uint64
-    isIncrease  bool
+	address    []byte
+	assets     Assets
+	val        uint64
+	isIncrease bool
 }
+
 func (l *Ledger) saveUnspent(localAssets Assets, tx Transaction, in []Unspent) (list UnspentListWithBalance, err error) {
-    var unspentList []kvDatabase.KVItem
+	var unspentList []kvDatabase.KVItem
 
-    balanceIncreaseList := map[string] *balanceDataInTx{}
-    assetsHash := localAssets.getUniqueHash()
+	balanceIncreaseList := map[string]*balanceDataInTx{}
+	assetsHash := localAssets.getUniqueHash()
 
-    for idx, output := range tx.Output {
-        key := l.buildUnspentStorageKey(output.To, assetsHash, tx.Seal.Hash, uint64(idx))
+	for idx, output := range tx.Output {
+		key := l.buildUnspentStorageKey(output.To, assetsHash, tx.Seal.Hash, uint64(idx))
 
-        u := Unspent{
-            Owner:          output.To,
-            AssetsHash:     assetsHash,
-            Transaction:    tx.Seal.Hash,
-            OutputIndex:    uint64(idx),
-            Singer:         tx.Seal.SignerPublicKey,
-            Value:          output.Value,
-        }
-        data, _ := json.Marshal(u)
+		u := Unspent{
+			Owner:       output.To,
+			AssetsHash:  assetsHash,
+			Transaction: tx.Seal.Hash,
+			OutputIndex: uint64(idx),
+			Singer:      tx.Seal.SignerPublicKey,
+			Value:       output.Value,
+		}
+		data, _ := json.Marshal(u)
 
-        unspentList = append(unspentList, kvDatabase.KVItem{
-            Key: key,
-            Data: data,
-        })
+		unspentList = append(unspentList, kvDatabase.KVItem{
+			Key:  key,
+			Data: data,
+		})
 
-        bKey := string(output.To) + string(assetsHash)
-        if _, exist := balanceIncreaseList[bKey]; exist {
-            balanceIncreaseList[bKey].val += output.Value
-        } else {
-            balanceIncreaseList[bKey] = &balanceDataInTx{
-                address: output.To,
-                assets: localAssets,
-                val: output.Value,
-                isIncrease: true,
-            }
-        }
-    }
+		bKey := string(output.To) + string(assetsHash)
+		if _, exist := balanceIncreaseList[bKey]; exist {
+			balanceIncreaseList[bKey].val += output.Value
+		} else {
+			balanceIncreaseList[bKey] = &balanceDataInTx{
+				address:    output.To,
+				assets:     localAssets,
+				val:        output.Value,
+				isIncrease: true,
+			}
+		}
+	}
 
-    err = l.Storage.BatchPut(unspentList)
-    if err != nil {
-        return
-    }
+	err = l.Storage.BatchPut(unspentList)
+	if err != nil {
+		return
+	}
 
-    err = l.deleteUnspent(in)
-    if err != nil {
-        return
-    }
+	err = l.deleteUnspent(in)
+	if err != nil {
+		return
+	}
 
-    balanceReduceList := map[string] *balanceDataInTx{}
-    for _, i := range in {
-        bKey := string(i.Owner) + string(i.AssetsHash)
-        if _, exist := balanceReduceList[bKey]; exist {
-            balanceReduceList[bKey].val += i.Value
-        } else {
-            balanceReduceList[bKey] = &balanceDataInTx{
-                address: i.Owner,
-                assets: localAssets,
-                val: i.Value,
-                isIncrease: false,
-            }
-        }
-    }
+	balanceReduceList := map[string]*balanceDataInTx{}
+	for _, i := range in {
+		bKey := string(i.Owner) + string(i.AssetsHash)
+		if _, exist := balanceReduceList[bKey]; exist {
+			balanceReduceList[bKey].val += i.Value
+		} else {
+			balanceReduceList[bKey] = &balanceDataInTx{
+				address:    i.Owner,
+				assets:     localAssets,
+				val:        i.Value,
+				isIncrease: false,
+			}
+		}
+	}
 
-    var balanceList []Balance
-    for _, b := range balanceIncreaseList {
-        amount, err := l.updateBalance(b.address, b.assets, b.val, true)
-        if err != nil {
-            continue
-        }
-        balanceList = append(balanceList, Balance {
-            Address: b.address,
-            Assets:  localAssets,
-            Amount:  amount,
-        })
-    }
+	var balanceList []Balance
+	for _, b := range balanceIncreaseList {
+		amount, err := l.updateBalance(b.address, b.assets, b.val, true)
+		if err != nil {
+			continue
+		}
+		balanceList = append(balanceList, Balance{
+			Address: b.address,
+			Assets:  localAssets,
+			Amount:  amount,
+		})
+	}
 
-    for _, b := range balanceReduceList {
-        amount, err := l.updateBalance(b.address, b.assets, b.val, false)
-        if err != nil {
-            continue
-        }
-        balanceList = append(balanceList, Balance{
-            Address: b.address,
-            Assets:  localAssets,
-            Amount:  amount,
-        })
-    }
+	for _, b := range balanceReduceList {
+		amount, err := l.updateBalance(b.address, b.assets, b.val, false)
+		if err != nil {
+			continue
+		}
+		balanceList = append(balanceList, Balance{
+			Address: b.address,
+			Assets:  localAssets,
+			Amount:  amount,
+		})
+	}
 
-    list.UnspentList = in
-    list.BalanceList = balanceList
-    return
+	list.UnspentList = in
+	list.BalanceList = balanceList
+	return
 }
 
 func (l *Ledger) saveUnspentInsideIssueAssetsTransaction(tx Transaction) (balance Balance, err error) {
-    u := Unspent{
-        Owner:          tx.Assets.IssuedSeal.SignerPublicKey,
-        AssetsHash:     tx.Assets.getUniqueHash(),
-        Transaction:    tx.Seal.Hash,
-        OutputIndex:    uint64(0),
-        Value:          tx.Assets.Supply,
-    }
+	u := Unspent{
+		Owner:       tx.Assets.IssuedSeal.SignerPublicKey,
+		AssetsHash:  tx.Assets.getUniqueHash(),
+		Transaction: tx.Seal.Hash,
+		OutputIndex: uint64(0),
+		Value:       tx.Assets.Supply,
+	}
 
-    key := l.buildUnspentStorageKey(tx.Assets.IssuedSeal.SignerPublicKey, tx.Assets.getUniqueHash(), tx.Seal.Hash, uint64(0))
+	key := l.buildUnspentStorageKey(tx.Assets.IssuedSeal.SignerPublicKey, tx.Assets.getUniqueHash(), tx.Seal.Hash, uint64(0))
 
-    data, _ := json.Marshal(u)
-    err = l.Storage.Put(kvDatabase.KVItem{
-        Key: key,
-        Data: data,
-    })
+	data, _ := json.Marshal(u)
+	err = l.Storage.Put(kvDatabase.KVItem{
+		Key:  key,
+		Data: data,
+	})
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    amount, err := l.updateBalance(u.Owner, tx.Assets, u.Value, true)
+	amount, err := l.updateBalance(u.Owner, tx.Assets, u.Value, true)
 
-    balance = Balance{
-        Address: u.Owner,
-        Assets:  tx.Assets,
-        Amount:  amount,
-    }
-    return
+	balance = Balance{
+		Address: u.Owner,
+		Assets:  tx.Assets,
+		Amount:  amount,
+	}
+	return
 }
 
 func (l *Ledger) storeSellingData(txHash []byte, data []byte) error {
-    key := l.buildAssetsSellingKey(txHash)
+	key := l.buildAssetsSellingKey(txHash)
 
-    return  l.Storage.Put(kvDatabase.KVItem{
-        Key:    key,
-        Data:   data,
-        Exists: true,
-    })
+	return l.Storage.Put(kvDatabase.KVItem{
+		Key:    key,
+		Data:   data,
+		Exists: true,
+	})
 }
 
 func (l *Ledger) getSellingData(txHash []byte) ([]byte, error) {
-    key := l.buildAssetsSellingKey(txHash)
+	key := l.buildAssetsSellingKey(txHash)
 
-    data, err := l.Storage.Get(key)
-    if err != nil {
-        return nil, err
-    }
+	data, err := l.Storage.Get(key)
+	if err != nil {
+		return nil, err
+	}
 
-    if !data.Exists {
-        return nil, errors.New("no such selling")
-    }
+	if !data.Exists {
+		return nil, errors.New("no such selling")
+	}
 
-    return data.Data, nil
+	return data.Data, nil
 }
 
 func (l *Ledger) deleteSellingData(txHash []byte) error {
-    key := l.buildAssetsSellingKey(txHash)
+	key := l.buildAssetsSellingKey(txHash)
 
-    return  l.Storage.Delete(key)
+	return l.Storage.Delete(key)
 }

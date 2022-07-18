@@ -20,15 +20,15 @@ package serviceRequest
 import "github.com/SealSC/SealABC/metadata/seal"
 
 type EntityData struct {
-    Sender          string
-    RequestService  string
-    RequestAction   string
+	Sender         string
+	RequestService string
+	RequestAction  string
 
-    Payload         string
+	Payload string
 }
 
 type Entity struct {
-    EntityData
+	EntityData
 
-    CustomerSeal seal.Entity
+	CustomerSeal seal.Entity
 }

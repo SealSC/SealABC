@@ -18,13 +18,13 @@
 package smartAssetsSQLTables
 
 import (
+	"encoding/hex"
+	"fmt"
 	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsLedger"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/hex"
-	"fmt"
 	"time"
 )
 
@@ -36,7 +36,7 @@ type TransferTable struct {
 	From           enum.Element `col:"c_from"`
 	To             enum.Element `col:"c_to"`
 	Value          enum.Element `col:"c_value"`
-	Memo          enum.Element `col:"c_memo"`
+	Memo           enum.Element `col:"c_memo"`
 	Time           enum.Element `col:"c_time"`
 
 	simpleSQLDatabase.BasicTable

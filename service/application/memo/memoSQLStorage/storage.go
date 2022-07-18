@@ -18,53 +18,53 @@
 package memoSQLStorage
 
 import (
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/service/application/memo/memoSpace"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-    "errors"
+	"errors"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/application/memo/memoSpace"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
-var QueryTypes struct{
-    MemoList    enum.Element
-    MemoByHash  enum.Element
-    MemoByType  enum.Element
+var QueryTypes struct {
+	MemoList   enum.Element
+	MemoByHash enum.Element
+	MemoByType enum.Element
 
-    AddressList         enum.Element
-    MemoUnderAddress    enum.Element
-    Statistics          enum.Element
+	AddressList      enum.Element
+	MemoUnderAddress enum.Element
+	Statistics       enum.Element
 }
 
 type queryHandler func([]string) (interface{}, error)
 type Storage struct {
-    queryHandlers map[string] queryHandler
-    Driver simpleSQLDatabase.IDriver
+	queryHandlers map[string]queryHandler
+	Driver        simpleSQLDatabase.IDriver
 }
 
-func Load()  {
-    enum.SimpleBuild(&QueryTypes)
+func Load() {
+	enum.SimpleBuild(&QueryTypes)
 }
 
 func NewStorage(sqlDriver simpleSQLDatabase.IDriver) (s *Storage) {
-    s = &Storage{
-        Driver:        sqlDriver,
-    }
+	s = &Storage{
+		Driver: sqlDriver,
+	}
 
-    s.queryHandlers = map[string] queryHandler {
-        QueryTypes.MemoList.String(): s.GetMemoList,
-        QueryTypes.MemoByHash.String(): s.GetMemoByHash,
-        QueryTypes.MemoByType.String(): s.GetMemoByType,
-        QueryTypes.AddressList.String(): s.GetAddressList,
-        QueryTypes.MemoUnderAddress.String(): s.GetMemoUnderAddress,
-        QueryTypes.Statistics.String(): s.GetStatistics,
-    }
-    return
+	s.queryHandlers = map[string]queryHandler{
+		QueryTypes.MemoList.String():         s.GetMemoList,
+		QueryTypes.MemoByHash.String():       s.GetMemoByHash,
+		QueryTypes.MemoByType.String():       s.GetMemoByType,
+		QueryTypes.AddressList.String():      s.GetAddressList,
+		QueryTypes.MemoUnderAddress.String(): s.GetMemoUnderAddress,
+		QueryTypes.Statistics.String():       s.GetStatistics,
+	}
+	return
 }
 
 func (s *Storage) DoQuery(queryReq memoSpace.QueryRequest) (result interface{}, err error) {
-    if handler, exists := s.queryHandlers[queryReq.QueryType]; !exists {
-        err = errors.New("no such query handler: " + queryReq.QueryType)
-        return
-    } else {
-        return handler(queryReq.Parameter)
-    }
+	if handler, exists := s.queryHandlers[queryReq.QueryType]; !exists {
+		err = errors.New("no such query handler: " + queryReq.QueryType)
+		return
+	} else {
+		return handler(queryReq.Parameter)
+	}
 }

@@ -18,143 +18,143 @@
 package network
 
 import (
-    "net"
-    "io"
-    "bufio"
-    "github.com/SealSC/SealABC/log"
-    "sync"
+	"bufio"
+	"github.com/SealSC/SealABC/log"
+	"io"
+	"net"
+	"sync"
 )
 
 const (
-    max_buffer_size  = 10 * 1024 * 1024
+	max_buffer_size = 10 * 1024 * 1024
 )
 
 type ILink interface {
-    Start()
-    StartReceiving()
-    SendData(data [] byte) (n int, err error)
-    SendMessage(msg Message) (n int, err error)
-    RemoteAddr() net.Addr
-    Close()
+	Start()
+	StartReceiving()
+	SendData(data []byte) (n int, err error)
+	SendMessage(msg Message) (n int, err error)
+	RemoteAddr() net.Addr
+	Close()
 }
 
 type Link struct {
-    Connection          net.Conn
-    Reader              *bufio.Reader
-    Writer              *bufio.Writer
-    RawMessageProcessor RawMessageProcessor
-    LinkClosed          LinkClosed
-    ConnectOut          bool
+	Connection          net.Conn
+	Reader              *bufio.Reader
+	Writer              *bufio.Writer
+	RawMessageProcessor RawMessageProcessor
+	LinkClosed          LinkClosed
+	ConnectOut          bool
 
-    senderLock          sync.Mutex
+	senderLock sync.Mutex
 }
 
 func (l *Link) RemoteAddr() net.Addr {
-    return l.Connection.RemoteAddr()
+	return l.Connection.RemoteAddr()
 }
 
-func (l *Link)Start() {
+func (l *Link) Start() {
 
-    l.Reader = bufio.NewReader(l.Connection)
-    l.Writer = bufio.NewWriter(l.Connection)
+	l.Reader = bufio.NewReader(l.Connection)
+	l.Writer = bufio.NewWriter(l.Connection)
 
-    go l.StartReceiving()
+	go l.StartReceiving()
 }
 
-func (l *Link)StartReceiving() {
-    defer func() {
-        l.Close()
-        l.LinkClosed(l)
-    }()
+func (l *Link) StartReceiving() {
+	defer func() {
+		l.Close()
+		l.LinkClosed(l)
+	}()
 
-    for {
-        msgPrefix := make([]byte, MESSAGE_PREFIX_LEN, MESSAGE_PREFIX_LEN)
-        data := make([]byte, max_buffer_size, max_buffer_size)
+	for {
+		msgPrefix := make([]byte, MESSAGE_PREFIX_LEN, MESSAGE_PREFIX_LEN)
+		data := make([]byte, max_buffer_size, max_buffer_size)
 
-        n, err := io.ReadFull(l.Reader, msgPrefix) //l.Reader.Read(msgPrefix[:])
-        if n != MESSAGE_PREFIX_LEN {
-            log.Log.Println("get msg prefix failed: need ", MESSAGE_PREFIX_LEN, " bytes, got ", n, " bytes. ", err)
-        }
+		n, err := io.ReadFull(l.Reader, msgPrefix) //l.Reader.Read(msgPrefix[:])
+		if n != MESSAGE_PREFIX_LEN {
+			log.Log.Println("get msg prefix failed: need ", MESSAGE_PREFIX_LEN, " bytes, got ", n, " bytes. ", err)
+		}
 
-        if err != nil {
-            if err == io.EOF {
-                log.Log.Println("disconnect remote: ", err)
-                break
-            }
-            log.Log.Println("got an network error: ", err)
-            continue
-        }
+		if err != nil {
+			if err == io.EOF {
+				log.Log.Println("disconnect remote: ", err)
+				break
+			}
+			log.Log.Println("got an network error: ", err)
+			continue
+		}
 
-        prefix := MessagePrefix{}
-        err = prefix.FromBytes(msgPrefix)
-        if err != nil {
-            log.Log.Warn("unknown message: ", err.Error())
-            unreadSize := l.Reader.Size()
-            _, _ =l.Reader.Discard(unreadSize)
-            continue
-        }
+		prefix := MessagePrefix{}
+		err = prefix.FromBytes(msgPrefix)
+		if err != nil {
+			log.Log.Warn("unknown message: ", err.Error())
+			unreadSize := l.Reader.Size()
+			_, _ = l.Reader.Discard(unreadSize)
+			continue
+		}
 
-        if prefix.Size > MAX_MESSAGE_LEN {
-            _, _ = l.Reader.Discard(int(prefix.Size))
-            continue
-        }
+		if prefix.Size > MAX_MESSAGE_LEN {
+			_, _ = l.Reader.Discard(int(prefix.Size))
+			continue
+		}
 
-        n, err = io.ReadFull(l.Reader, data[:prefix.Size])
-        //n, err := l.Reader.Read(data[:prefix.Size])
+		n, err = io.ReadFull(l.Reader, data[:prefix.Size])
+		//n, err := l.Reader.Read(data[:prefix.Size])
 
-        if int32(n) != prefix.Size {
-            log.Log.Println("error message: need ", prefix.Size, "bytes bug got ", n, " bytes")
-            //log.Log.Println("error ", err.Error())
-            return
-        }
+		if int32(n) != prefix.Size {
+			log.Log.Println("error message: need ", prefix.Size, "bytes bug got ", n, " bytes")
+			//log.Log.Println("error ", err.Error())
+			return
+		}
 
-        if err != nil {
-            if err == io.EOF {
-                log.Log.Println("disconnect remote: ", err)
-                break
-            }
-            log.Log.Println("got an network error: ", err)
-            continue
-        }
+		if err != nil {
+			if err == io.EOF {
+				log.Log.Println("disconnect remote: ", err)
+				break
+			}
+			log.Log.Println("got an network error: ", err)
+			continue
+		}
 
-        go l.RawMessageProcessor(data[:prefix.Size], l)
-    }
+		go l.RawMessageProcessor(data[:prefix.Size], l)
+	}
 }
 
-func (l *Link)SendMessage(msg Message) (n int, err error) {
-    data, err := msg.ToRawMessage()
-    if err != nil {
-        return
-    }
+func (l *Link) SendMessage(msg Message) (n int, err error) {
+	data, err := msg.ToRawMessage()
+	if err != nil {
+		return
+	}
 
-    return l.SendData(data)
+	return l.SendData(data)
 }
 
-func (l *Link)SendData(data []byte) (n int, err error) {
-    l.senderLock.Lock()
-    defer l.senderLock.Unlock()
+func (l *Link) SendData(data []byte) (n int, err error) {
+	l.senderLock.Lock()
+	defer l.senderLock.Unlock()
 
-    n, err = l.Writer.Write(data)
-    if err != nil {
-        log.Log.Warn("got an error when write to buffer: ", err.Error())
-        return
-    }
+	n, err = l.Writer.Write(data)
+	if err != nil {
+		log.Log.Warn("got an error when write to buffer: ", err.Error())
+		return
+	}
 
-    if n != len(data) {
-        log.Log.Warn("not write the complete data to buffer: ", n, " bytes written but need: ", len(data), " bytes")
-    }
+	if n != len(data) {
+		log.Log.Warn("not write the complete data to buffer: ", n, " bytes written but need: ", len(data), " bytes")
+	}
 
-    err = l.Writer.Flush()
+	err = l.Writer.Flush()
 
-    if n == 0 {
-        log.Log.Println("sent 0 bytes to ", l.RemoteAddr())
-        if err != nil {
-            log.Log.Warn(" and got an error: ", err.Error())
-        }
-    }
-    return
+	if n == 0 {
+		log.Log.Println("sent 0 bytes to ", l.RemoteAddr())
+		if err != nil {
+			log.Log.Warn(" and got an error: ", err.Error())
+		}
+	}
+	return
 }
 
-func (l *Link)Close() {
-    l.Connection.Close()
+func (l *Link) Close() {
+	l.Connection.Close()
 }

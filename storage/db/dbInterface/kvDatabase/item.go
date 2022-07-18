@@ -18,7 +18,7 @@
 package kvDatabase
 
 type KVItem struct {
-    Key    []byte
-    Data   []byte
-    Exists bool
+	Key    []byte
+	Data   []byte
+	Exists bool
 }

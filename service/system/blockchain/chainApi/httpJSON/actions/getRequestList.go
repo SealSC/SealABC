@@ -18,55 +18,53 @@
 package actions
 
 import (
-    "github.com/SealSC/SealABC/network/http"
-    "github.com/SealSC/SealABC/service"
-    "github.com/gin-gonic/gin"
-    "strconv"
+	"github.com/SealSC/SealABC/network/http"
+	"github.com/SealSC/SealABC/service"
+	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
-type getTransactions struct{
-    baseHandler
+type getTransactions struct {
+	baseHandler
 }
 
-func (g *getTransactions)Handle(ctx *gin.Context) {
-    res := http.NewResponse(ctx)
-    pageString := ctx.Param(URLParameterKeys.Page.String())
+func (g *getTransactions) Handle(ctx *gin.Context) {
+	res := http.NewResponse(ctx)
+	pageString := ctx.Param(URLParameterKeys.Page.String())
 
-    page, err := strconv.ParseUint(pageString, 10, 64)
-    if err != nil {
-        res.BadRequest("parameter [page] is not a number")
-        return
-    }
+	page, err := strconv.ParseUint(pageString, 10, 64)
+	if err != nil {
+		res.BadRequest("parameter [page] is not a number")
+		return
+	}
 
-    ret, err := g.sqlStorage.GetRequestList(page)
-    if err != nil {
-        res.InternalServerError(err.Error())
-        return
-    }
+	ret, err := g.sqlStorage.GetRequestList(page)
+	if err != nil {
+		res.InternalServerError(err.Error())
+		return
+	}
 
-    res.OK(ret)
+	res.OK(ret)
 }
 
-func (g *getTransactions)RouteRegister(router gin.IRouter) {
-    router.GET(g.buildUrlPath(), g.Handle)
+func (g *getTransactions) RouteRegister(router gin.IRouter) {
+	router.GET(g.buildUrlPath(), g.Handle)
 }
 
-func (g *getTransactions)BasicInformation() (info http.HandlerBasicInformation)  {
-    info.Description = "return block data list."
-    info.Path = g.serverBasePath + g.buildUrlPath()
-    info.Method = service.ApiProtocolMethod.HttpGet.String()
+func (g *getTransactions) BasicInformation() (info http.HandlerBasicInformation) {
+	info.Description = "return block data list."
+	info.Path = g.serverBasePath + g.buildUrlPath()
+	info.Method = service.ApiProtocolMethod.HttpGet.String()
 
-    info.Parameters.Type = service.ApiParameterType.URL.String()
-    info.Parameters.Template = g.serverBasePath + g.urlWithoutParameters() + "/1"
-    return
+	info.Parameters.Type = service.ApiParameterType.URL.String()
+	info.Parameters.Template = g.serverBasePath + g.urlWithoutParameters() + "/1"
+	return
 }
 
 func (g *getTransactions) urlWithoutParameters() string {
-    return "/get/request/list/page/"
+	return "/get/request/list/page/"
 }
 
 func (g *getTransactions) buildUrlPath() string {
-    return g.urlWithoutParameters() + "/:" + URLParameterKeys.Page.String()
+	return g.urlWithoutParameters() + "/:" + URLParameterKeys.Page.String()
 }
-
-

@@ -18,38 +18,38 @@
 package levelDB
 
 import (
-    "github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-    "github.com/syndtr/goleveldb/leveldb"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
-func (l *levelDBDriver)Put(kv kvDatabase.KVItem) (err error) {
-    err = l.db.Put(kv.Key, kv.Data, nil)
-    return
+func (l *levelDBDriver) Put(kv kvDatabase.KVItem) (err error) {
+	err = l.db.Put(kv.Key, kv.Data, nil)
+	return
 }
 
-func (l *levelDBDriver)Get(k []byte) (kv kvDatabase.KVItem, err error) {
-    v, err := l.db.Get(k, nil)
-    notFound := err == leveldb.ErrNotFound
-    if err != nil && !notFound {
-        return
-    }
+func (l *levelDBDriver) Get(k []byte) (kv kvDatabase.KVItem, err error) {
+	v, err := l.db.Get(k, nil)
+	notFound := err == leveldb.ErrNotFound
+	if err != nil && !notFound {
+		return
+	}
 
-    kv.Key = k
-    kv.Exists = !notFound
-    if notFound {
-        return kv, nil
-    }
+	kv.Key = k
+	kv.Exists = !notFound
+	if notFound {
+		return kv, nil
+	}
 
-    kv.Data = v
-    return
+	kv.Data = v
+	return
 }
 
-func (l *levelDBDriver)Delete(k []byte) (err error) {
-    err = l.db.Delete(k, nil)
-    return
+func (l *levelDBDriver) Delete(k []byte) (err error) {
+	err = l.db.Delete(k, nil)
+	return
 }
 
-func (l *levelDBDriver)Check(k []byte) (exists bool, err error) {
-    exists, err = l.db.Has(k, nil)
-    return
+func (l *levelDBDriver) Check(k []byte) (exists bool, err error) {
+	exists, err = l.db.Has(k, nil)
+	return
 }

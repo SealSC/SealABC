@@ -18,9 +18,9 @@
 package http
 
 type Config struct {
-    Address         string  `json:"address"`
-    BasePath        string  `json:"base_path"`
-    EnableTLS       bool    `json:"enable_tls"`
-    AllowCORS       bool    `json:"allow_cors"`
-    RequestHandler  []IRequestHandler `json:"-"`
+	Address        string            `json:"address"`
+	BasePath       string            `json:"base_path"`
+	EnableTLS      bool              `json:"enable_tls"`
+	AllowCORS      bool              `json:"allow_cors"`
+	RequestHandler []IRequestHandler `json:"-"`
 }

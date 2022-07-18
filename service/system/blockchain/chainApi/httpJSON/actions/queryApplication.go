@@ -18,62 +18,61 @@
 package actions
 
 import (
-    "github.com/SealSC/SealABC/metadata/blockchainRequest"
-    "github.com/SealSC/SealABC/network/http"
-    "github.com/SealSC/SealABC/service"
-    "github.com/gin-gonic/gin"
+	"github.com/SealSC/SealABC/metadata/blockchainRequest"
+	"github.com/SealSC/SealABC/network/http"
+	"github.com/SealSC/SealABC/service"
+	"github.com/gin-gonic/gin"
 )
 
-type queryApplication struct{
-    baseHandler
+type queryApplication struct {
+	baseHandler
 }
 
-func (q *queryApplication)Handle(ctx *gin.Context) {
-    res := http.NewResponse(ctx)
+func (q *queryApplication) Handle(ctx *gin.Context) {
+	res := http.NewResponse(ctx)
 
-    appName := ctx.Param(URLParameterKeys.App.String())
+	appName := ctx.Param(URLParameterKeys.App.String())
 
-    handler, exist := q.appQueryHandler[appName]
-    if !exist {
-        res.BadRequest("no such application: " + appName)
-        return
-    }
+	handler, exist := q.appQueryHandler[appName]
+	if !exist {
+		res.BadRequest("no such application: " + appName)
+		return
+	}
 
-    reqData, err := ctx.GetRawData()
-    if err != nil {
-        res.BadRequest(err.Error())
-        return
-    }
+	reqData, err := ctx.GetRawData()
+	if err != nil {
+		res.BadRequest(err.Error())
+		return
+	}
 
-    ret, err := handler(reqData)
-    if err != nil {
-        res.BadRequest(err.Error())
-        return
-    }
+	ret, err := handler(reqData)
+	if err != nil {
+		res.BadRequest(err.Error())
+		return
+	}
 
-    res.OK(ret)
+	res.OK(ret)
 }
 
-func (q *queryApplication)RouteRegister(router gin.IRouter) {
-    router.POST(q.buildUrlPath(), q.Handle)
+func (q *queryApplication) RouteRegister(router gin.IRouter) {
+	router.POST(q.buildUrlPath(), q.Handle)
 }
 
-func (q *queryApplication)BasicInformation() (info http.HandlerBasicInformation) {
+func (q *queryApplication) BasicInformation() (info http.HandlerBasicInformation) {
 
-    info.Description = "will execute application query operation that registered on the blockchain."
-    info.Path = q.serverBasePath + q.buildUrlPath()
-    info.Method = service.ApiProtocolMethod.HttpPost.String()
+	info.Description = "will execute application query operation that registered on the blockchain."
+	info.Path = q.serverBasePath + q.buildUrlPath()
+	info.Method = service.ApiProtocolMethod.HttpPost.String()
 
-    info.Parameters.Type = service.ApiParameterType.JSON.String()
-    info.Parameters.Template = blockchainRequest.Entity{}
-    return
+	info.Parameters.Type = service.ApiParameterType.JSON.String()
+	info.Parameters.Template = blockchainRequest.Entity{}
+	return
 }
 
-func (q *queryApplication) urlWithoutParameters() string  {
-    return "/query/application"
+func (q *queryApplication) urlWithoutParameters() string {
+	return "/query/application"
 }
 
 func (q *queryApplication) buildUrlPath() string {
-    return q.urlWithoutParameters() + "/:" + URLParameterKeys.App.String()
+	return q.urlWithoutParameters() + "/:" + URLParameterKeys.App.String()
 }
-

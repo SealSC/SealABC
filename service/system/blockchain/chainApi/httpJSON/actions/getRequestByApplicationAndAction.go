@@ -24,11 +24,11 @@ import (
 	"strconv"
 )
 
-type getTransactionByApplicationAndAction struct{
+type getTransactionByApplicationAndAction struct {
 	baseHandler
 }
 
-func (g *getTransactionByApplicationAndAction)Handle(ctx *gin.Context) {
+func (g *getTransactionByApplicationAndAction) Handle(ctx *gin.Context) {
 	res := http.NewResponse(ctx)
 	app := ctx.Param(URLParameterKeys.App.String())
 	act := ctx.Param(URLParameterKeys.Action.String())
@@ -49,11 +49,11 @@ func (g *getTransactionByApplicationAndAction)Handle(ctx *gin.Context) {
 	res.OK(txList)
 }
 
-func (g *getTransactionByApplicationAndAction)RouteRegister(router gin.IRouter) {
+func (g *getTransactionByApplicationAndAction) RouteRegister(router gin.IRouter) {
 	router.GET(g.buildUrlPath(), g.Handle)
 }
 
-func (g *getTransactionByApplicationAndAction)BasicInformation() (info http.HandlerBasicInformation)  {
+func (g *getTransactionByApplicationAndAction) BasicInformation() (info http.HandlerBasicInformation) {
 	info.Description = "return full block data of the given block hash."
 	info.Path = g.serverBasePath + g.buildUrlPath()
 	info.Method = service.ApiProtocolMethod.HttpGet.String()
@@ -63,10 +63,9 @@ func (g *getTransactionByApplicationAndAction)BasicInformation() (info http.Hand
 	return
 }
 
-func (g *getTransactionByApplicationAndAction) urlWithoutParameters() string  {
+func (g *getTransactionByApplicationAndAction) urlWithoutParameters() string {
 	return "/get/request/by/application/"
 }
-
 
 func (g *getTransactionByApplicationAndAction) buildUrlPath() string {
 	return g.urlWithoutParameters() +
@@ -74,4 +73,3 @@ func (g *getTransactionByApplicationAndAction) buildUrlPath() string {
 		"/:" + URLParameterKeys.Action.String() +
 		"/:" + URLParameterKeys.Page.String()
 }
-

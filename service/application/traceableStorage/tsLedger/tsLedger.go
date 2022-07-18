@@ -28,7 +28,6 @@ import (
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
-
 type tsServiceValidator func(data tsData.TSData) (err error)
 type tsServiceActuator func(data tsData.TSData) (ret interface{}, err error)
 type tsQuery func(param []string) (ret interface{}, err error)
@@ -36,18 +35,18 @@ type tsQuery func(param []string) (ret interface{}, err error)
 type TSLedger struct {
 	reqPool []tsData.TSServiceRequest
 
-	validators  map[string] tsServiceValidator
-	actuators   map[string] tsServiceActuator
+	validators map[string]tsServiceValidator
+	actuators  map[string]tsServiceActuator
 
-	CryptoTools   crypto.Tools
-	Storage       kvDatabase.IDriver
+	CryptoTools crypto.Tools
+	Storage     kvDatabase.IDriver
 }
 
-func Load()  {
+func Load() {
 	enum.SimpleBuild(&tsData.RequestTypes)
 }
 
-func (t *TSLedger)VerifyRequest(req tsData.TSServiceRequest) (err error) {
+func (t *TSLedger) VerifyRequest(req tsData.TSServiceRequest) (err error) {
 	if validator, exists := t.validators[req.ReqType]; exists {
 		return validator(req.Data)
 	} else {
@@ -55,7 +54,7 @@ func (t *TSLedger)VerifyRequest(req tsData.TSServiceRequest) (err error) {
 	}
 }
 
-func (t *TSLedger)ExecuteRequest(req tsData.TSServiceRequest) (ret interface{}, err error) {
+func (t *TSLedger) ExecuteRequest(req tsData.TSServiceRequest) (ret interface{}, err error) {
 	if actuator, exists := t.actuators[req.ReqType]; exists {
 		return actuator(req.Data)
 	} else {
@@ -64,20 +63,20 @@ func (t *TSLedger)ExecuteRequest(req tsData.TSServiceRequest) (ret interface{}, 
 }
 
 func NewTraceableStorage(kvDriver kvDatabase.IDriver, sqlDriver simpleSQLDatabase.IDriver) *TSLedger {
-	t := &TSLedger {
+	t := &TSLedger{
 		CryptoTools: crypto.Tools{
-		HashCalculator:  sha3.Sha256,
-		SignerGenerator: ed25519.SignerGenerator,
+			HashCalculator:  sha3.Sha256,
+			SignerGenerator: ed25519.SignerGenerator,
 		},
-		Storage:     kvDriver,
+		Storage: kvDriver,
 	}
 
-	t.validators = map[string] tsServiceValidator {
+	t.validators = map[string]tsServiceValidator{
 		tsData.RequestTypes.Store.String():  t.VerifyStoreRequest,
 		tsData.RequestTypes.Modify.String(): t.VerifyModifyRequest,
 	}
 
-	t.actuators = map[string] tsServiceActuator {
+	t.actuators = map[string]tsServiceActuator{
 		tsData.RequestTypes.Store.String():  t.ExecuteStoreIdentification,
 		tsData.RequestTypes.Modify.String(): t.ExecuteModifyIdentification,
 	}

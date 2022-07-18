@@ -18,6 +18,6 @@
 package rowsWithCount
 
 type Entity struct {
-    Rows []interface{}
-    Total uint64
+	Rows  []interface{}
+	Total uint64
 }

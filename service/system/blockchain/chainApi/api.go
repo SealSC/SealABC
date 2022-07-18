@@ -18,26 +18,26 @@
 package chainApi
 
 import (
-    "github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON/actions"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainApi/httpJSON/actions"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainNetwork"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 )
 
 type ApiServers struct {
-    HttpJSON        *httpJSON.ApiServer
+	HttpJSON *httpJSON.ApiServer
 }
 
-func Load()  {
-    enum.SimpleBuild(&actions.URLParameterKeys)
+func Load() {
+	enum.SimpleBuild(&actions.URLParameterKeys)
 }
 
 func NewServer(cfg Config, chain *chainStructure.Blockchain, p2p *chainNetwork.P2PService, sqlStorage *chainSQLStorage.Storage) *ApiServers {
-    api := ApiServers{}
+	api := ApiServers{}
 
-    api.HttpJSON = httpJSON.NewApiServer(cfg.HttpJSON, chain, p2p, sqlStorage)
+	api.HttpJSON = httpJSON.NewApiServer(cfg.HttpJSON, chain, p2p, sqlStorage)
 
-    return &api
+	return &api
 }
