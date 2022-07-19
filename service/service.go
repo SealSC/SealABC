@@ -76,7 +76,7 @@ type IService interface {
 	RequestsForConsensus(lastReqs []interface{}) (req [][]byte, cnt uint32)
 
 	//receive and verify request from consensus network (on the other word, this request comes from consensus leader)
-	PreExecute(req interface{}) (result []byte, err error)
+	PreExecute(req interface{}, lastReqs []interface{}) (result []byte, err error)
 
 	//receive and execute confirmed request of this round of consensus
 	Execute(req interface{}) (result []byte, err error)
@@ -104,7 +104,7 @@ func (b BlankService) RequestsForConsensus(lastReqs []interface{}) (req [][]byte
 	return
 }
 
-func (b BlankService) PreExecute(req interface{}) (result []byte, err error) {
+func (b BlankService) PreExecute(req interface{}, lastReqs []interface{}) (result []byte, err error) {
 	return
 }
 

@@ -28,7 +28,8 @@ type Blockchain struct {
 	Config   Config
 	Executor applicationExecutor
 
-	lastBlock     *block.Entity
+	lastBlock *block.Entity
+
 	SQLStorage    *chainSQLStorage.Storage
 	currentHeight uint64
 	operateLock   sync.RWMutex

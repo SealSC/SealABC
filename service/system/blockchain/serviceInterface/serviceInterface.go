@@ -127,7 +127,7 @@ func (b *BlockchainService) RequestsForConsensus(lastReqs []interface{}) (req []
 	return
 }
 
-func (b *BlockchainService) verifyBlock(blk block.Entity) (err error) {
+func (b *BlockchainService) verifyBlock(blk block.Entity, lastReqs []interface{}) (err error) {
 	//verify block
 	_, err = blk.Verify(b.chain.Config.CryptoTools)
 	if err != nil {
@@ -140,7 +140,22 @@ func (b *BlockchainService) verifyBlock(blk block.Entity) (err error) {
 		return
 	}
 
-	lastBlk := b.chain.GetLastBlock()
+	var lastBlk *block.Entity
+	for _, lastReq := range lastReqs {
+		blk, err := b.getNewBlockRequestFromConsensus(lastReq)
+		if err != nil {
+			continue
+		}
+		if lastBlk == nil {
+			lastBlk = &blk
+		} else if blk.Header.Height > lastBlk.Header.Height {
+			lastBlk = &blk
+		}
+	}
+	if lastBlk == nil {
+		lastBlk = b.chain.GetLastBlock()
+	}
+
 	if lastBlk == nil {
 		return
 	}
@@ -161,13 +176,13 @@ func (b *BlockchainService) verifyBlock(blk block.Entity) (err error) {
 }
 
 //handle the new block received from consensus
-func (b *BlockchainService) PreExecute(data interface{}) (result []byte, err error) {
+func (b *BlockchainService) PreExecute(data interface{}, lastReqs []interface{}) (result []byte, err error) {
 	blk, err := b.getNewBlockRequestFromConsensus(data)
 	if err != nil {
 		return
 	}
 
-	err = b.verifyBlock(blk)
+	err = b.verifyBlock(blk, lastReqs)
 	if err != nil {
 		return
 	}
@@ -200,7 +215,7 @@ func (b *BlockchainService) Execute(data interface{}) (result []byte, err error)
 		return
 	}
 
-	err = b.verifyBlock(blk)
+	err = b.verifyBlock(blk, nil)
 	if err != nil {
 		return
 	}

@@ -32,7 +32,7 @@ type requestList struct {
 	Requests [][]byte
 }
 
-func (r *requestList) Verify() (passed bool, err error) {
+func (r *requestList) Verify(lastReqData []byte) (passed bool, err error) {
 	passed = true
 	for _, req := range r.Requests {
 		srvReq := serviceRequest.Entity{}
@@ -40,7 +40,13 @@ func (r *requestList) Verify() (passed bool, err error) {
 		if err != nil {
 			continue
 		}
-		_, err = preExecuteServiceRequest(srvReq)
+
+		var srvReqs []interface{}
+		if len(lastReqData) != 0 {
+			srvReqs = byteToReqs(lastReqData)
+		}
+
+		_, err = preExecuteServiceRequest(srvReq, srvReqs)
 		//todo: handle the result of pre-execute
 		if err != nil {
 			passed = false
@@ -92,24 +98,7 @@ func (e *consensusProcessor) EventProcessor(event enum.Element, customerData []b
 }
 
 func (e *consensusProcessor) CustomerDataToConsensus(lastCustomerData []byte) (data consensus.ICustomerData, _ error) {
-	lastReqList := requestList{}
-	err := json.Unmarshal(lastCustomerData, &lastReqList)
-
-	var srvReqs []interface{}
-	if !reflect.DeepEqual(lastReqList, requestList{}) {
-		srvReqs = make([]interface{}, len(lastReqList.Requests))
-		for i, req := range lastReqList.Requests {
-			srvReq := serviceRequest.Entity{}
-			err = json.Unmarshal(req, &srvReq)
-			if err != nil {
-				log.Log.Error("deserialize consensus data failed: ", err.Error())
-				continue
-			}
-
-			srvReqs[i] = srvReq
-		}
-	}
-
+	srvReqs := byteToReqs(lastCustomerData)
 	allValidRequests := getAllRequestsNeedConsensus(srvReqs)
 	data = &requestList{
 		allValidRequests,
@@ -132,6 +121,27 @@ func (e *consensusProcessor) CustomerDataFromConsensus(data []byte) (customerDat
 func (e *consensusProcessor) NewDataBasedOnConsensus(data consensus.ICustomerData) (newData consensus.ICustomerData, err error) {
 	//todo: prepare for parallel service
 	return
+}
+
+func byteToReqs(data []byte) []interface{} {
+	lastReqList := requestList{}
+	err := json.Unmarshal(data, &lastReqList)
+
+	var srvReqs []interface{}
+	if !reflect.DeepEqual(lastReqList, requestList{}) {
+		srvReqs = make([]interface{}, len(lastReqList.Requests))
+		for i, req := range lastReqList.Requests {
+			srvReq := serviceRequest.Entity{}
+			err = json.Unmarshal(req, &srvReq)
+			if err != nil {
+				log.Log.Error("deserialize consensus data failed: ", err.Error())
+				continue
+			}
+
+			srvReqs[i] = srvReq
+		}
+	}
+	return srvReqs
 }
 
 var ConsensusProcessor consensusProcessor
