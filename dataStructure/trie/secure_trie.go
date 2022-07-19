@@ -78,10 +78,6 @@ func (t *SecureTrie) GetKey(shaKey []byte) []byte {
 	return key.Data
 }
 
-func (t *SecureTrie) Commit() (root common.Hash, err error) {
-	return t.CommitTo(t.trie.db)
-}
-
 func (t *SecureTrie) Hash() common.Hash {
 	return t.trie.Hash()
 }
@@ -99,19 +95,17 @@ func (t *SecureTrie) NodeIterator(start []byte) NodeIterator {
 	return t.trie.NodeIterator(start)
 }
 
-func (t *SecureTrie) CommitTo(db kvDatabase.IDriver) (root common.Hash, err error) {
+func (t *SecureTrie) CommitTo(bw BatchWriter) (root common.Hash, err error) {
 	if len(t.getSecKeyCache()) > 0 {
 		for hk, key := range t.secKeyCache {
-			if err := db.Put(kvDatabase.KVItem{
-				Key:  t.secKey([]byte(hk)),
-				Data: key,
-			}); err != nil {
-				return common.Hash{}, err
-			}
+			bw.Put(
+				t.secKey([]byte(hk)),
+				key,
+			)
 		}
 		t.secKeyCache = make(map[string][]byte)
 	}
-	return t.trie.CommitTo(db)
+	return t.trie.CommitTo(bw)
 }
 
 func (t *SecureTrie) secKey(key []byte) []byte {

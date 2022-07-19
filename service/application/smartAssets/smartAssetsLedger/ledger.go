@@ -372,18 +372,15 @@ func (l *Ledger) removeTransactionsFromPool(txList []Transaction) {
 	}
 }
 
-func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byte, err error) {
+func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byte, root common.Hash, err error) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
-	var kvList []kvDatabase.KVItem
+	batch := l.Storage.NewBatch()
+
 	for _, tx := range txList.Transactions {
 		txData, _ := structSerializer.ToMFBytes(tx)
-		kvList = append(kvList, kvDatabase.KVItem{
-			Key:    BuildKey(StoragePrefixes.Transaction, tx.DataSeal.Hash),
-			Data:   txData,
-			Exists: true,
-		})
+		batch.Put(BuildKey(StoragePrefixes.Transaction, tx.DataSeal.Hash), txData)
 
 		switch tx.Type {
 		case TxType.Transfer.String():
@@ -400,22 +397,24 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 			}
 		default:
 			for _, s := range tx.TransactionResult.NewState {
-				kvList = append(kvList, kvDatabase.KVItem{
-					Key:    s.Key,
-					Data:   s.NewVal,
-					Exists: true,
-				})
+				batch.Put(s.Key, s.NewVal)
 			}
 		}
 
 	}
 
-	err = l.Storage.BatchPut(kvList)
+	root, err = l.StateDB.CommitTo(batch, true)
+	if err != nil {
+		return
+	}
+
+	err = l.Storage.BatchWrite(batch)
 	if err != nil {
 		return
 	}
 
 	l.removeTransactionsFromPool(txList.Transactions)
+
 	return
 }
 

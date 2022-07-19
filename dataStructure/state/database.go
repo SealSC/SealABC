@@ -30,7 +30,7 @@ type Trie interface {
 	TryGet(key []byte) ([]byte, error)
 	TryUpdate(key, value []byte) error
 	TryDelete(key []byte) error
-	CommitTo(kvDatabase.IDriver) (common.Hash, error)
+	CommitTo(trie.BatchWriter) (common.Hash, error)
 	Hash() common.Hash
 	NodeIterator(startKey []byte) trie.NodeIterator
 	GetKey([]byte) []byte
@@ -116,8 +116,8 @@ type cachedTrie struct {
 	db *cachingDB
 }
 
-func (m cachedTrie) CommitTo(db kvDatabase.IDriver) (common.Hash, error) {
-	root, err := m.SecureTrie.CommitTo(db)
+func (m cachedTrie) CommitTo(bw trie.BatchWriter) (common.Hash, error) {
+	root, err := m.SecureTrie.CommitTo(bw)
 	if err == nil {
 		m.db.pushTrie(m.SecureTrie)
 	}
