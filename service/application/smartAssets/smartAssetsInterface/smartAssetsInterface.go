@@ -92,9 +92,9 @@ func (s *SmartAssetsApplication) Execute(
 		return
 	}
 
-	_, err = s.ledger.Execute(txList, blk)
+	_, root, err := s.ledger.Execute(txList, blk)
 
-	result.Data, _ = s.ledger.StateDB.CommitTo(s.ledger.Storage, true)
+	result.Data = root
 
 	if err == nil && s.sqlStorage != nil {
 		for _, tx := range txList.Transactions {

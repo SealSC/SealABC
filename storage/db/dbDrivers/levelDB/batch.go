@@ -18,6 +18,7 @@
 package levelDB
 
 import (
+	"errors"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -67,6 +68,22 @@ func (l *levelDBDriver) BatchDelete(kList [][]byte) (err error) {
 		batch.Delete(k)
 	}
 	err = l.db.Write(batch, nil)
+	return
+}
+
+func (l *levelDBDriver) NewBatch() kvDatabase.Batch {
+	return new(leveldb.Batch)
+}
+
+func (l *levelDBDriver) BatchWrite(b kvDatabase.Batch) (err error) {
+	switch batch := b.(type) {
+	case *leveldb.Batch:
+		err = l.db.Write(batch, nil)
+		return err
+	default:
+		err = errors.New("batch write error")
+	}
+
 	return
 }
 

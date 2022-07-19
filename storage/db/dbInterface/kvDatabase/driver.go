@@ -30,6 +30,9 @@ type IDriver interface {
 	BatchDelete(kList [][]byte) (err error)
 	BatchCheck(kList [][]byte) (kvList []KVItem, err error)
 
+	NewBatch() Batch
+	BatchWrite(Batch) (err error)
+
 	Traversal(condition []byte) (kvList []KVItem)
 
 	Stat() (state interface{}, err error)
