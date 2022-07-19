@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/crypto"
-	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
+	"github.com/SealSC/SealABC/dataStructure/trie"
 	//"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/ethereum/go-ethereum/rlp"
@@ -221,12 +221,12 @@ func (s *stateObject) updateRoot(db Database) {
 	s.data.SetRoot(s.trie.Hash())
 }
 
-func (s *stateObject) CommitTrie(db Database, db2 kvDatabase.IDriver) error {
+func (s *stateObject) CommitTrie(db Database, bw trie.BatchWriter) error {
 	s.updateTrie(db)
 	if s.dbErr != nil {
 		return s.dbErr
 	}
-	root, err := s.trie.CommitTo(db2)
+	root, err := s.trie.CommitTo(bw)
 	if err == nil {
 		s.data.SetRoot(root)
 	}

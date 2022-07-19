@@ -6,8 +6,6 @@ import (
 	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/dataStructure/trie"
 	"github.com/SealSC/SealABC/log"
-	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-
 	"github.com/ethereum/go-ethereum/rlp"
 
 	"math/big"
@@ -346,8 +344,7 @@ func (s *StateDB) DeleteSuicides() {
 	}
 }
 
-func (s *StateDB) CommitTo(db kvDatabase.IDriver, deleteEmptyObjects bool) (root common.Hash, err error) {
-	var kvList []kvDatabase.KVItem
+func (s *StateDB) CommitTo(bw trie.BatchWriter, deleteEmptyObjects bool) (root common.Hash, err error) {
 	for addr, stateObject := range s.stateObjects {
 		_, isDirty := s.stateObjectsDirty[addr]
 		switch {
@@ -355,13 +352,11 @@ func (s *StateDB) CommitTo(db kvDatabase.IDriver, deleteEmptyObjects bool) (root
 			s.deleteStateObject(stateObject)
 		case isDirty:
 			if stateObject.code != nil && stateObject.dirtyCode {
-				kvList = append(kvList, kvDatabase.KVItem{
-					Key:  stateObject.CodeHash(),
-					Data: stateObject.code,
-				})
+				bw.Put(stateObject.CodeHash(), stateObject.code)
 				stateObject.dirtyCode = false
 			}
-			if err := stateObject.CommitTrie(s.db, db); err != nil {
+
+			if err := stateObject.CommitTrie(s.db, bw); err != nil {
 				return common.Hash{}, err
 			}
 			s.updateStateObject(stateObject)
@@ -370,12 +365,7 @@ func (s *StateDB) CommitTo(db kvDatabase.IDriver, deleteEmptyObjects bool) (root
 		delete(s.stateObjectsDirty, addr)
 	}
 
-	err = db.BatchPut(kvList)
-	if err != nil {
-		return common.Hash{}, err
-	}
-
-	root, err = s.trie.CommitTo(db)
+	root, err = s.trie.CommitTo(bw)
 
 	return root, err
 }

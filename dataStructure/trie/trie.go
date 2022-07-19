@@ -307,13 +307,13 @@ func (t *Trie) resolve(n node, prefix []byte) (node, error) {
 	return n, nil
 }
 
-func (t *Trie) hashRoot(db kvDatabase.IDriver) (node, node, error) {
+func (t *Trie) hashRoot(bw BatchWriter) (node, node, error) {
 	if t.root == nil {
 		return hashNode(emptyRoot.Bytes()), nil, nil
 	}
 	h := newHasher(t.cacheGen, t.cacheLimit)
 	defer returnHasherToPool(h)
-	return h.hash(t.root, db, true)
+	return h.hash(t.root, bw, true)
 }
 
 func (t *Trie) SetCacheLimit(l uint16) {
@@ -343,8 +343,8 @@ func mustDecodeNode(hash, buf []byte, cacheGen uint16) node {
 	return n
 }
 
-func (t *Trie) CommitTo(db kvDatabase.IDriver) (root common.Hash, err error) {
-	hash, cached, err := t.hashRoot(db)
+func (t *Trie) CommitTo(bw BatchWriter) (root common.Hash, err error) {
+	hash, cached, err := t.hashRoot(bw)
 	if err != nil {
 		return common.Hash{}, err
 	}
