@@ -92,9 +92,7 @@ func (s *SmartAssetsApplication) Execute(
 		return
 	}
 
-	_, root, err := s.ledger.Execute(txList, blk)
-
-	result.Data = root
+	_, _, err = s.ledger.Execute(txList, blk)
 
 	if err == nil && s.sqlStorage != nil {
 		for _, tx := range txList.Transactions {
@@ -106,8 +104,7 @@ func (s *SmartAssetsApplication) Execute(
 }
 
 func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []blockchainRequest.Entity, cnt uint32) {
-	txList, cnt, txRoot := s.ledger.GetTransactionsFromPool(blk)
-
+	txList, cnt, txRoot, stateRoot := s.ledger.GetTransactionsFromPool(blk)
 	if cnt == 0 {
 		return
 	}
@@ -125,6 +122,7 @@ func (s *SmartAssetsApplication) RequestsForBlock(blk block.Entity) (reqList []b
 		PackedCount: cnt,
 		Seal: seal.Entity{
 			Hash:            txRoot, //use merkle tree root as seal hash for packed actions
+			Root:            stateRoot,
 			Signature:       nil,
 			SignerPublicKey: nil,
 			SignerAlgorithm: "",
@@ -196,7 +194,7 @@ func NewApplicationInterface(
 ) (app chainStructure.IBlockchainExternalApplication, err error) {
 	sa := SmartAssetsApplication{}
 
-	sa.ledger = smartAssetsLedger.NewLedger(tools, kvDriver)
+	sa.ledger = smartAssetsLedger.NewLedger(tools, kvDriver, sa.Name())
 
 	if sqlDriver != nil {
 		sa.sqlStorage = smartAssetsSQLStorage.NewStorage(sqlDriver)

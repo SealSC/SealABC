@@ -59,6 +59,8 @@ type Ledger struct {
 	storageForEVM contractStorage
 
 	StateDB *state.StateDB
+
+	applicationName string
 }
 
 func Load() {
@@ -73,7 +75,12 @@ func (l *Ledger) SetChain(chain chainStructure.IChainInterface) {
 	l.chain = chain
 
 	if chain.GetLastBlock() != nil {
-		stateRoot := common.BytesToHash(chain.GetLastBlock().Header.StateRoot)
+		root, exist := chain.GetLastBlock().Header.StateRoot[l.applicationName]
+		if !exist {
+			log.Log.Error("Failed to reset txpool state")
+			return
+		}
+		stateRoot := common.BytesToHash(root)
 		stateDB, err := state.New(stateRoot, state.NewDatabase(l.Storage), l.CryptoTools, &AccountTool{})
 		if err != nil {
 			log.Log.Error("Failed to reset txpool state", "err", err)
@@ -244,7 +251,7 @@ func (l Ledger) txResultCheck(orgResult TransactionResult, execResult Transactio
 	return nil
 }
 
-func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []byte, err error) {
+func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (root []byte, err error) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
@@ -262,6 +269,8 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []b
 			Data: nil,
 		},
 	}
+
+	stateDB := l.StateDB.Copy()
 
 	for _, tx := range txList.Transactions {
 		hash := string(tx.DataSeal.Hash)
@@ -285,11 +294,22 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []b
 			checkErr := l.txResultCheck(tx.TransactionResult, txForCheck.TransactionResult, tx.getHash())
 			if checkErr != nil {
 				err = checkErr
+				log.Log.Printf("tx err: %v", err)
 				break
+			}
+
+			switch tx.Type {
+			case TxType.Transfer.String():
+				l.setTransferState(tx.TransactionResult.NewState, stateDB)
 			}
 		}
 	}
 
+	root = stateDB.IntermediateRoot().Bytes()
+	stateRoot := blk.Header.StateRoot[l.applicationName]
+	if !bytes.Equal(root, stateRoot) {
+		err = fmt.Errorf("invalid merkle root (remote: %x local: %x)", stateRoot, root)
+	}
 	return
 }
 
@@ -316,17 +336,7 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 
 		switch tx.Type {
 		case TxType.Transfer.String():
-			for i, s := range tx.TransactionResult.NewState {
-				balance := big.NewInt(0)
-				balance.SetBytes(s.NewVal)
-
-				address := common.BytesToAddress(s.Key)
-
-				l.StateDB.SetBalance(address, balance)
-				if i == 0 { //From
-					l.StateDB.SetNonce(address, l.StateDB.GetNonce(address)+1)
-				}
-			}
+			l.setTransferState(tx.TransactionResult.NewState, l.StateDB)
 		default:
 			for _, s := range tx.TransactionResult.NewState {
 				batch.Put(s.Key, s.NewVal)
@@ -350,7 +360,21 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 	return
 }
 
-func (l Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) {
+func (l *Ledger) setTransferState(s []StateData, state *state.StateDB) {
+	for i, s := range s {
+		balance := big.NewInt(0)
+		balance.SetBytes(s.NewVal)
+
+		address := common.BytesToAddress(s.Key)
+
+		state.SetBalance(address, balance)
+		if i == 0 { //From
+			state.SetNonce(address, state.GetNonce(address)+1)
+		}
+	}
+}
+
+func (l *Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) {
 	errEl := err.(enum.ErrorElement)
 
 	if errEl != Errors.Success {
@@ -362,12 +386,11 @@ func (l Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) 
 	}
 }
 
-func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionList, count uint32, txRoot []byte) {
+func (l *Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionList, count uint32, txRoot []byte, stateRoot []byte) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
 	txs := l.txPool.Pending()
-
 	count = uint32(len(txs))
 	if count == 0 {
 		return
@@ -387,6 +410,7 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 		},
 	}
 
+	stateDB := l.StateDB.Copy()
 	mt := merkleTree.Tree{}
 
 	for idx, tx := range txs {
@@ -400,13 +424,18 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 
 			tx.TransactionResult.ReturnData = resultCache[CachedContractReturnData].Data
 			tx.TransactionResult.NewAddress = resultCache[CachedContractCreationAddress].address
+
+			switch tx.Type {
+			case TxType.Transfer.String():
+				l.setTransferState(tx.TransactionResult.NewState, stateDB)
+			}
 		}
 
 		txList.Transactions = append(txList.Transactions, *tx)
 	}
 
 	txRoot, _ = mt.Calculate()
-
+	stateRoot = stateDB.IntermediateRoot().Bytes()
 	return
 }
 
@@ -418,17 +447,18 @@ func (l *Ledger) DoQuery(req QueryRequest) (interface{}, error) {
 	return nil, Errors.InvalidQuery
 }
 
-func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver) *Ledger {
+func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, applicationName string) *Ledger {
 	l := &Ledger{
-		txPool:        NewTxPool(),
-		txPoolLimit:   1000,
-		clientTxCount: map[string]int{},
-		clientTxLimit: 4,
-		operateLock:   sync.RWMutex{},
-		poolLock:      sync.Mutex{},
-		genesisAssets: BaseAssets{},
-		CryptoTools:   tools,
-		Storage:       driver,
+		txPool:          NewTxPool(),
+		txPoolLimit:     1000,
+		clientTxCount:   map[string]int{},
+		clientTxLimit:   4,
+		operateLock:     sync.RWMutex{},
+		poolLock:        sync.Mutex{},
+		genesisAssets:   BaseAssets{},
+		CryptoTools:     tools,
+		Storage:         driver,
+		applicationName: applicationName,
 	}
 
 	l.storageForEVM.basedLedger = l

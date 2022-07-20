@@ -83,7 +83,8 @@ func (s *StateDB) Empty(addr common.Address) bool {
 func (s *StateDB) GetBalance(addr common.Address) *big.Int {
 	stateObject := s.getStateObject(addr)
 	if stateObject != nil {
-		return stateObject.Balance()
+
+		return new(big.Int).Set(stateObject.Balance())
 	}
 	return common.Big0
 }
@@ -321,8 +322,8 @@ func (s *StateDB) Finalise(deleteEmptyObjects bool) {
 	}
 }
 
-func (s *StateDB) IntermediateRoot(deleteEmptyObjects bool) common.Hash {
-	s.Finalise(deleteEmptyObjects)
+func (s *StateDB) IntermediateRoot() common.Hash {
+	s.Finalise(true)
 	return s.trie.Hash()
 }
 
