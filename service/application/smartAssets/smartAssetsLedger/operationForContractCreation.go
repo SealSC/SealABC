@@ -18,7 +18,6 @@
 package smartAssetsLedger
 
 import (
-	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealEVM/evmInt256"
 	"github.com/SealSC/SealEVM/opcodes"
@@ -63,7 +62,7 @@ func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk bl
 		return nil, nil, Errors.ContractCreationFailed.NewErrorWithNewMessage(err.Error())
 	}
 
-	cache[CachedContractCreationAddress].address = common.BytesToAddress(contract.Namespace.Bytes())
+	cache[CachedContractCreationAddress].address = contract.Namespace.Bytes()
 	cache[CachedContractReturnData].Data = ret.ResultData
 	return newState, cache, Errors.Success
 }

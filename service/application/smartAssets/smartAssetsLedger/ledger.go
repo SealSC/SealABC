@@ -183,7 +183,7 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 		return errors.New("transaction type is not equal to block request action")
 	}
 
-	if !bytes.Equal(tx.From.Bytes(), tx.DataSeal.SignerPublicKey) {
+	if !bytes.Equal(tx.From, tx.DataSeal.SignerPublicKey) {
 		return errors.New("invalid sender")
 	}
 
