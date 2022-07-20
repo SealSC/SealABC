@@ -27,7 +27,7 @@ type Header struct {
 	Height           uint64
 	PrevBlock        []byte
 	TransactionsRoot []byte
-	StateRoot        []byte
+	StateRoot        map[string][]byte
 	Timestamp        uint64
 }
 

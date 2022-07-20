@@ -22,7 +22,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/metadata/blockchainRequest"
@@ -35,12 +34,6 @@ const lastBlockKey = "lastBlockKey"
 func (b *Blockchain) executeRequest(blk *block.Entity) (err error) {
 	for idx, req := range blk.Body.Requests {
 		appRet, exeErr := b.Executor.ExecuteRequest(req, *blk, uint32(idx))
-
-		switch appRet.Data.(type) {
-		case common.Hash:
-			blk.Header.StateRoot = (appRet.Data).(common.Hash).Bytes()
-		}
-
 		if exeErr != nil {
 			err = exeErr
 			break
