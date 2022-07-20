@@ -57,4 +57,4 @@ func (a *Address) SetBytes(b []byte) {
 }
 
 func (a *Address) Bytes() []byte  { return a[:] }
-func (a *Address) String() string { return string(a.Bytes()) }
+func (a *Address) String() string { return hex.EncodeToString(a.Bytes()) }

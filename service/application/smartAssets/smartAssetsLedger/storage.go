@@ -19,7 +19,6 @@ package smartAssetsLedger
 
 import (
 	"errors"
-	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealEVM/environment"
@@ -82,7 +81,7 @@ type contractStorage struct {
 }
 
 func (c *contractStorage) GetBalance(address *evmInt256.Int) (*evmInt256.Int, error) {
-	balance, err := c.basedLedger.BalanceOf(common.BytesToAddress(address.Bytes()))
+	balance, err := c.basedLedger.BalanceOf(address.Bytes())
 
 	var ret *evmInt256.Int
 	if err == nil {
@@ -92,7 +91,7 @@ func (c *contractStorage) GetBalance(address *evmInt256.Int) (*evmInt256.Int, er
 }
 
 func (c *contractStorage) CanTransfer(from, to, val *evmInt256.Int) bool {
-	balance, err := c.basedLedger.BalanceOf(common.BytesToAddress(from.Bytes()))
+	balance, err := c.basedLedger.BalanceOf(from.Bytes())
 	if err != nil {
 		return false
 	}
