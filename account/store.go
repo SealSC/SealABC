@@ -18,6 +18,7 @@
 package account
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/SealSC/SealABC/crypto/ciphers"
@@ -108,7 +109,7 @@ func (s *SealAccount) FromStore(filename string, password string) (sa SealAccoun
 		return
 	}
 
-	if signer.PublicKeyString() != encAccount.Address {
+	if !bytes.Equal(signer.PublicKeyBytes(), encAccount.Address.Bytes()) {
 		err = errors.New("address not equal")
 		return
 	}

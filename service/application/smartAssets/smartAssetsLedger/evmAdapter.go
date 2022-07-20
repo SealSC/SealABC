@@ -20,6 +20,7 @@ package smartAssetsLedger
 import (
 	"bytes"
 	"fmt"
+	c "github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealEVM"
 	"github.com/SealSC/SealEVM/common"
@@ -58,7 +59,7 @@ func (l Ledger) newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 		contractAddress = l.storageForEVM.CreateAddress(caller, evmTransaction)
 		contractCode = tx.Data
 	} else {
-		contractAddress = common.BytesDataToEVMIntHash(tx.To)
+		contractAddress = common.BytesDataToEVMIntHash(tx.To.Bytes())
 		codeData, err := l.storageForEVM.GetCode(contractAddress)
 		if err != nil {
 			return nil, nil, Errors.ContractNotFound.NewErrorWithNewMessage(err.Error())
@@ -116,7 +117,7 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 		if resultCache[string(addr)] != nil {
 			localBalance = resultCache[string(addr)].val
 		} else {
-			localBalance, err = l.BalanceOf(addr)
+			localBalance, err = l.BalanceOf(c.BytesToAddress(addr))
 			if err != nil {
 				continue
 			}

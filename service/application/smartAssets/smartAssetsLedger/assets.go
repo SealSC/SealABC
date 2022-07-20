@@ -45,13 +45,13 @@ func (b *BaseAssets) getHash() []byte {
 	return b.MetaSeal.Hash
 }
 
-func (l *Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
-	balance = l.StateDB.GetBalance(common.BytesToAddress(address))
+func (l *Ledger) BalanceOf(address common.Address) (balance *big.Int, err error) {
+	balance = l.StateDB.GetBalance(address)
 	return
 }
 
-func (l *Ledger) NonceOf(address []byte) (nonce uint64) {
-	nonce = l.StateDB.GetNonce(common.BytesToAddress(address))
+func (l *Ledger) NonceOf(address common.Address) (nonce uint64) {
+	nonce = l.StateDB.GetNonce(address)
 	return
 }
 
