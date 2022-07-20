@@ -28,6 +28,7 @@ import (
 
 type Entity struct {
 	Hash            []byte
+	Root            []byte
 	Signature       []byte
 	SignerPublicKey []byte
 	SignerAlgorithm string
