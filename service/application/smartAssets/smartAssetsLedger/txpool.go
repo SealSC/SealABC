@@ -66,7 +66,7 @@ func (pool *TxPool) addTx(tx *Transaction) error {
 	}
 
 	if !replaced {
-		pool.promoteExecutables(tx.From)
+		pool.promoteExecutables(common.BytesToAddress(tx.From))
 	}
 
 	return nil
@@ -80,7 +80,8 @@ func (pool *TxPool) add(tx *Transaction) (bool, error) {
 		return false, err
 	}
 
-	if list := pool.pending[tx.From]; list != nil && list.Overlaps(tx) {
+	from := common.BytesToAddress(tx.From)
+	if list := pool.pending[from]; list != nil && list.Overlaps(tx) {
 		old := list.Add(tx)
 
 		if old != nil {
@@ -104,7 +105,8 @@ func (pool *TxPool) validateTx(tx *Transaction) error {
 		return ErrNegativeValue
 	}
 
-	if pool.currentState.GetNonce(tx.From) > tx.Nonce {
+	from := common.BytesToAddress(tx.From)
+	if pool.currentState.GetNonce(from) > tx.Nonce {
 		return ErrNonceTooLow
 	}
 
@@ -156,7 +158,8 @@ func (pool *TxPool) removeTx(hash common.Hash) {
 	if !ok {
 		return
 	}
-	addr := tx.From
+	addr := common.BytesToAddress(tx.From)
+
 	delete(pool.all, hash)
 
 	if pending := pool.pending[addr]; pending != nil {
@@ -185,7 +188,7 @@ func (pool *TxPool) removeTx(hash common.Hash) {
 }
 
 func (pool *TxPool) enqueueTx(hash common.Hash, tx *Transaction) (bool, error) {
-	from := tx.From
+	from := common.BytesToAddress(tx.From)
 	if pool.queue[from] == nil {
 		pool.queue[from] = newTxList(false)
 	}
