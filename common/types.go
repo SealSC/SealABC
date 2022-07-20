@@ -55,3 +55,6 @@ func (a *Address) SetBytes(b []byte) {
 	}
 	copy(a[AddressLength-len(b):], b)
 }
+
+func (a *Address) Bytes() []byte  { return a[:] }
+func (a *Address) String() string { return string(a.Bytes()) }
