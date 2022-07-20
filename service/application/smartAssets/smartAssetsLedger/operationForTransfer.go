@@ -18,21 +18,22 @@
 package smartAssetsLedger
 
 import (
+	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/metadata/block"
 	"math/big"
 )
 
 var bigZero = big.NewInt(0)
 
-func (l *Ledger) getBalance(addr []byte, cache txResultCache) (*big.Int, error) {
-	addrStr := string(addr)
-	if cache[addrStr] != nil {
-		return cache[addrStr].val, nil
+func (l *Ledger) getBalance(addr common.Address, cache txResultCache) (*big.Int, error) {
+	addStr := addr.String()
+	if cache[addStr] != nil {
+		return cache[addStr].val, nil
 	}
 
 	balance, err := l.BalanceOf(addr)
 	if err == nil {
-		cache[addrStr] = &txResultCacheData{
+		cache[addStr] = &txResultCacheData{
 			val: balance,
 		}
 	}
@@ -85,18 +86,18 @@ func (l *Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity
 	fromBalance.Sub(fromBalance, amount)
 	toBalance.Add(toBalance, amount)
 
-	cache[string(tx.From)].val = fromBalance
-	cache[string(tx.To)].val = toBalance
+	cache[tx.From.String()].val = fromBalance
+	cache[tx.To.String()].val = toBalance
 
 	statusToChange := []StateData{
 		{
-			Key:    tx.From,
+			Key:    tx.From.Bytes(),
 			NewVal: fromBalance.Bytes(),
 			OrgVal: orgFromBalance,
 		},
 
 		{
-			Key:    tx.To,
+			Key:    tx.To.Bytes(),
 			NewVal: toBalance.Bytes(),
 			OrgVal: orgToBalance,
 		},

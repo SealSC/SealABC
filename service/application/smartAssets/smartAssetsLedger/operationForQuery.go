@@ -20,6 +20,7 @@ package smartAssetsLedger
 import (
 	"encoding/hex"
 	"encoding/json"
+	"github.com/SealSC/SealABC/common"
 )
 
 func (l *Ledger) queryBaseAssets(_ QueryRequest) (interface{}, error) {
@@ -37,7 +38,7 @@ func (l *Ledger) queryBalance(req QueryRequest) (interface{}, error) {
 		return nil, Errors.InvalidParameter.NewErrorWithNewMessage(err.Error())
 	}
 
-	balance, err := l.BalanceOf(addr)
+	balance, err := l.BalanceOf(common.BytesToAddress(addr))
 	if err != nil {
 		return nil, Errors.DBError.NewErrorWithNewMessage(err.Error())
 	}
@@ -56,7 +57,7 @@ func (l *Ledger) queryNonce(req QueryRequest) (interface{}, error) {
 		return nil, Errors.InvalidParameter.NewErrorWithNewMessage(err.Error())
 	}
 
-	nonce := l.NonceOf(addr)
+	nonce := l.NonceOf(common.BytesToAddress(addr))
 	return nonce, nil
 }
 

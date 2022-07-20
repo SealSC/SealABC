@@ -58,8 +58,8 @@ func GetTxTypeCodeForName(name string) int {
 type TransactionData struct {
 	Nonce        uint64
 	Type         string
-	From         []byte
-	To           []byte
+	From         common.Address
+	To           common.Address
 	Value        string
 	Data         []byte
 	Memo         string
@@ -76,7 +76,7 @@ type TransactionResult struct {
 	Success        bool
 	ErrorCode      int64
 	SequenceNumber uint32
-	NewAddress     []byte
+	NewAddress     common.Address
 	ReturnData     []byte
 	NewState       []StateData
 }
@@ -111,7 +111,7 @@ func (t *Transaction) getCommonHash() common.Hash {
 }
 
 func (t *Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err error) {
-	if !bytes.Equal(t.From, t.DataSeal.SignerPublicKey) {
+	if !bytes.Equal(t.From.Bytes(), t.DataSeal.SignerPublicKey) {
 		return false, errors.New("invalid sender")
 	}
 
@@ -134,7 +134,7 @@ func (t *Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err 
 type txResultCacheData struct {
 	val     *big.Int
 	gasLeft uint64
-	address []byte
+	address common.Address
 	Data    []byte
 }
 

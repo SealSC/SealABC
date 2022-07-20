@@ -18,6 +18,7 @@
 package account
 
 import (
+	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
 	"github.com/SealSC/SealABC/crypto/signers"
 	"github.com/SealSC/SealABC/crypto/signers/signerCommon"
@@ -37,7 +38,7 @@ type StoreConfig struct {
 }
 
 type Encrypted struct {
-	Address string
+	Address common.Address
 	Data    cipherCommon.EncryptedData
 	Config  StoreConfig
 }
@@ -48,7 +49,7 @@ type accountDataForEncrypt struct {
 }
 
 type SealAccount struct {
-	Address    string
+	Address    common.Address
 	SingerType string
 	Signer     signerCommon.ISigner
 }
@@ -60,7 +61,7 @@ func NewAccount(privateKey []byte, sg signers.ISignerGenerator) (sa SealAccount,
 		return
 	}
 
-	sa.Address = signer.PublicKeyString()
+	sa.Address = common.BytesToAddress(signer.PublicKeyBytes())
 	sa.SingerType = signer.Type()
 	sa.Signer = signer
 	return
@@ -72,7 +73,7 @@ func NewAccountForVerify(publicKey []byte, sg signers.ISignerGenerator) (sa Seal
 		return
 	}
 
-	sa.Address = signer.PublicKeyString()
+	sa.Address = common.BytesToAddress(signer.PublicKeyBytes())
 	sa.SingerType = signer.Type()
 	sa.Signer = signer
 
