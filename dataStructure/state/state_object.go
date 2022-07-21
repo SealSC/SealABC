@@ -9,7 +9,6 @@ import (
 	//"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/ethereum/go-ethereum/rlp"
-	"io"
 	"math/big"
 )
 
@@ -82,8 +81,8 @@ func newObject(db *StateDB, cryptoTools crypto.Tools, address common.Address, da
 	}
 }
 
-func (s *stateObject) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, s.data)
+func (s *stateObject) EncodeData() ([]byte, error) {
+	return s.data.Encode()
 }
 
 func (s *stateObject) empty() bool {
@@ -211,6 +210,7 @@ func (s *stateObject) updateTrie(db Database) Trie {
 			continue
 		}
 		v, _ := rlp.EncodeToBytes(bytes.TrimLeft(value[:], "\x00"))
+		//v, _ := structSerializer.ToMFBytes(bytes.TrimLeft(value[:], "\x00"))
 		s.setError(tr.TryUpdate(key[:], v))
 	}
 	return tr

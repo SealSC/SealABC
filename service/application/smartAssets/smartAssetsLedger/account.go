@@ -2,22 +2,25 @@ package smartAssetsLedger
 
 import (
 	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"math/big"
 )
 
 type Account struct {
 	AccountNonce    uint64
-	AccountBalance  *big.Int
-	AccountRoot     common.Hash
+	AccountBalance  string
+	AccountRoot     []byte
 	AccountCodeHash []byte
 }
 
 func (a *Account) Balance() *big.Int {
-	return a.AccountBalance
+	b := new(big.Int)
+	b.SetString(a.AccountBalance, 10)
+	return b
 }
 
 func (a *Account) SetBalance(b *big.Int) {
-	a.AccountBalance = b
+	a.AccountBalance = b.String()
 }
 
 func (a *Account) CodeHash() []byte {
@@ -37,9 +40,14 @@ func (a *Account) SetNonce(nonce uint64) {
 }
 
 func (a *Account) Root() common.Hash {
-	return a.AccountRoot
+	return common.BytesToHash(a.AccountRoot)
 }
 
 func (a *Account) SetRoot(hash common.Hash) {
-	a.AccountRoot = hash
+	a.AccountRoot = hash.Bytes()
+}
+
+func (a *Account) Encode() (data []byte, err error) {
+	data, err = structSerializer.ToMFBytes(*a)
+	return
 }
