@@ -6,8 +6,6 @@ import (
 	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/dataStructure/trie"
 	"github.com/SealSC/SealABC/log"
-	"github.com/ethereum/go-ethereum/rlp"
-
 	"math/big"
 	"sync"
 )
@@ -209,7 +207,8 @@ func (s *StateDB) Suicide(addr common.Address) bool {
 
 func (s *StateDB) updateStateObject(stateObject *stateObject) {
 	addr := stateObject.Address()
-	data, err := rlp.EncodeToBytes(stateObject)
+	data, err := stateObject.EncodeData()
+
 	if err != nil {
 		panic(fmt.Errorf("can't encode object at %x: %v", addr[:], err))
 	}

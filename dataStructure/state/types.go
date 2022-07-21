@@ -19,6 +19,8 @@ type Account interface {
 
 	Root() common.Hash
 	SetRoot(common.Hash)
+
+	Encode() ([]byte, error)
 }
 
 type AccountTool interface {
