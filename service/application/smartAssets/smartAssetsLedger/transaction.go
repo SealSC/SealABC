@@ -40,6 +40,13 @@ var TxType struct {
 	ContractCall   enum.Element
 }
 
+var StateType struct {
+	TransferFrom enum.Element
+	TransferTo   enum.Element
+	ContractCode enum.Element
+	ContractHash enum.Element
+}
+
 func GetTxTypeCodeForName(name string) int {
 	switch name {
 	case TxType.Transfer.String():
@@ -67,6 +74,7 @@ type TransactionData struct {
 }
 
 type StateData struct {
+	Type   string
 	Key    []byte
 	NewVal []byte
 	OrgVal []byte

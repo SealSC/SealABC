@@ -65,6 +65,7 @@ type Ledger struct {
 
 func Load() {
 	enum.SimpleBuild(&StoragePrefixes)
+	enum.SimpleBuild(&StateType)
 	enum.SimpleBuild(&TxType)
 	enum.SimpleBuild(&QueryTypes)
 	enum.SimpleBuild(&QueryParameterFields)
@@ -361,14 +362,14 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 }
 
 func (l *Ledger) setTransferState(s []StateData, state *state.StateDB) {
-	for i, s := range s {
+	for _, s := range s {
 		balance := big.NewInt(0)
 		balance.SetBytes(s.NewVal)
 
 		address := common.BytesToAddress(s.Key)
 
 		state.SetBalance(address, balance)
-		if i == 0 { //From
+		if s.Type == StateType.TransferFrom.String() {
 			state.SetNonce(address, state.GetNonce(address)+1)
 		}
 	}

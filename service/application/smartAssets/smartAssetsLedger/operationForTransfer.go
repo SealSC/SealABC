@@ -90,27 +90,18 @@ func (l *Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity
 
 	statusToChange := []StateData{
 		{
+			Type:   StateType.TransferFrom.String(),
 			Key:    tx.From,
 			NewVal: fromBalance.Bytes(),
 			OrgVal: orgFromBalance,
 		},
 
 		{
+			Type:   StateType.TransferTo.String(),
 			Key:    tx.To,
 			NewVal: toBalance.Bytes(),
 			OrgVal: orgToBalance,
 		},
-		//{
-		//	Key:    BuildKey(StoragePrefixes.Balance, tx.From),
-		//	NewVal: fromBalance.Bytes(),
-		//	OrgVal: orgFromBalance,
-		//},
-		//
-		//{
-		//	Key:    BuildKey(StoragePrefixes.Balance, tx.To),
-		//	NewVal: toBalance.Bytes(),
-		//	OrgVal: orgToBalance,
-		//},
 	}
 
 	return statusToChange, cache, Errors.Success
