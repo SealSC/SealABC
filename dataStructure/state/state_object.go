@@ -8,7 +8,6 @@ import (
 	"github.com/SealSC/SealABC/dataStructure/trie"
 	//"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 )
 
@@ -174,12 +173,9 @@ func (s *stateObject) GetState(db Database, key common.Hash) common.Hash {
 		s.setError(err)
 		return common.Hash{}
 	}
+
 	if len(enc) > 0 {
-		_, content, _, err := rlp.Split(enc)
-		if err != nil {
-			s.setError(err)
-		}
-		value.SetBytes(content)
+		value.SetBytes(enc)
 	}
 	if (value != common.Hash{}) {
 		s.cachedStorage[key] = value
@@ -209,9 +205,8 @@ func (s *stateObject) updateTrie(db Database) Trie {
 			s.setError(tr.TryDelete(key[:]))
 			continue
 		}
-		v, _ := rlp.EncodeToBytes(bytes.TrimLeft(value[:], "\x00"))
-		//v, _ := structSerializer.ToMFBytes(bytes.TrimLeft(value[:], "\x00"))
-		s.setError(tr.TryUpdate(key[:], v))
+
+		s.setError(tr.TryUpdate(key[:], value.Bytes()))
 	}
 	return tr
 }

@@ -76,12 +76,15 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte, newnode
 			// key not found in trie
 			return nil, n, false, nil
 		}
+
 		value, newnode, didResolve, err = t.tryGet(n.Val, key, pos+len(n.Key))
+
 		if err == nil && didResolve {
 			n = n.copy()
 			n.Val = newnode
 			n.flags.gen = t.cacheGen
 		}
+
 		return value, n, didResolve, err
 	case *fullNode:
 		value, newnode, didResolve, err = t.tryGet(n.Children[key[pos]], key, pos+1)
@@ -184,7 +187,8 @@ func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error
 		return true, nn, nil
 
 	default:
-		panic(fmt.Sprintf("%T: invalid node: %v", n, n))
+		log.Log.Errorf("%T: invalid node: %v", n, n)
+		return false, nil, nil
 	}
 }
 
