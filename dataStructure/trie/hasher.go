@@ -1,17 +1,13 @@
 package trie
 
 import (
-	"bytes"
 	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
 	"hash"
-
 	"sync"
 )
 
 type hasher struct {
-	tmp                  *bytes.Buffer
 	sha                  hash.Hash
 	cacheGen, cacheLimit uint16
 }
@@ -21,7 +17,7 @@ var hasherPool sync.Pool
 func Load(cryptoTools crypto.Tools) {
 	hasherPool = sync.Pool{
 		New: func() interface{} {
-			return &hasher{tmp: new(bytes.Buffer), sha: cryptoTools.HashCalculator.OriginalHash()()}
+			return &hasher{sha: cryptoTools.HashCalculator.OriginalHash()()}
 		},
 	}
 }
@@ -137,26 +133,23 @@ func (h *hasher) store(n node, bw BatchWriter, force bool) (node, error) {
 	if _, isHash := n.(hashNode); n == nil || isHash {
 		return n, nil
 	}
-	// Generate the RLP encoding of the node
-	h.tmp.Reset()
-	if err := rlp.Encode(h.tmp, n); err != nil {
+
+	data, err := encodeNode(n)
+	if err != nil {
 		panic("encode error: " + err.Error())
 	}
 
-	if h.tmp.Len() < 32 && !force {
-		return n, nil // Nodes smaller than 32 bytes are stored inside their parent
-	}
-	// Larger nodes are replaced by their hash and stored in the database.
 	hash, _ := n.cache()
 	if hash == nil {
 		h.sha.Reset()
-		h.sha.Write(h.tmp.Bytes())
+		h.sha.Write(data)
 		hash = hashNode(h.sha.Sum(nil))
 	}
+
 	if bw != nil {
 		bw.Put(
 			hash,
-			h.tmp.Bytes(),
+			data,
 		)
 		return hash, nil
 	}
