@@ -46,7 +46,7 @@ func Test(t *testing.T) {
 	so0.deleted = false
 	state.setStateObject(so0)
 
-	root, _ := state.CommitTo(driver.NewBatch(), false)
+	root, _ := state.Commit(driver.NewBatch(), false)
 
 	t.Log(root)
 

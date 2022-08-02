@@ -39,7 +39,7 @@ func constTransactionGasLimit() *evmInt256.Int {
 	return evmInt256.New(100000000)
 }
 
-func (l Ledger) newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
+func (l *Ledger) newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 	blk block.Entity, blockGasLimit *evmInt256.Int) (*SealEVM.EVM, *environment.Contract, error) {
 
 	evmTransaction := environment.Transaction{
@@ -54,6 +54,7 @@ func (l Ledger) newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 	caller := common.BytesDataToEVMIntHash(tx.DataSeal.SignerPublicKey)
 	var contractAddress *evmInt256.Int
 	var contractCode []byte
+
 	if len(tx.To) == 0 {
 		contractAddress = l.storageForEVM.CreateAddress(caller, evmTransaction)
 		contractCode = tx.Data
@@ -98,7 +99,7 @@ func (l Ledger) newEVM(tx Transaction, callback SealEVM.EVMResultCallback,
 	}), &contract, nil
 }
 
-func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache txResultCache, newState *[]StateData) {
+func (l *Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache txResultCache, newState *[]StateData) {
 	keys := make([]string, 0, len(cache))
 	for k := range cache {
 		keys = append(keys, k)
@@ -130,7 +131,8 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 
 		localBalance.Add(localBalance, val)
 		balanceToChange = append(balanceToChange, StateData{
-			Key:    BuildKey(StoragePrefixes.Balance, addr),
+			Type:   StateType.Balance.String(),
+			Key:    addr,
 			NewVal: localBalance.Bytes(),
 			OrgVal: orgBalance,
 		})
@@ -139,7 +141,7 @@ func (l Ledger) processEVMBalanceCache(cache storage.BalanceCache, resultCache t
 	*newState = balanceToChange
 }
 
-func (l Ledger) processEVMNamedStateCache(ns string, cache storage.Cache, org storage.Cache, newState *[]StateData) {
+func (l *Ledger) processEVMNamedStateCache(ns string, cache storage.Cache, org storage.Cache, newState *[]StateData) {
 	keys := make([]string, 0, len(cache))
 	for k := range cache {
 		keys = append(keys, k)
@@ -157,7 +159,9 @@ func (l Ledger) processEVMNamedStateCache(ns string, cache storage.Cache, org st
 		}
 
 		state = append(state, StateData{
-			Key:    BuildKey(StoragePrefixes.ContractData, []byte(ns), []byte(k)),
+			Type:   StateType.ContractData.String(),
+			Key:    []byte(ns),
+			SubKey: []byte(k),
 			NewVal: cacheData.Bytes(),
 			OrgVal: orgVal,
 		})
@@ -166,7 +170,7 @@ func (l Ledger) processEVMNamedStateCache(ns string, cache storage.Cache, org st
 	*newState = state
 }
 
-func (l Ledger) processEVMStateCache(cache storage.CacheUnderNamespace, org storage.CacheUnderNamespace, newState *[]StateData) {
+func (l *Ledger) processEVMStateCache(cache storage.CacheUnderNamespace, org storage.CacheUnderNamespace, newState *[]StateData) {
 	keys := make([]string, 0, len(cache))
 	for k := range cache {
 		keys = append(keys, k)
@@ -178,7 +182,7 @@ func (l Ledger) processEVMStateCache(cache storage.CacheUnderNamespace, org stor
 	}
 }
 
-func (l Ledger) processEVMLogData(ns string, logList []storage.Log, newState *[]StateData) {
+func (l *Ledger) processEVMLogData(ns string, logList []storage.Log, newState *[]StateData) {
 	state := *newState
 
 	for _, contractLog := range logList {
@@ -200,7 +204,7 @@ func (l Ledger) processEVMLogData(ns string, logList []storage.Log, newState *[]
 	*newState = state
 }
 
-func (l Ledger) processEVMLogCache(cache storage.LogCache, newState *[]StateData) {
+func (l *Ledger) processEVMLogCache(cache storage.LogCache, newState *[]StateData) {
 	keys := make([]string, 0, len(cache))
 	for k := range cache {
 		keys = append(keys, k)
@@ -212,7 +216,7 @@ func (l Ledger) processEVMLogCache(cache storage.LogCache, newState *[]StateData
 	}
 }
 
-func (l Ledger) processEVMDestructs(cache storage.Cache, newState *[]StateData) {
+func (l *Ledger) processEVMDestructs(cache storage.Cache, newState *[]StateData) {
 	keys := make([]string, 0, len(cache))
 	for k := range cache {
 		keys = append(keys, k)
@@ -231,7 +235,7 @@ func (l Ledger) processEVMDestructs(cache storage.Cache, newState *[]StateData) 
 	*newState = state
 }
 
-func (l Ledger) newStateFromEVMResult(evmRet SealEVM.ExecuteResult, cache txResultCache) []StateData {
+func (l *Ledger) newStateFromEVMResult(evmRet SealEVM.ExecuteResult, cache txResultCache) []StateData {
 	evmCache := evmRet.StorageCache
 	var newState []StateData
 

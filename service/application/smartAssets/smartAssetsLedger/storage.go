@@ -18,7 +18,6 @@
 package smartAssetsLedger
 
 import (
-	"errors"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealEVM/environment"
@@ -100,46 +99,20 @@ func (c *contractStorage) CanTransfer(from, to, val *evmInt256.Int) bool {
 }
 
 func (c *contractStorage) GetCode(address *evmInt256.Int) ([]byte, error) {
-	key := BuildKey(StoragePrefixes.ContractCode, address.Bytes())
-
-	codeKV, err := c.basedLedger.Storage.Get(key)
-	if err != nil {
-		return nil, err
-	}
-
-	if !codeKV.Exists {
-		return nil, errors.New("no such contract")
-	}
-
-	return codeKV.Data, nil
+	code := c.basedLedger.CodeOf(address.Bytes())
+	return code, nil
 }
 
 func (c *contractStorage) GetCodeSize(address *evmInt256.Int) (*evmInt256.Int, error) {
-	key := BuildKey(StoragePrefixes.ContractCode, address.Bytes())
-
-	codeKV, err := c.basedLedger.Storage.Get(key)
-	if err != nil {
-		return nil, err
-	}
-
-	if codeKV.Exists {
-		return evmInt256.New(int64(len(codeKV.Data))), nil
-	}
-	return evmInt256.New(0), nil
+	size := c.basedLedger.CodeSizeOf(address.Bytes())
+	return evmInt256.New(int64(size)), nil
 }
 
 func (c *contractStorage) GetCodeHash(address *evmInt256.Int) (*evmInt256.Int, error) {
-	key := BuildKey(StoragePrefixes.ContractHash, address.Bytes())
-	hashKV, err := c.basedLedger.Storage.Get(key)
-	if err != nil {
-		return nil, err
-	}
-
 	ret := evmInt256.New(0)
-	//todo: if not exists, in ethereum protocol there's several return situations need to be done in future
-	if hashKV.Exists {
-		ret.SetBytes(hashKV.Data)
-	}
+	hash := c.basedLedger.CodeHashOf(address.Bytes())
+	// todo: if not exists, in ethereum protocol there's several return situations need to be done in future
+	ret.SetBytes(hash)
 	return ret, nil
 }
 
@@ -189,17 +162,8 @@ func (c *contractStorage) CreateFixedAddress(caller *evmInt256.Int, salt *evmInt
 }
 
 func (c *contractStorage) Load(n string, k string) (*evmInt256.Int, error) {
-	key := BuildKey(StoragePrefixes.ContractData, []byte(n), []byte(k))
-	data, err := c.basedLedger.Storage.Get(key)
-
-	if err != nil {
-		return nil, err
-	}
-
 	ret := evmInt256.New(0)
-	if data.Exists {
-		ret.SetBytes(data.Data)
-	}
-
+	data := c.basedLedger.StateOf([]byte(n), []byte(k))
+	ret.SetBytes(data)
 	return ret, nil
 }
