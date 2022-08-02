@@ -123,7 +123,6 @@ func (s *stateObject) setCode(codeHash common.Hash, code []byte) {
 	s.dirtyCode = true
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
-		s.onDirty = nil
 	}
 }
 
@@ -135,7 +134,6 @@ func (s *stateObject) setNonce(nonce uint64) {
 	s.data.SetNonce(nonce)
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
-		s.onDirty = nil
 	}
 }
 
@@ -193,7 +191,6 @@ func (s *stateObject) setState(key, value common.Hash) {
 
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
-		s.onDirty = nil
 	}
 }
 
@@ -232,14 +229,13 @@ func (s *stateObject) markSuicided() {
 	s.suicided = true
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
-		s.onDirty = nil
+
 	}
 }
 
 func (s *stateObject) touch() {
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
-		s.onDirty = nil
 	}
 	s.touched = true
 }
@@ -270,7 +266,6 @@ func (s *stateObject) setBalance(amount *big.Int) {
 	s.data.SetBalance(amount)
 	if s.onDirty != nil {
 		s.onDirty(s.Address())
-		s.onDirty = nil
 	}
 }
 

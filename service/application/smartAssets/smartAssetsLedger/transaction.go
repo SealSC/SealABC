@@ -41,8 +41,8 @@ var TxType struct {
 }
 
 var StateType struct {
-	TransferFrom enum.Element
-	TransferTo   enum.Element
+	Balance      enum.Element
+	ContractData enum.Element
 	ContractCode enum.Element
 	ContractHash enum.Element
 }
@@ -63,8 +63,8 @@ func GetTxTypeCodeForName(name string) int {
 }
 
 type TransactionData struct {
-	Nonce        uint64
 	Type         string
+	Nonce        uint64
 	From         []byte
 	To           []byte
 	Value        string
@@ -76,6 +76,7 @@ type TransactionData struct {
 type StateData struct {
 	Type   string
 	Key    []byte
+	SubKey []byte
 	NewVal []byte
 	OrgVal []byte
 }

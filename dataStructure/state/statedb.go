@@ -127,10 +127,10 @@ func (s *StateDB) GetCodeHash(addr common.Address) common.Hash {
 	return common.BytesToHash(stateObject.CodeHash())
 }
 
-func (s *StateDB) GetState(a common.Address, b common.Hash) common.Hash {
-	stateObject := s.getStateObject(a)
+func (s *StateDB) GetState(addr common.Address, hash common.Hash) common.Hash {
+	stateObject := s.getStateObject(addr)
 	if stateObject != nil {
-		return stateObject.GetState(s.db, b)
+		return stateObject.GetState(s.db, hash)
 	}
 	return common.Hash{}
 }
@@ -344,7 +344,7 @@ func (s *StateDB) DeleteSuicides() {
 	}
 }
 
-func (s *StateDB) CommitTo(bw trie.BatchWriter, deleteEmptyObjects bool) (root common.Hash, err error) {
+func (s *StateDB) Commit(bw trie.BatchWriter, deleteEmptyObjects bool) (root common.Hash, err error) {
 	for addr, stateObject := range s.stateObjects {
 		_, isDirty := s.stateObjectsDirty[addr]
 		switch {
