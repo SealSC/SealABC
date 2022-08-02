@@ -100,7 +100,11 @@ func (pool *TxPool) add(tx *Transaction) (bool, error) {
 }
 
 func (pool *TxPool) validateTx(tx *Transaction) error {
-	amount, _ := big.NewInt(0).SetString(string(tx.Value), 10)
+	value := tx.Value
+	if value == "" {
+		value = "0"
+	}
+	amount, _ := big.NewInt(0).SetString(value, 10)
 	if amount.Sign() < 0 {
 		return ErrNegativeValue
 	}
@@ -166,25 +170,16 @@ func (pool *TxPool) removeTx(hash common.Hash) {
 		if removed, _ := pending.Remove(tx); removed {
 			if pending.Empty() {
 				delete(pool.pending, addr)
-			} else {
-				//for _, tx := range invalids {
-				//
-				//}
 			}
-
-			if nonce := tx.Nonce; pool.pendingState.GetNonce(addr) > nonce {
-				pool.pendingState.SetNonce(addr, nonce)
-			}
-			return
 		}
 	}
 
-	//if future := pool.queue[addr]; future != nil {
-	//	future.Remove(tx)
-	//	if future.Empty() {
-	//		delete(pool.queue, addr)
-	//	}
-	//}
+	if future := pool.queue[addr]; future != nil {
+		future.Remove(tx)
+		if future.Empty() {
+			delete(pool.queue, addr)
+		}
+	}
 }
 
 func (pool *TxPool) enqueueTx(hash common.Hash, tx *Transaction) (bool, error) {
@@ -225,5 +220,6 @@ func (pool *TxPool) Pending() Transactions {
 	for _, list := range pool.pending {
 		pending = append(pending, list.Flatten()...)
 	}
+
 	return pending
 }

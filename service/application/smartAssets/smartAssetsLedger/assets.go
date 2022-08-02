@@ -19,10 +19,8 @@ package smartAssetsLedger
 
 import (
 	"encoding/json"
-	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/metadata/seal"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-	"math/big"
 )
 
 type BaseAssetsData struct {
@@ -43,16 +41,6 @@ type BaseAssets struct {
 
 func (b *BaseAssets) getHash() []byte {
 	return b.MetaSeal.Hash
-}
-
-func (l *Ledger) BalanceOf(address []byte) (balance *big.Int, err error) {
-	balance = l.StateDB.GetBalance(common.BytesToAddress(address))
-	return
-}
-
-func (l *Ledger) NonceOf(address []byte) (nonce uint64) {
-	nonce = l.StateDB.GetNonce(common.BytesToAddress(address))
-	return
 }
 
 func (l *Ledger) getSystemAssets() (assets *BaseAssets, exits bool, err error) {

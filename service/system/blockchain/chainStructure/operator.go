@@ -89,7 +89,7 @@ func (b *Blockchain) InternalCall(src string, dst string, data []byte) (ret inte
 func (b *Blockchain) AddBlock(blk block.Entity) (err error) {
 	err = b.executeRequest(&blk)
 	if err != nil {
-		log.Log.Error("execute requests in the block failed!")
+		log.Log.Error("execute requests in the block failed!", err)
 		return
 	}
 

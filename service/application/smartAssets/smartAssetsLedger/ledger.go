@@ -58,9 +58,11 @@ type Ledger struct {
 
 	storageForEVM contractStorage
 
-	StateDB *state.StateDB
+	stateDB *state.StateDB
 
 	applicationName string
+
+	genesisRoot []byte
 }
 
 func Load() {
@@ -75,22 +77,45 @@ func Load() {
 func (l *Ledger) SetChain(chain chainStructure.IChainInterface) {
 	l.chain = chain
 
-	if chain.GetLastBlock() != nil {
-		root, exist := chain.GetLastBlock().Header.StateRoot[l.applicationName]
-		if !exist {
-			log.Log.Error("Failed to reset txpool state")
-			return
-		}
-		stateRoot := common.BytesToHash(root)
-		stateDB, err := state.New(stateRoot, state.NewDatabase(l.Storage), l.CryptoTools, &AccountTool{})
-		if err != nil {
-			log.Log.Error("Failed to reset txpool state", "err", err)
-		}
-
-		l.StateDB = stateDB
+	parentRoot, _ := l.getParentRoot()
+	stateDB, err := l.NewState(parentRoot)
+	if err != nil {
+		panic(err)
+		return
 	}
 
-	l.txPool.setChain(chain, l.StateDB)
+	l.stateDB = stateDB
+
+	l.txPool.setChain(chain, l.stateDB)
+}
+
+func (l *Ledger) genesisState() {
+	batch := l.Storage.NewBatch()
+
+	r, _ := l.stateDB.Commit(batch, true)
+
+	l.genesisRoot = r.Bytes()
+	err := l.Storage.BatchWrite(batch)
+	if err != nil {
+		log.Log.Error("genesis root error")
+		return
+	}
+
+	return
+}
+
+func (l *Ledger) getParentRoot() (root []byte, err error) {
+	blockEntity := l.chain.GetLastBlock()
+	if blockEntity == nil {
+		root = l.genesisRoot
+		return
+	}
+	root, _ = blockEntity.Header.StateRoot[l.applicationName]
+	if len(root) == 0 {
+		root = l.genesisRoot
+	}
+
+	return
 }
 
 func (l *Ledger) NewStateAndLoadGenesisAssets(owner []byte, assets BaseAssetsData) (err error) {
@@ -107,11 +132,11 @@ func (l *Ledger) NewStateAndLoadGenesisAssets(owner []byte, assets BaseAssetsDat
 		return errors.New("no owner for system assets")
 	}
 
-	stateDB, err := state.New(common.Hash{}, state.NewDatabase(l.Storage), l.CryptoTools, &AccountTool{})
+	stateDB, err := l.NewState(common.Hash{}.Bytes())
 	if err != nil {
 		return err
 	}
-	l.StateDB = stateDB
+	l.stateDB = stateDB
 
 	addr := common.BytesToAddress(owner)
 	exist := stateDB.Exist(addr)
@@ -170,6 +195,7 @@ func (l *Ledger) NewStateAndLoadGenesisAssets(owner []byte, assets BaseAssetsDat
 	stateDB.AddBalance(addr, balance)
 	stateDB.SetNonce(addr, 0)
 
+	l.genesisState()
 	return
 }
 
@@ -271,7 +297,14 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (root []byt
 		},
 	}
 
-	stateDB := l.StateDB.Copy()
+	parentRoot, err := l.getParentRoot()
+	if err != nil {
+		return
+	}
+	stateDB, err := l.NewState(parentRoot)
+	if err != nil {
+		return
+	}
 
 	for _, tx := range txList.Transactions {
 		hash := string(tx.DataSeal.Hash)
@@ -299,23 +332,28 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (root []byt
 				break
 			}
 
-			switch tx.Type {
-			case TxType.Transfer.String():
-				l.setTransferState(tx.TransactionResult.NewState, stateDB)
-			}
+			l.setTransactionState(tx, stateDB, nil)
 		}
 	}
 
 	root = stateDB.IntermediateRoot().Bytes()
 	stateRoot := blk.Header.StateRoot[l.applicationName]
+
+	l.removeTransactionsFromPool(txList.Transactions)
+
 	if !bytes.Equal(root, stateRoot) {
 		err = fmt.Errorf("invalid merkle root (remote: %x local: %x)", stateRoot, root)
 	}
+
 	return
 }
 
 func (l *Ledger) removeTransactionsFromPool(txList []Transaction) {
 	l.txPool.removeUnenforceable()
+
+	for _, tx := range txList {
+		l.txPool.removeTx(tx.getCommonHash())
+	}
 
 	for _, tx := range txList {
 		client := string(tx.DataSeal.SignerPublicKey)
@@ -335,44 +373,74 @@ func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byt
 		txData, _ := structSerializer.ToMFBytes(tx)
 		batch.Put(BuildKey(StoragePrefixes.Transaction, tx.DataSeal.Hash), txData)
 
-		switch tx.Type {
-		case TxType.Transfer.String():
-			l.setTransferState(tx.TransactionResult.NewState, l.StateDB)
-		default:
-			for _, s := range tx.TransactionResult.NewState {
-				batch.Put(s.Key, s.NewVal)
-			}
-		}
-
+		l.setTransactionState(tx, l.stateDB, batch)
 	}
 
-	root, err = l.StateDB.CommitTo(batch, true)
-	if err != nil {
-		return
-	}
-
+	root, err = l.stateDB.Commit(batch, true)
 	err = l.Storage.BatchWrite(batch)
 	if err != nil {
 		return
 	}
 
-	l.removeTransactionsFromPool(txList.Transactions)
-
 	return
+}
+
+func (l *Ledger) setTransactionState(tx Transaction, state *state.StateDB, batch kvDatabase.Batch) {
+	from := common.BytesToAddress(tx.From)
+
+	switch tx.Type {
+	case TxType.Transfer.String():
+		l.setTransferState(tx.TransactionResult.NewState, state)
+	case TxType.CreateContract.String():
+		fallthrough
+	case TxType.ContractCall.String():
+		l.setContractState(tx.TransactionResult.NewState, state, batch)
+	}
+
+	state.SetNonce(from, state.GetNonce(from)+1)
+}
+
+func (l *Ledger) setContractState(states []StateData, state *state.StateDB, batch kvDatabase.Batch) {
+	for _, s := range states {
+		switch s.Type {
+		case StateType.Balance.String():
+			l.setBalance(s.Key, s.NewVal, state)
+
+		case StateType.ContractData.String():
+
+			addr := common.BytesToAddress(s.Key)
+			key := common.BytesToHash(s.SubKey)
+			value := common.BytesToHash(s.NewVal)
+
+			state.SetState(addr, key, value)
+		case StateType.ContractCode.String():
+
+			addr := common.BytesToAddress(s.Key)
+
+			state.SetCode(addr, s.NewVal)
+		case StateType.ContractHash.String():
+			continue
+		default:
+			if batch == nil {
+				continue
+			}
+			batch.Put(s.Key, s.NewVal)
+		}
+	}
 }
 
 func (l *Ledger) setTransferState(s []StateData, state *state.StateDB) {
 	for _, s := range s {
-		balance := big.NewInt(0)
-		balance.SetBytes(s.NewVal)
-
-		address := common.BytesToAddress(s.Key)
-
-		state.SetBalance(address, balance)
-		if s.Type == StateType.TransferFrom.String() {
-			state.SetNonce(address, state.GetNonce(address)+1)
-		}
+		l.setBalance(s.Key, s.NewVal, state)
 	}
+}
+
+func (l *Ledger) setBalance(addr, value []byte, state *state.StateDB) {
+	balance := big.NewInt(0)
+	balance.SetBytes(value)
+	address := common.BytesToAddress(addr)
+
+	state.SetBalance(address, balance)
 }
 
 func (l *Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) {
@@ -393,6 +461,7 @@ func (l *Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLi
 
 	txs := l.txPool.Pending()
 	count = uint32(len(txs))
+
 	if count == 0 {
 		return
 	}
@@ -411,7 +480,15 @@ func (l *Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLi
 		},
 	}
 
-	stateDB := l.StateDB.Copy()
+	parentRoot, err := l.getParentRoot()
+	if err != nil {
+		return
+	}
+	stateDB, err := l.NewState(parentRoot)
+	if err != nil {
+		return
+	}
+
 	mt := merkleTree.Tree{}
 
 	for idx, tx := range txs {
@@ -426,10 +503,7 @@ func (l *Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLi
 			tx.TransactionResult.ReturnData = resultCache[CachedContractReturnData].Data
 			tx.TransactionResult.NewAddress = resultCache[CachedContractCreationAddress].address
 
-			switch tx.Type {
-			case TxType.Transfer.String():
-				l.setTransferState(tx.TransactionResult.NewState, stateDB)
-			}
+			l.setTransactionState(*tx, stateDB, nil)
 		}
 
 		txList.Transactions = append(txList.Transactions, *tx)
@@ -437,6 +511,8 @@ func (l *Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLi
 
 	txRoot, _ = mt.Calculate()
 	stateRoot = stateDB.IntermediateRoot().Bytes()
+
+	l.removeTransactionsFromPool(txList.Transactions)
 	return
 }
 
