@@ -18,18 +18,19 @@
 package smartAssetsLedger
 
 import (
+	"bytes"
+	"errors"
+	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"github.com/SealSC/SealABC/crypto/hashes"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/metadata/seal"
-	"bytes"
-	"errors"
 	"math/big"
 )
 
 const (
-	maxMemoSize = 200 //200 Byte
+	maxMemoSize = 200       //200 Byte
 	maxDataSize = 24 * 1024 //24 KB
 )
 
@@ -37,6 +38,13 @@ var TxType struct {
 	Transfer       enum.Element
 	CreateContract enum.Element
 	ContractCall   enum.Element
+}
+
+var StateType struct {
+	Balance      enum.Element
+	ContractData enum.Element
+	ContractCode enum.Element
+	ContractHash enum.Element
 }
 
 func GetTxTypeCodeForName(name string) int {
@@ -55,17 +63,20 @@ func GetTxTypeCodeForName(name string) int {
 }
 
 type TransactionData struct {
-	Type           string
-	From           []byte
-	To             []byte
-	Value          string
-	Data           []byte
-	Memo           string
-	SerialNumber   string
+	Type         string
+	Nonce        uint64
+	From         []byte
+	To           []byte
+	Value        string
+	Data         []byte
+	Memo         string
+	SerialNumber string
 }
 
 type StateData struct {
+	Type   string
 	Key    []byte
+	SubKey []byte
 	NewVal []byte
 	OrgVal []byte
 }
@@ -83,7 +94,7 @@ type Transaction struct {
 	TransactionData
 	TransactionResult
 
-	DataSeal   seal.Entity
+	DataSeal seal.Entity
 }
 
 type TransactionList struct {
@@ -102,6 +113,10 @@ func (t *Transaction) toMFBytes() []byte {
 
 func (t *Transaction) getHash() []byte {
 	return t.DataSeal.Hash
+}
+
+func (t *Transaction) getCommonHash() common.Hash {
+	return common.BytesToHash(t.DataSeal.Hash)
 }
 
 func (t *Transaction) verify(hashCalc hashes.IHashCalculator) (passed bool, err error) {
@@ -138,6 +153,6 @@ const (
 	CachedContractCreationAddress = "contractCreationAddress"
 )
 
-type txResultCache map[string] *txResultCacheData
+type txResultCache map[string]*txResultCacheData
 type txPreActuator func(tx Transaction, cache txResultCache, blk block.Entity) (ret []StateData, resultCache txResultCache, err error)
 type queryActuator func(req QueryRequest) (ret interface{}, err error)

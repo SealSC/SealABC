@@ -18,55 +18,55 @@
 package memoInterface
 
 import (
-    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
-    "github.com/SealSC/SealABC/service/application/memo/memoSpace"
-    "encoding/json"
-    "github.com/SealSC/SealABC/metadata/blockchainRequest"
-    "github.com/SealSC/SealABC/log"
-    "errors"
-    "encoding/hex"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/blockchainRequest"
+	"github.com/SealSC/SealABC/service/application/memo/memoSpace"
 )
 
-func (m *MemoApplication) VerifyReq(req blockchainRequest.Entity) (passed bool, memo memoSpace.Memo, err error,) {
-    err = json.Unmarshal(req.Data, &memo)
-    if err != nil {
-        log.Log.Error("unmarshal memo failed")
-        err = errors.New("unmarshal memo failed")
-        return
-    }
+func (m *MemoApplication) VerifyReq(req blockchainRequest.Entity) (passed bool, memo memoSpace.Memo, err error) {
+	err = json.Unmarshal(req.Data, &memo)
+	if err != nil {
+		log.Log.Error("unmarshal memo failed")
+		err = errors.New("unmarshal memo failed")
+		return
+	}
 
-    //bytes in memo data
-    memoSize := len(memo.Data) + len(memo.Type)
-    if memoSize > memoSpace.MaxMemoSize {
-        err = errors.New("full memo size (type + data) must less than 2MB")
-        return
-    }
+	//bytes in memo data
+	memoSize := len(memo.Data) + len(memo.Type)
+	if memoSize > memoSpace.MaxMemoSize {
+		err = errors.New("full memo size (type + data) must less than 2MB")
+		return
+	}
 
-    dataBytes, _ := structSerializer.ToMFBytes(memo.MemoData)
-    passed, err = memo.Seal.Verify(dataBytes, m.CryptoTools.HashCalculator)
+	dataBytes, _ := structSerializer.ToMFBytes(memo.MemoData)
+	passed, err = memo.Seal.Verify(dataBytes, m.CryptoTools.HashCalculator)
 
-    return
+	return
 }
 
 func (m *MemoApplication) QueryMemo(hash string) (memo memoSpace.Memo, err error) {
-    m.operateLock.RLock()
-    defer m.operateLock.RUnlock()
+	m.operateLock.RLock()
+	defer m.operateLock.RUnlock()
 
-    byteKey, err := hex.DecodeString(hash)
-    if err != nil {
-        return
-    }
+	byteKey, err := hex.DecodeString(hash)
+	if err != nil {
+		return
+	}
 
-    memoData, err := m.kvStorage.Get(byteKey)
-    if err != nil {
-        return
-    }
+	memoData, err := m.kvStorage.Get(byteKey)
+	if err != nil {
+		return
+	}
 
-    if !memoData.Exists {
-        err = errors.New("no such memo")
-        return
-    }
+	if !memoData.Exists {
+		err = errors.New("no such memo")
+		return
+	}
 
-    err = json.Unmarshal(memoData.Data, &memo)
-    return
+	err = json.Unmarshal(memoData.Data, &memo)
+	return
 }

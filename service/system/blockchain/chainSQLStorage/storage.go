@@ -18,14 +18,14 @@
 package chainSQLStorage
 
 import (
-    "github.com/SealSC/SealABC/service/system/blockchain/chainTables"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainTables"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 type Storage struct {
-    Driver simpleSQLDatabase.IDriver
+	Driver simpleSQLDatabase.IDriver
 }
 
 func Load() {
-    chainTables.Load()
+	chainTables.Load()
 }

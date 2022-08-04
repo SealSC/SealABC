@@ -31,7 +31,7 @@ func (b *BasicHotStuff) VerifyProposal(bs *hotStuff.BasicService, consensusData 
 		return
 	}
 
-	validCustomerData, err := customerData.Verify()
+	validCustomerData, err := customerData.Verify(bs.GetLastConsensusCustomerData())
 	if !validCustomerData {
 		log.Log.Error("customer data verify failed: ", err)
 		return

@@ -18,77 +18,77 @@
 package merkleTree
 
 import (
-    "github.com/SealSC/SealABC/crypto/hashes/sha3"
-    "bytes"
-    "errors"
-    "github.com/cbergoon/merkletree"
+	"bytes"
+	"errors"
+	"github.com/SealSC/SealABC/crypto/hashes/sha3"
+	"github.com/cbergoon/merkletree"
 )
 
 type content struct {
-    hash []byte
+	hash []byte
 }
 
-func (c content)CalculateHash() ([]byte, error) {
-    return c.hash, nil
+func (c content) CalculateHash() ([]byte, error) {
+	return c.hash, nil
 }
 
 func (c content) Equals(other merkletree.Content) (bool, error) {
-    return bytes.Equal(c.hash, other.(content).hash), nil
+	return bytes.Equal(c.hash, other.(content).hash), nil
 }
 
 type Tree struct {
-    list []merkletree.Content
-    tree *merkletree.MerkleTree
+	list []merkletree.Content
+	tree *merkletree.MerkleTree
 }
 
-func (t *Tree) AddData(data [][]byte)  {
-    for _, d := range data {
-        hash := sha3.Sha256.Sum(d)
-        t.AddHash(hash)
-    }
+func (t *Tree) AddData(data [][]byte) {
+	for _, d := range data {
+		hash := sha3.Sha256.Sum(d)
+		t.AddHash(hash)
+	}
 }
 
-func (t *Tree) AddHash(hash []byte)  {
-    newContent := content{
-        hash: hash,
-    }
+func (t *Tree) AddHash(hash []byte) {
+	newContent := content{
+		hash: hash,
+	}
 
-    t.list = append(t.list, newContent)
+	t.list = append(t.list, newContent)
 }
 
-func (t *Tree) Calculate() (root [] byte, err error) {
-    if len(t.list) == 0 {
-        return
-    }
+func (t *Tree) Calculate() (root []byte, err error) {
+	if len(t.list) == 0 {
+		return
+	}
 
-    tree, err := merkletree.NewTreeWithHashStrategy(t.list, sha3.Sha256.OriginalHash())
-    if err != nil {
-        return
-    }
+	tree, err := merkletree.NewTreeWithHashStrategy(t.list, sha3.Sha256.OriginalHash())
+	if err != nil {
+		return
+	}
 
-    root = tree.MerkleRoot()
+	root = tree.MerkleRoot()
 
-    return
+	return
 }
 
-func (t Tree) Verify() (passed bool, err error)  {
-    if t.tree == nil {
-        return false, errors.New("not calculated")
-    }
-    return t.tree.VerifyTree()
+func (t Tree) Verify() (passed bool, err error) {
+	if t.tree == nil {
+		return false, errors.New("not calculated")
+	}
+	return t.tree.VerifyTree()
 }
 
 func (t Tree) VerifyData(data []byte) (passed bool, err error) {
-    return t.VerifyHash(sha3.Sha256.Sum(data))
+	return t.VerifyHash(sha3.Sha256.Sum(data))
 }
 
 func (t Tree) VerifyHash(hash []byte) (passed bool, err error) {
-    if t.tree == nil {
-        return false, errors.New("not calculated")
-    }
+	if t.tree == nil {
+		return false, errors.New("not calculated")
+	}
 
-    newContent := content{
-        hash: hash,
-    }
-    return t.tree.VerifyContent(newContent)
+	newContent := content{
+		hash: hash,
+	}
+	return t.tree.VerifyContent(newContent)
 }

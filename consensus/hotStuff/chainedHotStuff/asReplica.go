@@ -24,6 +24,19 @@ func (c *ChainedHotStuff) VerifyProposal(bs *hotStuff.BasicService, consensusDat
 		return
 	}
 
+	//verify block
+	customerData, err := bs.ExternalProcessor.CustomerDataFromConsensus(consensusData.Payload.CustomerData)
+	if err != nil {
+		log.Log.Error("get customer data interface from message failed.")
+		return
+	}
+
+	validCustomerData, err := customerData.Verify(bs.GetLastConsensusCustomerData())
+	if !validCustomerData {
+		log.Log.Error("customer data verify failed: ", err)
+		return
+	}
+
 	validView := true
 	if bs.LockedQC != nil {
 		validView = consensusData.ViewNumber > bs.LockedQC.ViewNumber

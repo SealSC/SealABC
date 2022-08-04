@@ -18,40 +18,40 @@
 package chainStructure
 
 import (
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/metadata/block"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
-    "sync"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/block"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainSQLStorage"
+	"sync"
 )
 
 type Blockchain struct {
-    Config    Config
-    Executor  applicationExecutor
+	Config   Config
+	Executor applicationExecutor
 
-    lastBlock     *block.Entity
-    SQLStorage    *chainSQLStorage.Storage
-    currentHeight uint64
-    operateLock     sync.RWMutex
+	lastBlock *block.Entity
+
+	SQLStorage    *chainSQLStorage.Storage
+	currentHeight uint64
+	operateLock   sync.RWMutex
 }
 
-func (b *Blockchain) SetSQLStorage(sqlStorage *chainSQLStorage.Storage)  {
-    b.SQLStorage = sqlStorage
+func (b *Blockchain) SetSQLStorage(sqlStorage *chainSQLStorage.Storage) {
+	b.SQLStorage = sqlStorage
 }
 
 func (b *Blockchain) LoadBlockchain(cfg Config) (err error) {
-    b.Config = cfg
-    b.Executor.ExternalExecutors = map[string]IBlockchainExternalApplication{}
+	b.Config = cfg
+	b.Executor.ExternalExecutors = map[string]IBlockchainExternalApplication{}
 
-    lastBlock := b.GetLastBlock()
-    if lastBlock == nil {
-        b.currentHeight = 0
-        return
-    }
+	lastBlock := b.GetLastBlock()
+	if lastBlock == nil {
+		b.currentHeight = 0
+		return
+	}
 
-    log.Log.Println("get latest block: ", lastBlock.Header.Height)
+	log.Log.Println("get latest block: ", lastBlock.Header.Height)
 
-    b.lastBlock = lastBlock
-    b.currentHeight = lastBlock.Header.Height
-    return
+	b.lastBlock = lastBlock
+	b.currentHeight = lastBlock.Header.Height
+	return
 }
-

@@ -18,17 +18,17 @@
 package actions
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/SealSC/SealABC/network/http"
 	"github.com/SealSC/SealABC/service"
+	"github.com/gin-gonic/gin"
 	"strconv"
 )
 
-type getAddressList struct{
+type getAddressList struct {
 	baseHandler
 }
 
-func (g *getAddressList)Handle(ctx *gin.Context) {
+func (g *getAddressList) Handle(ctx *gin.Context) {
 	res := http.NewResponse(ctx)
 	pageString := ctx.Param(URLParameterKeys.Page.String())
 
@@ -46,11 +46,11 @@ func (g *getAddressList)Handle(ctx *gin.Context) {
 	res.OK(list)
 }
 
-func (g *getAddressList)RouteRegister(router gin.IRouter) {
+func (g *getAddressList) RouteRegister(router gin.IRouter) {
 	router.GET(g.buildUrlPath(), g.Handle)
 }
 
-func (g *getAddressList)BasicInformation() (info http.HandlerBasicInformation)  {
+func (g *getAddressList) BasicInformation() (info http.HandlerBasicInformation) {
 	info.Description = "return address list in blockchain layer."
 	info.Path = g.serverBasePath + g.buildUrlPath()
 	info.Method = service.ApiProtocolMethod.HttpGet.String()
@@ -67,4 +67,3 @@ func (g *getAddressList) urlWithoutParameters() string {
 func (g *getAddressList) buildUrlPath() string {
 	return g.urlWithoutParameters() + "/:" + URLParameterKeys.Page.String()
 }
-

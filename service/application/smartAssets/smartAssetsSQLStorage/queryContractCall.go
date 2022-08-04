@@ -18,8 +18,8 @@
 package smartAssetsSQLStorage
 
 import (
-	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 	"errors"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 	"strings"
 )
 
@@ -49,9 +49,9 @@ func (s Storage) queryContractCallList(param queryParam) (interface{}, error) {
 	contract := param[QueryParameterFields.Contract.String()]
 
 	commonParam := commonPagingQueryParam{
-		queryParam:    param,
-		rowType:       contractCallRowType,
-		table:         contractCallTableName,
+		queryParam: param,
+		rowType:    contractCallRowType,
+		table:      contractCallTableName,
 	}
 
 	if account != "" || contract != "" {
@@ -64,8 +64,7 @@ func (s Storage) queryContractCallList(param queryParam) (interface{}, error) {
 	return s.commonPagingQuery(commonParam)
 }
 
-
-func (s Storage) queryContractCallByHash(param queryParam) (interface{}, error){
+func (s Storage) queryContractCallByHash(param queryParam) (interface{}, error) {
 	txHash := param[QueryParameterFields.TxHash.String()]
 	if txHash == "" {
 		return nil, errors.New("invalid parameters")

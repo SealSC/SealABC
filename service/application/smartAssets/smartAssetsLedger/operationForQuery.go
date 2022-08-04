@@ -41,8 +41,23 @@ func (l *Ledger) queryBalance(req QueryRequest) (interface{}, error) {
 	if err != nil {
 		return nil, Errors.DBError.NewErrorWithNewMessage(err.Error())
 	}
-	
+
 	return balance.String(), nil
+}
+
+func (l *Ledger) queryNonce(req QueryRequest) (interface{}, error) {
+	hexStr := req.Parameter[QueryParameterFields.Address.String()]
+	if hexStr == "" {
+		return nil, Errors.InvalidParameter
+	}
+
+	addr, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, Errors.InvalidParameter.NewErrorWithNewMessage(err.Error())
+	}
+
+	nonce := l.NonceOf(addr)
+	return nonce, nil
 }
 
 func (l *Ledger) queryTransaction(req QueryRequest) (interface{}, error) {
@@ -74,7 +89,7 @@ func (l *Ledger) contractOffChainCall(req QueryRequest) (interface{}, error) {
 		return nil, Errors.InvalidParameter.NewErrorWithNewMessage(err.Error())
 	}
 
-	resultCache := txResultCache {
+	resultCache := txResultCache{
 		CachedBlockGasKey: &txResultCacheData{
 			gasLeft: constTransactionGasLimit().Uint64(),
 		},

@@ -18,73 +18,75 @@
 package topology
 
 import (
-    "github.com/SealSC/SealABC/network"
-    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message"
-    "github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message/payload"
-    "encoding/json"
-    "github.com/SealSC/SealABC/log"
+	"encoding/json"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/network"
+	"github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message"
+	"github.com/SealSC/SealABC/network/topology/p2p/fullyConnect/message/payload"
 )
 
-type joinMessageProcessor struct {}
-func (j *joinMessageProcessor)Process(msg network.Message, t *Topology, link network.ILink)  (err error) {
-    join := payload.Join{}
-    err = payload.FromMessage(msg, &join)
-    if err != nil {
-        log.Log.Println("not join protocol ")
-        return
-    }
+type joinMessageProcessor struct{}
 
-    joinReply := payload.JoinReply{
-        PrevID: join.TargetID,
-        RealID: t.LocalNode.ID,
-    }
-    replyPayload, _ := json.Marshal(joinReply)
+func (j *joinMessageProcessor) Process(msg network.Message, t *Topology, link network.ILink) (err error) {
+	join := payload.Join{}
+	err = payload.FromMessage(msg, &join)
+	if err != nil {
+		log.Log.Println("not join protocol ")
+		return
+	}
 
-    target, exist := t.getPreJoinNode(link)
+	joinReply := payload.JoinReply{
+		PrevID: join.TargetID,
+		RealID: t.LocalNode.ID,
+	}
+	replyPayload, _ := json.Marshal(joinReply)
 
-    if !exist {
-        return
-    }
+	target, exist := t.getPreJoinNode(link)
 
-    log.Log.Println("got join message from: ", msg.From)
-    target.Node = msg.From
-    t.setJoinedNode(target)
+	if !exist {
+		return
+	}
 
-    reply := message.NewMessage(message.Types.JoinReply, replyPayload)
-    reply.From = t.LocalNode.Node
-    rawReply, _ := reply.ToRawMessage()
-    _, err = target.Link.SendData(rawReply)
-    if err != nil {
-        log.Log.Warn("send join reply failed: ", err.Error())
-    }
-    return
+	log.Log.Println("got join message from: ", msg.From)
+	target.Node = msg.From
+	t.setJoinedNode(target)
+
+	reply := message.NewMessage(message.Types.JoinReply, replyPayload)
+	reply.From = t.LocalNode.Node
+	rawReply, _ := reply.ToRawMessage()
+	_, err = target.Link.SendData(rawReply)
+	if err != nil {
+		log.Log.Warn("send join reply failed: ", err.Error())
+	}
+	return
 }
 
-type joinReplyMessageProcessor struct {}
-func (j *joinReplyMessageProcessor)Process(msg network.Message, t *Topology, link network.ILink)  (err error) {
-    joinReply := payload.JoinReply{}
-    err = payload.FromMessage(msg, &joinReply)
+type joinReplyMessageProcessor struct{}
 
-    if err != nil {
-        log.Log.Println("not join-reply protocol ")
-        return
-    }
+func (j *joinReplyMessageProcessor) Process(msg network.Message, t *Topology, link network.ILink) (err error) {
+	joinReply := payload.JoinReply{}
+	err = payload.FromMessage(msg, &joinReply)
 
-    target, exist := t.getPreJoinNode(link)
+	if err != nil {
+		log.Log.Println("not join-reply protocol ")
+		return
+	}
 
-    if !exist {
-        return
-    }
+	target, exist := t.getPreJoinNode(link)
 
-    log.Log.Println("got joinReply message from: ", msg.From)
-    target.Node = msg.From
-    t.setJoinedNode(target)
+	if !exist {
+		return
+	}
 
-    //doPing(link)
+	log.Log.Println("got joinReply message from: ", msg.From)
+	target.Node = msg.From
+	t.setJoinedNode(target)
 
-    //get neighbors
-    getNeighbors(target)
-    return
+	//doPing(link)
+
+	//get neighbors
+	getNeighbors(target)
+	return
 }
 
 var JoinMessageProcessor = &joinMessageProcessor{}

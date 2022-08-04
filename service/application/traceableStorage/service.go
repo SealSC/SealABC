@@ -48,4 +48,3 @@ func NewTraceableStorageApplication(config *Config) (app chainStructure.IBlockch
 	app = tsInterface.NewApplicationInterface(kvDriver, sqlDriver)
 	return
 }
-

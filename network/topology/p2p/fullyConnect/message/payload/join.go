@@ -18,6 +18,6 @@
 package payload
 
 type Join struct {
-    TargetID string
-    SourceID string
+	TargetID string
+	SourceID string
 }

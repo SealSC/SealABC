@@ -18,134 +18,134 @@
 package basicAssetsLedger
 
 import (
-    "github.com/SealSC/SealABC/log"
-    "encoding/base64"
-    "encoding/json"
-    "errors"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"github.com/SealSC/SealABC/log"
 )
 
-func (l *Ledger)DoQuery(req QueryRequest) (data interface{}, err error) {
-    l.operateLock.RLock()
-    defer l.operateLock.RUnlock()
+func (l *Ledger) DoQuery(req QueryRequest) (data interface{}, err error) {
+	l.operateLock.RLock()
+	defer l.operateLock.RUnlock()
 
-    queryHandle, exists := l.ledgerQueries[req.QueryType]
-    if !exists {
-        err = errors.New("no query action named " + req.QueryType)
-        return
-    }
+	queryHandle, exists := l.ledgerQueries[req.QueryType]
+	if !exists {
+		err = errors.New("no query action named " + req.QueryType)
+		return
+	}
 
-    return queryHandle(req.Parameter)
+	return queryHandle(req.Parameter)
 }
 
 func (l *Ledger) queryAssets(p []string) (result interface{}, err error) {
-    var hashBytes []byte
-    err = json.Unmarshal([]byte(p[0]), &hashBytes)
-    if err != nil {
-        return
-    }
+	var hashBytes []byte
+	err = json.Unmarshal([]byte(p[0]), &hashBytes)
+	if err != nil {
+		return
+	}
 
-    result, err = l.localAssetsFromHash(hashBytes)
-    return
+	result, err = l.localAssetsFromHash(hashBytes)
+	return
 }
 
 func (l *Ledger) queryAllAssets(_ []string) (result interface{}, err error) {
-    prefix := []byte(StoragePrefixes.Assets.String())
+	prefix := []byte(StoragePrefixes.Assets.String())
 
-    kvList := l.Storage.Traversal(prefix)
-    assetsList := AssetsList{}
-    for _, kv := range kvList {
-        assets := Assets{}
-        _ = json.Unmarshal(kv.Data, &assets)
-        assetsList.List = append(assetsList.List, assets)
-    }
+	kvList := l.Storage.Traversal(prefix)
+	assetsList := AssetsList{}
+	for _, kv := range kvList {
+		assets := Assets{}
+		_ = json.Unmarshal(kv.Data, &assets)
+		assetsList.List = append(assetsList.List, assets)
+	}
 
-    result = assetsList
-    return
+	result = assetsList
+	return
 }
 
 func (l *Ledger) queryUnspent(p []string) (result interface{}, err error) {
-    queryParam := UnspentQueryParameter{}
-    err = json.Unmarshal([]byte(p[0]), &queryParam)
-    if err != nil {
-        log.Log.Error("bad request: ", err.Error())
-        return
-    }
+	queryParam := UnspentQueryParameter{}
+	err = json.Unmarshal([]byte(p[0]), &queryParam)
+	if err != nil {
+		log.Log.Error("bad request: ", err.Error())
+		return
+	}
 
-    prefix := l.buildUnspentQueryPrefix(queryParam.Address, queryParam.Assets)
-    kvList := l.Storage.Traversal(prefix)
+	prefix := l.buildUnspentQueryPrefix(queryParam.Address, queryParam.Assets)
+	kvList := l.Storage.Traversal(prefix)
 
-    unspentList := UnspentList{}
-    unspentList.List = map[string] *UnspentUnderAssets{}
+	unspentList := UnspentList{}
+	unspentList.List = map[string]*UnspentUnderAssets{}
 
-    for _, kv := range kvList {
-        u := Unspent{}
-        err = json.Unmarshal(kv.Data, &u)
-        if err != nil {
-            log.Log.Error("unmarshal u from storage failed: ", err.Error())
-            continue
-        }
+	for _, kv := range kvList {
+		u := Unspent{}
+		err = json.Unmarshal(kv.Data, &u)
+		if err != nil {
+			log.Log.Error("unmarshal u from storage failed: ", err.Error())
+			continue
+		}
 
-        assetsHash := u.AssetsHash
-        assetsHashString := base64.StdEncoding.EncodeToString(assetsHash)
-        _, exist := unspentList.List[assetsHashString]
+		assetsHash := u.AssetsHash
+		assetsHashString := base64.StdEncoding.EncodeToString(assetsHash)
+		_, exist := unspentList.List[assetsHashString]
 
-        if !exist {
-            assets, err := l.localAssetsFromHash(assetsHash)
-            if err != nil {
-                log.Log.Error("get local assets ", assetsHashString, " failed: ", err.Error())
-                continue
-            }
-            unspentList.List[assetsHashString] = &UnspentUnderAssets{
-                Assets: assets,
-            }
-        }
+		if !exist {
+			assets, err := l.localAssetsFromHash(assetsHash)
+			if err != nil {
+				log.Log.Error("get local assets ", assetsHashString, " failed: ", err.Error())
+				continue
+			}
+			unspentList.List[assetsHashString] = &UnspentUnderAssets{
+				Assets: assets,
+			}
+		}
 
-        unspentList.List[assetsHashString].UnspentList = append(unspentList.List[assetsHashString].UnspentList, u)
-    }
+		unspentList.List[assetsHashString].UnspentList = append(unspentList.List[assetsHashString].UnspentList, u)
+	}
 
-    result = unspentList
-    return
+	result = unspentList
+	return
 }
 
 func (l *Ledger) queryTransaction(p []string) (result interface{}, err error) {
-    var hashBytes []byte
-    err = json.Unmarshal([]byte(p[0]), &hashBytes)
-    if err != nil {
-        return
-    }
+	var hashBytes []byte
+	err = json.Unmarshal([]byte(p[0]), &hashBytes)
+	if err != nil {
+		return
+	}
 
-    result, err = l.getLocalTransaction(hashBytes)
-    return
+	result, err = l.getLocalTransaction(hashBytes)
+	return
 }
 
 func (l *Ledger) querySellingList(_ []string) (result interface{}, err error) {
-    list := l.Storage.Traversal([]byte(StoragePrefixes.SellingList.String()))
+	list := l.Storage.Traversal([]byte(StoragePrefixes.SellingList.String()))
 
-    var sellingList []SellingData
+	var sellingList []SellingData
 
-    for _, data := range list {
-        sellingData := SellingData{}
-        jsonErr := json.Unmarshal(data.Data, &sellingData)
-        if jsonErr != nil {
-            continue
-        }
-        sellingList = append(sellingList, sellingData)
-    }
-    return sellingList, nil
+	for _, data := range list {
+		sellingData := SellingData{}
+		jsonErr := json.Unmarshal(data.Data, &sellingData)
+		if jsonErr != nil {
+			continue
+		}
+		sellingList = append(sellingList, sellingData)
+	}
+	return sellingList, nil
 }
 
 func (l *Ledger) queryCopyright(_ []string) (result interface{}, err error) {
-    list := l.Storage.Traversal([]byte(StoragePrefixes.Copyright.String()))
+	list := l.Storage.Traversal([]byte(StoragePrefixes.Copyright.String()))
 
-    var copyrightList []Copyright
+	var copyrightList []Copyright
 
-    for _, data := range list {
-        cr := Copyright{}
-        jsonErr := json.Unmarshal(data.Data, &cr)
-        if jsonErr != nil {
-            continue
-        }
-        copyrightList = append(copyrightList, cr)
-    }
-    return copyrightList, nil
+	for _, data := range list {
+		cr := Copyright{}
+		jsonErr := json.Unmarshal(data.Data, &cr)
+		if jsonErr != nil {
+			continue
+		}
+		copyrightList = append(copyrightList, cr)
+	}
+	return copyrightList, nil
 }

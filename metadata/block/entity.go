@@ -18,32 +18,32 @@
 package block
 
 import (
-    "github.com/SealSC/SealABC/metadata/blockchainRequest"
-    "github.com/SealSC/SealABC/metadata/seal"
+	"github.com/SealSC/SealABC/metadata/blockchainRequest"
+	"github.com/SealSC/SealABC/metadata/seal"
 )
 
 type Header struct {
-    Version          string
-    Height           uint64
-    PrevBlock        []byte
-    TransactionsRoot []byte
-    Timestamp        uint64
+	Version          string
+	Height           uint64
+	PrevBlock        []byte
+	TransactionsRoot []byte
+	StateRoot        map[string][]byte
+	Timestamp        uint64
 }
 
 type Body struct {
-    RequestsCount int
-    Requests      []blockchainRequest.Entity
+	RequestsCount int
+	Requests      []blockchainRequest.Entity
 }
 
 type EntityData struct {
-    Header  Header
-    Body    Body
+	Header Header
+	Body   Body
 }
 
 type Entity struct {
-    EntityData
+	EntityData
 
-    Seal      seal.Entity
-    BlankSeal seal.Entity
+	Seal      seal.Entity
+	BlankSeal seal.Entity
 }
-

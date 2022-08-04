@@ -22,7 +22,7 @@ import (
 	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
 )
 
-func (b *BasicAssetsApplication) storeAssets(tx basicAssetsLedger.TransactionWithBlockInfo, blc interface{})  {
+func (b *BasicAssetsApplication) storeAssets(tx basicAssetsLedger.TransactionWithBlockInfo, blc interface{}) {
 	balance, ok := blc.(basicAssetsLedger.Balance)
 	if !ok {
 		log.Log.Warn("no balance")
@@ -39,7 +39,7 @@ func (b *BasicAssetsApplication) storeAssets(tx basicAssetsLedger.TransactionWit
 	}
 }
 
-func (b *BasicAssetsApplication) storeTransfer(tx basicAssetsLedger.TransactionWithBlockInfo, list interface{})  {
+func (b *BasicAssetsApplication) storeTransfer(tx basicAssetsLedger.TransactionWithBlockInfo, list interface{}) {
 	usList, ok := list.(basicAssetsLedger.UnspentListWithBalance)
 	if !ok {
 		log.Log.Warn("transaction has no unspent")
@@ -72,4 +72,3 @@ func (b *BasicAssetsApplication) storeSelling(tx basicAssetsLedger.TransactionWi
 
 	return
 }
-

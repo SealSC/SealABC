@@ -18,13 +18,13 @@
 package network
 
 type Node struct {
-    ID           string
-    Protocol     string
-    ServeAddress string
-    CustomerData []byte
+	ID           string
+	Protocol     string
+	ServeAddress string
+	CustomerData []byte
 }
 
 type LinkNode struct {
-    Node
-    Link        ILink
+	Node
+	Link ILink
 }

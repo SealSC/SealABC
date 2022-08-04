@@ -18,6 +18,9 @@
 package smartAssetsLedger
 
 import (
+	"encoding/hex"
+	"fmt"
+	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealEVM/evmInt256"
 	"github.com/SealSC/SealEVM/opcodes"
@@ -25,7 +28,7 @@ import (
 
 func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk block.Entity) ([]StateData, txResultCache, error) {
 	if tx.Type != TxType.CreateContract.String() {
-		return  nil, cache, Errors.InvalidTransactionType
+		return nil, cache, Errors.InvalidTransactionType
 	}
 
 	if len(tx.To) != 0 {
@@ -34,35 +37,38 @@ func (l *Ledger) preContractCreation(tx Transaction, cache txResultCache, blk bl
 
 	initGas := cache[CachedBlockGasKey].gasLeft
 	evm, contract, _ := l.newEVM(tx, nil, blk, evmInt256.New(int64(initGas)))
-
 	ret, err := evm.ExecuteContract(true)
 	newState := l.newStateFromEVMResult(ret, cache)
 
 	gasCost := initGas - ret.GasLeft
-	cache[CachedBlockGasKey].gasLeft -= gasCost
 
+	contractAddr := common.BytesToAddress(contract.Namespace.Bytes())
+	contractAddrBytes := contractAddr.Bytes()
+	cache[CachedBlockGasKey].gasLeft -= gasCost
 	if err == nil {
 		if ret.ExitOpCode == opcodes.REVERT {
 			err = Errors.ContractExecuteRevert
 			return nil, nil, err
 		}
 
-		contractAddr := contract.Namespace.Bytes()
 		newState = append(newState,
-			StateData {
-				Key:    BuildKey(StoragePrefixes.ContractCode, contractAddr),
+			StateData{
+				Type:   StateType.ContractCode.String(),
+				Key:    contractAddrBytes,
 				NewVal: ret.ResultData,
 			},
-			StateData {
-				Key:    BuildKey(StoragePrefixes.ContractHash, contractAddr),
+			StateData{
+				Type:   StateType.ContractHash.String(),
+				Key:    contractAddrBytes,
 				NewVal: contract.Hash.Bytes(),
 			},
 		)
 	} else {
 		return nil, nil, Errors.ContractCreationFailed.NewErrorWithNewMessage(err.Error())
 	}
-
-	cache[CachedContractCreationAddress].address = contract.Namespace.Bytes()
+	cache[CachedContractCreationAddress].address = contractAddrBytes
 	cache[CachedContractReturnData].Data = ret.ResultData
+
+	fmt.Println("contractAddress: ", hex.EncodeToString(contractAddrBytes))
 	return newState, cache, Errors.Success
 }

@@ -18,11 +18,11 @@
 package engineStartup
 
 import (
-    "github.com/SealSC/SealABC/service/system"
-    "github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/service/system"
 )
 
 func startSystemService() {
-    service.Load()
-    system.Load()
+	service.Load()
+	system.Load()
 }

@@ -20,5 +20,5 @@ package payload
 import "github.com/SealSC/SealABC/network"
 
 type NeighborsPayload struct {
-    Neighbors   []network.Node
+	Neighbors []network.Node
 }

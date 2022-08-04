@@ -18,9 +18,9 @@
 package utility
 
 import (
-    "github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
+	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 )
 
 func Load() {
-   structSerializer.Load()
+	structSerializer.Load()
 }

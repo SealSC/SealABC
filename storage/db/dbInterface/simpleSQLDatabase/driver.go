@@ -20,11 +20,11 @@ package simpleSQLDatabase
 import "database/sql"
 
 type IDriver interface {
-    Insert(rows IRows, ignoreKey bool) (result sql.Result, err error)
-    Replace(rows IRows) (result sql.Result, err error)
-    Update(rows IRows, fields []string, condition string, args []interface{}) (result sql.Result, err error)
-    Query(rowType interface{}, sql string, args []interface{}) (rows []interface{}, err error)
-    SimpleSelect(rowType interface{}, table string, col string, equalVal interface{}) (rows []interface{}, err error)
-    RowCount(table string, condition string, args []interface{}) (cnt uint64, err error)
-    SimplePagingQuery(param SimplePagingQueryParam) (ret *SimplePagingQueryResult, err error)
+	Insert(rows IRows, ignoreKey bool) (result sql.Result, err error)
+	Replace(rows IRows) (result sql.Result, err error)
+	Update(rows IRows, fields []string, condition string, args []interface{}) (result sql.Result, err error)
+	Query(rowType interface{}, sql string, args []interface{}) (rows []interface{}, err error)
+	SimpleSelect(rowType interface{}, table string, col string, equalVal interface{}) (rows []interface{}, err error)
+	RowCount(table string, condition string, args []interface{}) (cnt uint64, err error)
+	SimplePagingQuery(param SimplePagingQueryParam) (ret *SimplePagingQueryResult, err error)
 }

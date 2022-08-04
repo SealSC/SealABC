@@ -28,9 +28,9 @@ func (s Storage) queryTransferList(param queryParam) (interface{}, error) {
 	account := param[QueryParameterFields.Account.String()]
 
 	commonParam := commonPagingQueryParam{
-		queryParam:    param,
-		rowType:       transferRowType,
-		table:         transferTableName,
+		queryParam: param,
+		rowType:    transferRowType,
+		table:      transferTableName,
 	}
 
 	if account != "" {

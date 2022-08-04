@@ -23,25 +23,25 @@ import (
 )
 
 type CopyrightResource struct {
-	ID              [] byte
-	Owner           []byte
-	ResourceHash    []byte
+	ID           []byte
+	Owner        []byte
+	ResourceHash []byte
 }
 
 type CopyrightCertificate struct {
-	ID                  []byte
-	Applicant           []byte
-	ApplicantSeal       seal.Entity
+	ID            []byte
+	Applicant     []byte
+	ApplicantSeal seal.Entity
 
-	Owner               []byte
-	OwnSeal             seal.Entity
+	Owner   []byte
+	OwnSeal seal.Entity
 
-	BasicHash           []byte
-	ExtraHash           []byte
+	BasicHash []byte
+	ExtraHash []byte
 
-	CustomData          []byte
+	CustomData []byte
 
-	PlatformSeal        seal.Entity
+	PlatformSeal seal.Entity
 
 	IssuanceTransaction []byte
 	IssuanceTime        string
@@ -50,7 +50,6 @@ type CopyrightCertificate struct {
 }
 
 type CopyrightTrading struct {
-
 }
 
 const APPName = "Traceable Storage"

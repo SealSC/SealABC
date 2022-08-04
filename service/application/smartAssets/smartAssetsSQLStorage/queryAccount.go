@@ -18,25 +18,24 @@
 package smartAssetsSQLStorage
 
 import (
-	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 	"errors"
+	"github.com/SealSC/SealABC/service/application/smartAssets/smartAssetsSQLTables"
 )
-
 
 var addressListRowType = smartAssetsSQLTables.AddressListRow{}
 var addressListTableName = smartAssetsSQLTables.AddressList.Name()
 
 func (s Storage) queryAccountList(param queryParam) (interface{}, error) {
 	commonParam := commonPagingQueryParam{
-		queryParam:    param,
-		rowType:       addressListRowType,
-		table:         addressListTableName,
+		queryParam: param,
+		rowType:    addressListRowType,
+		table:      addressListTableName,
 	}
 
 	return s.commonPagingQuery(commonParam)
 }
 
-func (s Storage) queryAccount(param queryParam) (interface{}, error){
+func (s Storage) queryAccount(param queryParam) (interface{}, error) {
 	account := param[QueryParameterFields.Account.String()]
 	if account == "" {
 		return nil, errors.New("invalid parameters")

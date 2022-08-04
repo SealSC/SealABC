@@ -18,34 +18,34 @@
 package memo
 
 import (
-    "github.com/SealSC/SealABC/service/application/memo/memoSQLStorage"
-    "github.com/SealSC/SealABC/service/application/memo/memoTables"
-    "github.com/SealSC/SealABC/storage/db"
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
-    "github.com/SealSC/SealABC/service/application/memo/memoInterface"
-    "github.com/SealSC/SealABC/crypto"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"github.com/SealSC/SealABC/crypto"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/service/application/memo/memoInterface"
+	"github.com/SealSC/SealABC/service/application/memo/memoSQLStorage"
+	"github.com/SealSC/SealABC/service/application/memo/memoTables"
+	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
+	"github.com/SealSC/SealABC/storage/db"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
 )
 
 func Load() {
-    memoInterface.Load()
-    memoSQLStorage.Load()
-    memoTables.Load()
+	memoInterface.Load()
+	memoSQLStorage.Load()
+	memoTables.Load()
 }
 
 func NewMemoApplication(config Config, tools crypto.Tools) (app chainStructure.IBlockchainExternalApplication, err error) {
-    kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
-    if err != nil {
-        log.Log.Error("can't load basic assets app for now: ", err.Error())
-        return
-    }
+	kvDriver, err := db.NewKVDatabaseDriver(config.KVDBName, config.KVDBConfig)
+	if err != nil {
+		log.Log.Error("can't load basic assets app for now: ", err.Error())
+		return
+	}
 
-    var sqlDriver simpleSQLDatabase.IDriver = nil
-    if config.EnableSQLDB {
-        sqlDriver = config.SQLStorage
-    }
+	var sqlDriver simpleSQLDatabase.IDriver = nil
+	if config.EnableSQLDB {
+		sqlDriver = config.SQLStorage
+	}
 
-    app = memoInterface.NewApplicationInterface(kvDriver, sqlDriver, tools)
-    return
+	app = memoInterface.NewApplicationInterface(kvDriver, sqlDriver, tools)
+	return
 }

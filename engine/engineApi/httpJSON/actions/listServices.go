@@ -18,54 +18,53 @@
 package actions
 
 import (
-    "github.com/gin-gonic/gin"
-    "github.com/SealSC/SealABC/engine/engineService"
-    "github.com/SealSC/SealABC/network/http"
-    "github.com/SealSC/SealABC/service"
+	"github.com/SealSC/SealABC/engine/engineService"
+	"github.com/SealSC/SealABC/network/http"
+	"github.com/SealSC/SealABC/service"
+	"github.com/gin-gonic/gin"
 )
 
-type listServices struct{
-    path string
+type listServices struct {
+	path string
 }
 
 var ListServices = &listServices{
-    path: "/list/services",
+	path: "/list/services",
 }
 
 type engineSetting struct {
-    Consensus interface{}
+	Consensus interface{}
 }
 
-func (c *listServices)Handle(ctx *gin.Context) {
-    res := http.NewResponse(ctx)
+func (c *listServices) Handle(ctx *gin.Context) {
+	res := http.NewResponse(ctx)
 
-    basicInfo := service.BasicInformation{}
+	basicInfo := service.BasicInformation{}
 
-    es := engineSetting{}
+	es := engineSetting{}
 
-    basicInfo.Name = "Seal ABC"
-    basicInfo.Description = "the engine of Seal ABC blockchain framework"
-    settingsInfo, subService := engineService.GetServicesBasicInformation()
-    es.Consensus = settingsInfo
-    basicInfo.Settings = es
-    basicInfo.SubServices = subService
-    basicInfo.Api.Protocol = service.ApiProtocols.HTTP.String()
-    basicInfo.Api.Address = serverConfig.Address
-    basicInfo.Api.ApiList = ApiInformation()
+	basicInfo.Name = "Seal ABC"
+	basicInfo.Description = "the engine of Seal ABC blockchain framework"
+	settingsInfo, subService := engineService.GetServicesBasicInformation()
+	es.Consensus = settingsInfo
+	basicInfo.Settings = es
+	basicInfo.SubServices = subService
+	basicInfo.Api.Protocol = service.ApiProtocols.HTTP.String()
+	basicInfo.Api.Address = serverConfig.Address
+	basicInfo.Api.ApiList = ApiInformation()
 
-    res.OK(basicInfo)
+	res.OK(basicInfo)
 }
 
-func (c *listServices)RouteRegister(router gin.IRouter) {
-    router.GET(serverConfig.BasePath + c.path, c.Handle)
+func (c *listServices) RouteRegister(router gin.IRouter) {
+	router.GET(serverConfig.BasePath+c.path, c.Handle)
 }
 
-func (c *listServices)BasicInformation() (info http.HandlerBasicInformation)  {
+func (c *listServices) BasicInformation() (info http.HandlerBasicInformation) {
 
-    info.Description = "this method will list all the services mounted on this engine."
-    info.Path = serverConfig.BasePath + c.path
-    info.Method = service.ApiProtocolMethod.HttpGet.String()
+	info.Description = "this method will list all the services mounted on this engine."
+	info.Path = serverConfig.BasePath + c.path
+	info.Method = service.ApiProtocolMethod.HttpGet.String()
 
-    return
+	return
 }
-

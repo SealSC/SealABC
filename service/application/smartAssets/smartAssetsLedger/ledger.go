@@ -18,28 +18,30 @@
 package smartAssetsLedger
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/common/utility/serializer/structSerializer"
 	"github.com/SealSC/SealABC/crypto"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/dataStructure/merkleTree"
+	"github.com/SealSC/SealABC/dataStructure/state"
+	"github.com/SealSC/SealABC/log"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/metadata/blockchainRequest"
 	"github.com/SealSC/SealABC/metadata/seal"
 	"github.com/SealSC/SealABC/service/system/blockchain/chainStructure"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/kvDatabase"
-	"bytes"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"math/big"
 	"sync"
 )
 
 type Ledger struct {
-	txPool        map[string] *Transaction
-	txPoolRecord  []string
+	txPool        *TxPool
 	txPoolLimit   int
-	clientTxCount map[string] int
+	clientTxCount map[string]int
 	clientTxLimit int
 
 	operateLock sync.RWMutex
@@ -47,29 +49,76 @@ type Ledger struct {
 
 	genesisAssets BaseAssets
 
-	preActuators   map[string] txPreActuator
-	queryActuators map[string] queryActuator
+	preActuators   map[string]txPreActuator
+	queryActuators map[string]queryActuator
 
-	chain         chainStructure.IChainInterface
-	CryptoTools   crypto.Tools
-	Storage       kvDatabase.IDriver
+	chain       chainStructure.IChainInterface
+	CryptoTools crypto.Tools
+	Storage     kvDatabase.IDriver
 
 	storageForEVM contractStorage
+
+	stateDB *state.StateDB
+
+	applicationName string
+
+	genesisRoot []byte
 }
 
 func Load() {
 	enum.SimpleBuild(&StoragePrefixes)
+	enum.SimpleBuild(&StateType)
 	enum.SimpleBuild(&TxType)
 	enum.SimpleBuild(&QueryTypes)
 	enum.SimpleBuild(&QueryParameterFields)
 	enum.BuildErrorEnum(&Errors, 1000)
 }
 
-func (l *Ledger) SetChain(chain chainStructure.IChainInterface)  {
+func (l *Ledger) SetChain(chain chainStructure.IChainInterface) {
 	l.chain = chain
+
+	parentRoot, _ := l.getParentRoot()
+	stateDB, err := l.NewState(parentRoot)
+	if err != nil {
+		panic(err)
+		return
+	}
+
+	l.stateDB = stateDB
+
+	l.txPool.setChain(chain, l.stateDB)
 }
 
-func (l *Ledger) LoadGenesisAssets(owner []byte, assets BaseAssetsData) error  {
+func (l *Ledger) genesisState() {
+	batch := l.Storage.NewBatch()
+
+	r, _ := l.stateDB.Commit(batch, true)
+
+	l.genesisRoot = r.Bytes()
+	err := l.Storage.BatchWrite(batch)
+	if err != nil {
+		log.Log.Error("genesis root error")
+		return
+	}
+
+	return
+}
+
+func (l *Ledger) getParentRoot() (root []byte, err error) {
+	blockEntity := l.chain.GetLastBlock()
+	if blockEntity == nil {
+		root = l.genesisRoot
+		return
+	}
+	root, _ = blockEntity.Header.StateRoot[l.applicationName]
+	if len(root) == 0 {
+		root = l.genesisRoot
+	}
+
+	return
+}
+
+func (l *Ledger) NewStateAndLoadGenesisAssets(owner []byte, assets BaseAssetsData) (err error) {
 	_, exists, err := l.getSystemAssets()
 	if err != nil {
 		return err
@@ -79,7 +128,22 @@ func (l *Ledger) LoadGenesisAssets(owner []byte, assets BaseAssetsData) error  {
 		return nil
 	}
 
-	//if not exists, create
+	if len(owner) == 0 {
+		return errors.New("no owner for system assets")
+	}
+
+	stateDB, err := l.NewState(common.Hash{}.Bytes())
+	if err != nil {
+		return err
+	}
+	l.stateDB = stateDB
+
+	addr := common.BytesToAddress(owner)
+	exist := stateDB.Exist(addr)
+	if exist {
+		return
+	}
+
 	supply := assets.Supply
 	assets.Supply = "0"
 
@@ -128,13 +192,11 @@ func (l *Ledger) LoadGenesisAssets(owner []byte, assets BaseAssetsData) error  {
 		return errors.New("supply is zero or negative")
 	}
 
-	err = l.Storage.Put(kvDatabase.KVItem{
-		Key:    BuildKey(StoragePrefixes.Balance, owner),
-		Data:   balance.Bytes(),
-		Exists: false,
-	})
+	stateDB.AddBalance(addr, balance)
+	stateDB.SetNonce(addr, 0)
 
-	return err
+	l.genesisState()
+	return
 }
 
 func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
@@ -168,7 +230,7 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 		return errors.New("reach transaction count limit")
 	}
 
-	if len(l.txPool) >= l.txPoolLimit {
+	if l.txPool.len() >= l.txPoolLimit {
 		return errors.New("reach transaction pool limit")
 	}
 
@@ -177,13 +239,16 @@ func (l *Ledger) AddTx(req blockchainRequest.Entity) error {
 		return errors.New("duplicate history transaction")
 	}
 
-	txHash := string(tx.DataSeal.Hash)
-	if l.txPool[txHash] != nil {
+	if l.txPool.Get(tx.getCommonHash()) != nil {
 		return errors.New("duplicate pending transaction")
 	}
 
-	l.txPool[txHash] = &tx
-	l.txPoolRecord = append(l.txPoolRecord, txHash)
+	err = l.txPool.addTx(&tx)
+	if err != nil {
+		return err
+	}
+
+	//l.txPoolRecord = append(l.txPoolRecord, tx.getCommonHash())
 	l.clientTxCount[client] = clientTxCount + 1
 
 	return nil
@@ -204,8 +269,8 @@ func (l Ledger) txResultCheck(orgResult TransactionResult, execResult Transactio
 
 	for i, s := range orgResult.NewState {
 		if !bytes.Equal(s.Key, execResult.NewState[i].Key) ||
-		   !bytes.Equal(s.OrgVal, execResult.NewState[i].OrgVal) ||
-		   !bytes.Equal(s.NewVal, execResult.NewState[i].NewVal) {
+			!bytes.Equal(s.OrgVal, execResult.NewState[i].OrgVal) ||
+			!bytes.Equal(s.NewVal, execResult.NewState[i].NewVal) {
 			return errors.New(fmt.Sprintf("transaction %x has different state to change", txHash))
 		}
 	}
@@ -213,12 +278,12 @@ func (l Ledger) txResultCheck(orgResult TransactionResult, execResult Transactio
 	return nil
 }
 
-func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []byte, err error) {
+func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (root []byte, err error) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
-	txHash := map[string] bool{}
-	resultCache := txResultCache {
+	txHash := map[string]bool{}
+	resultCache := txResultCache{
 		CachedBlockGasKey: &txResultCacheData{
 			gasLeft: constTransactionGasLimit().Uint64(),
 		},
@@ -230,6 +295,15 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []b
 		CachedContractCreationAddress: &txResultCacheData{
 			Data: nil,
 		},
+	}
+
+	parentRoot, err := l.getParentRoot()
+	if err != nil {
+		return
+	}
+	stateDB, err := l.NewState(parentRoot)
+	if err != nil {
+		return
 	}
 
 	for _, tx := range txList.Transactions {
@@ -254,73 +328,122 @@ func (l Ledger) PreExecute(txList TransactionList, blk block.Entity) (result []b
 			checkErr := l.txResultCheck(tx.TransactionResult, txForCheck.TransactionResult, tx.getHash())
 			if checkErr != nil {
 				err = checkErr
+				log.Log.Printf("tx err: %v", err)
 				break
 			}
+
+			l.setTransactionState(tx, stateDB, nil)
 		}
+	}
+
+	root = stateDB.IntermediateRoot().Bytes()
+	stateRoot := blk.Header.StateRoot[l.applicationName]
+
+	l.removeTransactionsFromPool(txList.Transactions)
+
+	if !bytes.Equal(root, stateRoot) {
+		err = fmt.Errorf("invalid merkle root (remote: %x local: %x)", stateRoot, root)
 	}
 
 	return
 }
 
 func (l *Ledger) removeTransactionsFromPool(txList []Transaction) {
-	removeTxHashes := map[string] bool {}
+	l.txPool.removeUnenforceable()
 
 	for _, tx := range txList {
-		txHashStr := string(tx.getHash())
-		poolEl := l.txPool[txHashStr]
-		if poolEl != nil {
-			removeTxHashes[txHashStr] = true
-			delete(l.txPool, txHashStr)
-		}
+		l.txPool.removeTx(tx.getCommonHash())
+	}
 
+	for _, tx := range txList {
 		client := string(tx.DataSeal.SignerPublicKey)
-		if l.clientTxCount[client] > 0{
+		if l.clientTxCount[client] > 0 {
 			l.clientTxCount[client] -= 1
 		}
 	}
-
-	var newTxPoolRecord []string
-	for _, recHash := range l.txPoolRecord {
-		if !removeTxHashes[recHash] {
-			newTxPoolRecord = append(newTxPoolRecord, recHash)
-		}
-	}
-
-	l.txPoolRecord = newTxPoolRecord
 }
 
-func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byte, err error) {
+func (l *Ledger) Execute(txList TransactionList, blk block.Entity) (result []byte, root common.Hash, err error) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
-	var kvList []kvDatabase.KVItem
+	batch := l.Storage.NewBatch()
+
 	for _, tx := range txList.Transactions {
 		txData, _ := structSerializer.ToMFBytes(tx)
-		kvList = append(kvList, kvDatabase.KVItem{
-			Key:    BuildKey(StoragePrefixes.Transaction, tx.DataSeal.Hash),
-			Data:   txData,
-			Exists: true,
-		})
+		batch.Put(BuildKey(StoragePrefixes.Transaction, tx.DataSeal.Hash), txData)
 
-		for _, s := range tx.TransactionResult.NewState {
-			kvList = append(kvList, kvDatabase.KVItem {
-				Key:    s.Key,
-				Data:   s.NewVal,
-				Exists: true,
-			})
-		}
+		l.setTransactionState(tx, l.stateDB, batch)
 	}
 
-	err = l.Storage.BatchPut(kvList)
+	root, err = l.stateDB.Commit(batch, true)
+	err = l.Storage.BatchWrite(batch)
 	if err != nil {
-		return 
+		return
 	}
 
-	l.removeTransactionsFromPool(txList.Transactions)
 	return
 }
 
-func (l Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) {
+func (l *Ledger) setTransactionState(tx Transaction, state *state.StateDB, batch kvDatabase.Batch) {
+	from := common.BytesToAddress(tx.From)
+
+	switch tx.Type {
+	case TxType.Transfer.String():
+		l.setTransferState(tx.TransactionResult.NewState, state)
+	case TxType.CreateContract.String():
+		fallthrough
+	case TxType.ContractCall.String():
+		l.setContractState(tx.TransactionResult.NewState, state, batch)
+	}
+
+	state.SetNonce(from, state.GetNonce(from)+1)
+}
+
+func (l *Ledger) setContractState(states []StateData, state *state.StateDB, batch kvDatabase.Batch) {
+	for _, s := range states {
+		switch s.Type {
+		case StateType.Balance.String():
+			l.setBalance(s.Key, s.NewVal, state)
+
+		case StateType.ContractData.String():
+
+			addr := common.BytesToAddress(s.Key)
+			key := common.BytesToHash(s.SubKey)
+			value := common.BytesToHash(s.NewVal)
+
+			state.SetState(addr, key, value)
+		case StateType.ContractCode.String():
+
+			addr := common.BytesToAddress(s.Key)
+
+			state.SetCode(addr, s.NewVal)
+		case StateType.ContractHash.String():
+			continue
+		default:
+			if batch == nil {
+				continue
+			}
+			batch.Put(s.Key, s.NewVal)
+		}
+	}
+}
+
+func (l *Ledger) setTransferState(s []StateData, state *state.StateDB) {
+	for _, s := range s {
+		l.setBalance(s.Key, s.NewVal, state)
+	}
+}
+
+func (l *Ledger) setBalance(addr, value []byte, state *state.StateDB) {
+	balance := big.NewInt(0)
+	balance.SetBytes(value)
+	address := common.BytesToAddress(addr)
+
+	state.SetBalance(address, balance)
+}
+
+func (l *Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) {
 	errEl := err.(enum.ErrorElement)
 
 	if errEl != Errors.Success {
@@ -332,16 +455,18 @@ func (l Ledger) setTxNewState(err error, newState []StateData, tx *Transaction) 
 	}
 }
 
-func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionList, count uint32, txRoot []byte) {
+func (l *Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionList, count uint32, txRoot []byte, stateRoot []byte) {
 	l.poolLock.Lock()
 	defer l.poolLock.Unlock()
 
-	count = uint32(len(l.txPool))
+	txs := l.txPool.Pending()
+	count = uint32(len(txs))
+
 	if count == 0 {
 		return
 	}
 
-	resultCache := txResultCache {
+	resultCache := txResultCache{
 		CachedBlockGasKey: &txResultCacheData{
 			gasLeft: constTransactionGasLimit().Uint64(),
 		},
@@ -355,10 +480,18 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 		},
 	}
 
+	parentRoot, err := l.getParentRoot()
+	if err != nil {
+		return
+	}
+	stateDB, err := l.NewState(parentRoot)
+	if err != nil {
+		return
+	}
+
 	mt := merkleTree.Tree{}
 
-	for idx, txHashStr := range l.txPoolRecord {
-		tx := l.txPool[txHashStr]
+	for idx, tx := range txs {
 
 		mt.AddHash(tx.DataSeal.Hash)
 
@@ -369,13 +502,17 @@ func (l Ledger) GetTransactionsFromPool(blk block.Entity) (txList TransactionLis
 
 			tx.TransactionResult.ReturnData = resultCache[CachedContractReturnData].Data
 			tx.TransactionResult.NewAddress = resultCache[CachedContractCreationAddress].address
+
+			l.setTransactionState(*tx, stateDB, nil)
 		}
 
 		txList.Transactions = append(txList.Transactions, *tx)
 	}
 
 	txRoot, _ = mt.Calculate()
+	stateRoot = stateDB.IntermediateRoot().Bytes()
 
+	l.removeTransactionsFromPool(txList.Transactions)
 	return
 }
 
@@ -387,31 +524,32 @@ func (l *Ledger) DoQuery(req QueryRequest) (interface{}, error) {
 	return nil, Errors.InvalidQuery
 }
 
-func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver) *Ledger {
+func NewLedger(tools crypto.Tools, driver kvDatabase.IDriver, applicationName string) *Ledger {
 	l := &Ledger{
-		txPool:        map[string] *Transaction{},
-		txPoolRecord:  []string {},
-		txPoolLimit:   1000,
-		clientTxCount: map[string] int{},
-		clientTxLimit: 4,
-		operateLock:   sync.RWMutex{},
-		poolLock:      sync.Mutex{},
-		genesisAssets: BaseAssets{},
-		CryptoTools:   tools,
-		Storage:       driver,
+		txPool:          NewTxPool(),
+		txPoolLimit:     1000,
+		clientTxCount:   map[string]int{},
+		clientTxLimit:   4,
+		operateLock:     sync.RWMutex{},
+		poolLock:        sync.Mutex{},
+		genesisAssets:   BaseAssets{},
+		CryptoTools:     tools,
+		Storage:         driver,
+		applicationName: applicationName,
 	}
 
 	l.storageForEVM.basedLedger = l
 	l.preActuators = map[string]txPreActuator{
-		TxType.Transfer.String(): l.preTransfer,
+		TxType.Transfer.String():       l.preTransfer,
 		TxType.CreateContract.String(): l.preContractCreation,
-		TxType.ContractCall.String(): l.preContractCall,
+		TxType.ContractCall.String():   l.preContractCall,
 	}
 
 	l.queryActuators = map[string]queryActuator{
-		QueryTypes.BaseAssets.String(): l.queryBaseAssets,
-		QueryTypes.Balance.String(): l.queryBalance,
-		QueryTypes.Transaction.String(): l.queryTransaction,
+		QueryTypes.BaseAssets.String():   l.queryBaseAssets,
+		QueryTypes.Balance.String():      l.queryBalance,
+		QueryTypes.Nonce.String():        l.queryNonce,
+		QueryTypes.Transaction.String():  l.queryTransaction,
 		QueryTypes.OffChainCall.String(): l.contractOffChainCall,
 	}
 

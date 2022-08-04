@@ -18,63 +18,64 @@
 package account
 
 import (
-    "github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
-    "github.com/SealSC/SealABC/crypto/signers"
-    "github.com/SealSC/SealABC/crypto/signers/signerCommon"
+	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/crypto/ciphers/cipherCommon"
+	"github.com/SealSC/SealABC/crypto/signers"
+	"github.com/SealSC/SealABC/crypto/signers/signerCommon"
 )
 
 const encryptedKeyLen = 32
 
 type StoreConfig struct {
-    CipherType  string
-    CipherParam []byte
+	CipherType  string
+	CipherParam []byte
 
-    KDFType     string
-    KDFSalt     []byte
-    KDFParam    []byte
+	KDFType  string
+	KDFSalt  []byte
+	KDFParam []byte
 
-    KeyLength   int
+	KeyLength int
 }
 
 type Encrypted struct {
-    Address string
-    Data    cipherCommon.EncryptedData
-    Config  StoreConfig
+	Address common.Address
+	Data    cipherCommon.EncryptedData
+	Config  StoreConfig
 }
 
 type accountDataForEncrypt struct {
-    SignerType  string
-    KeyData     []byte
+	SignerType string
+	KeyData    []byte
 }
 
 type SealAccount struct {
-    Address    string
-    SingerType string
-    Signer     signerCommon.ISigner
+	Address    common.Address
+	SingerType string
+	Signer     signerCommon.ISigner
 }
 
 func NewAccount(privateKey []byte, sg signers.ISignerGenerator) (sa SealAccount, err error) {
-    signer, err := sg.NewSigner(privateKey)
+	signer, err := sg.NewSigner(privateKey)
 
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
-    sa.Address = signer.PublicKeyString()
-    sa.SingerType = signer.Type()
-    sa.Signer = signer
-    return
+	sa.Address = common.BytesToAddress(signer.PublicKeyBytes())
+	sa.SingerType = signer.Type()
+	sa.Signer = signer
+	return
 }
 
 func NewAccountForVerify(publicKey []byte, sg signers.ISignerGenerator) (sa SealAccount, err error) {
-    signer, err := sg.FromRawPublicKey(publicKey)
-    if err != nil {
-        return
-    }
+	signer, err := sg.FromRawPublicKey(publicKey)
+	if err != nil {
+		return
+	}
 
-    sa.Address = signer.PublicKeyString()
-    sa.SingerType = signer.Type()
-    sa.Signer = signer
+	sa.Address = common.BytesToAddress(signer.PublicKeyBytes())
+	sa.SingerType = signer.Type()
+	sa.Signer = signer
 
-    return
+	return
 }

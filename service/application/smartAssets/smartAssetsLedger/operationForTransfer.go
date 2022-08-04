@@ -33,7 +33,7 @@ func (l *Ledger) getBalance(addr []byte, cache txResultCache) (*big.Int, error) 
 	balance, err := l.BalanceOf(addr)
 	if err == nil {
 		cache[addrStr] = &txResultCacheData{
-			val:balance,
+			val: balance,
 		}
 	}
 
@@ -90,13 +90,15 @@ func (l *Ledger) preTransfer(tx Transaction, cache txResultCache, _ block.Entity
 
 	statusToChange := []StateData{
 		{
-			Key:    BuildKey(StoragePrefixes.Balance, tx.From),
+			Type:   StateType.Balance.String(),
+			Key:    tx.From,
 			NewVal: fromBalance.Bytes(),
 			OrgVal: orgFromBalance,
 		},
 
 		{
-			Key:    BuildKey(StoragePrefixes.Balance, tx.To),
+			Type:   StateType.Balance.String(),
+			Key:    tx.To,
 			NewVal: toBalance.Bytes(),
 			OrgVal: orgToBalance,
 		},

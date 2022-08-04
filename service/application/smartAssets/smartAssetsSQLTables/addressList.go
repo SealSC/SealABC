@@ -18,12 +18,12 @@
 package smartAssetsSQLTables
 
 import (
+	"encoding/hex"
+	"fmt"
 	"github.com/SealSC/SealABC/common"
 	"github.com/SealSC/SealABC/dataStructure/enum"
 	"github.com/SealSC/SealABC/metadata/block"
 	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-	"encoding/hex"
-	"fmt"
 	"math/big"
 	"time"
 )
@@ -77,7 +77,7 @@ func (a *AddressListRows) Insert(addr []byte, balance *big.Int, blk block.Entity
 	a.Rows = append(a.Rows, newAddressRow)
 }
 
-func (a *AddressListRows) InsertSystemIssueBalance(balance *big.Int, address string)  {
+func (a *AddressListRows) InsertSystemIssueBalance(balance *big.Int, address string) {
 	newRow := AddressListRow{
 		Address:      address,
 		Balance:      balance.String(),

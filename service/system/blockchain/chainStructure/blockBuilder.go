@@ -30,6 +30,7 @@ func (b *Blockchain) buildBasicBlock(requests []blockchainRequest.Entity) (newBl
 
 	newBlock.Header.Version = "1"
 	newBlock.Body.RequestsCount = len(requests)
+	newBlock.Header.StateRoot = make(map[string][]byte)
 
 	for _, req := range requests {
 		if req.Packed {
@@ -84,11 +85,18 @@ func (b *Blockchain) NewBlock(requests []blockchainRequest.Entity, blankBlock bl
 	if lastBlock != nil {
 		newBlock.Header.Height = lastBlock.Header.Height + 1
 		newBlock.Header.PrevBlock = append([]byte{}, lastBlock.Seal.Hash...)
+		newBlock.Header.StateRoot = lastBlock.Header.StateRoot
+
 	} else if b.lastBlock != nil {
 		newBlock.Header.Height = b.lastBlock.Header.Height + 1
 
 		//set block prev hash
 		newBlock.Header.PrevBlock = append([]byte{}, b.lastBlock.Seal.Hash...)
+		newBlock.Header.StateRoot = b.lastBlock.Header.StateRoot
+	}
+
+	for _, req := range requests {
+		newBlock.Header.StateRoot[req.RequestApplication] = req.Seal.Root
 	}
 
 	//set block hash

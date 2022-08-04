@@ -35,7 +35,7 @@ type event struct {
 }
 
 type ICustomerData interface {
-	Verify() (passed bool, err error)
+	Verify([]byte) (passed bool, err error)
 	Bytes() ([]byte, error)
 }
 

@@ -50,7 +50,7 @@ func getService(name string) (s service.IService, err error) {
 	return
 }
 
-func preExecuteServiceRequest(req serviceRequest.Entity) (result []byte, err error) {
+func preExecuteServiceRequest(req serviceRequest.Entity, lastReq []interface{}) (result []byte, err error) {
 	serviceLock.Lock()
 	defer serviceLock.Unlock()
 
@@ -59,7 +59,7 @@ func preExecuteServiceRequest(req serviceRequest.Entity) (result []byte, err err
 		return
 	}
 
-	return s.PreExecute(req)
+	return s.PreExecute(req, lastReq)
 }
 
 func executeServiceRequest(req serviceRequest.Entity) (result []byte, err error) {

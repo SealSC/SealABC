@@ -17,7 +17,7 @@
 
 package memoTables
 
-func Load()  {
-    MemoList.load()
-    AddressList.load()
+func Load() {
+	MemoList.load()
+	AddressList.load()
 }

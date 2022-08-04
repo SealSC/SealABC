@@ -18,60 +18,60 @@
 package basicAssetsSQLTables
 
 import (
-    "github.com/SealSC/SealABC/common"
-    "github.com/SealSC/SealABC/dataStructure/enum"
-    "github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
-    "github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
-    "fmt"
-    "time"
+	"fmt"
+	"github.com/SealSC/SealABC/common"
+	"github.com/SealSC/SealABC/dataStructure/enum"
+	"github.com/SealSC/SealABC/service/application/basicAssets/basicAssetsLedger"
+	"github.com/SealSC/SealABC/storage/db/dbInterface/simpleSQLDatabase"
+	"time"
 )
 
 type AddressListTable struct {
-    ID      enum.Element `col:"c_id" ignoreInsert:"true"`
-    Height  enum.Element `col:"c_height"`
-    Address enum.Element `col:"c_address"`
-    Time    enum.Element `col:"c_time"`
+	ID      enum.Element `col:"c_id" ignoreInsert:"true"`
+	Height  enum.Element `col:"c_height"`
+	Address enum.Element `col:"c_address"`
+	Time    enum.Element `col:"c_time"`
 
-    simpleSQLDatabase.BasicTable
+	simpleSQLDatabase.BasicTable
 }
 
 var AddressList AddressListTable
 
 func (a AddressListTable) NewRows() interface{} {
-    return simpleSQLDatabase.NewRowsInstance(AddressListRows{})
+	return simpleSQLDatabase.NewRowsInstance(AddressListRows{})
 }
 
 func (a AddressListTable) Name() (name string) {
-    return "t_basic_assets_address_list"
+	return "t_basic_assets_address_list"
 }
 
 func (a *AddressListTable) load() {
-    enum.SimpleBuild(a)
-    a.Instance = *a
+	enum.SimpleBuild(a)
+	a.Instance = *a
 }
 
 type AddressListRow struct {
-    ID      string
-    Height  string
-    Address string
-    Time    string
+	ID      string
+	Height  string
+	Address string
+	Time    string
 }
 
 type AddressListRows struct {
-    simpleSQLDatabase.BasicRows
+	simpleSQLDatabase.BasicRows
 }
 
-func (b *AddressListRows) InsertAddress(tx basicAssetsLedger.TransactionWithBlockInfo, address string)  {
-    timestamp := time.Unix(tx.CreateTime, 0)
-    newAddressRow := AddressListRow{
-        Address: address,
-        Height:  fmt.Sprintf("%d", tx.BlockInfo.BlockHeight),
-        Time:    timestamp.Format(common.BASIC_TIME_FORMAT),
-    }
+func (b *AddressListRows) InsertAddress(tx basicAssetsLedger.TransactionWithBlockInfo, address string) {
+	timestamp := time.Unix(tx.CreateTime, 0)
+	newAddressRow := AddressListRow{
+		Address: address,
+		Height:  fmt.Sprintf("%d", tx.BlockInfo.BlockHeight),
+		Time:    timestamp.Format(common.BASIC_TIME_FORMAT),
+	}
 
-    b.Rows = append(b.Rows, newAddressRow)
+	b.Rows = append(b.Rows, newAddressRow)
 }
 
 func (b *AddressListRows) Table() simpleSQLDatabase.ITable {
-    return &AddressList
+	return &AddressList
 }

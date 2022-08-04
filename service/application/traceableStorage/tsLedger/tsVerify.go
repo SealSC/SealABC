@@ -55,4 +55,3 @@ func (t *TSLedger) commonDataInRequestVerify(data tsData.TSData) (passed bool, e
 
 	return true, nil
 }
-

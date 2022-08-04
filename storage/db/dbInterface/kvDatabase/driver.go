@@ -18,19 +18,22 @@
 package kvDatabase
 
 type IDriver interface {
-    Close()
+	Close()
 
-    Put(kv KVItem) (err error)
-    Get(k []byte) (kv KVItem, err error)
-    Delete(k []byte) (err error)
-    Check(k []byte) (exists bool, err error)
+	Put(kv KVItem) (err error)
+	Get(k []byte) (kv KVItem, err error)
+	Delete(k []byte) (err error)
+	Check(k []byte) (exists bool, err error)
 
-    BatchPut(kvList []KVItem) (err error)
-    BatchGet(kList [][]byte) (kvList []KVItem, err error)
-    BatchDelete(kList [][]byte) (err error)
-    BatchCheck(kList [][]byte) (kvList []KVItem, err error)
+	BatchPut(kvList []KVItem) (err error)
+	BatchGet(kList [][]byte) (kvList []KVItem, err error)
+	BatchDelete(kList [][]byte) (err error)
+	BatchCheck(kList [][]byte) (kvList []KVItem, err error)
 
-    Traversal(condition []byte) (kvList []KVItem)
+	NewBatch() Batch
+	BatchWrite(Batch) (err error)
 
-    Stat() (state interface{}, err error)
+	Traversal(condition []byte) (kvList []KVItem)
+
+	Stat() (state interface{}, err error)
 }

@@ -18,158 +18,155 @@
 package simpleSQLDatabase
 
 import (
-    "database/sql"
-    "reflect"
+	"database/sql"
+	"reflect"
 )
 
 const (
-    ColumnNameTag = "col"
-    DefaultValueTag = "def"
-    IgnoreForInsertTag = "ignoreInsert"
+	ColumnNameTag      = "col"
+	DefaultValueTag    = "def"
+	IgnoreForInsertTag = "ignoreInsert"
 )
 
-func ColumnsFromTag(table interface{}, forInsert bool, requireFields []string) (columns [] string, err error){
-    tType := reflect.TypeOf(table)
+func ColumnsFromTag(table interface{}, forInsert bool, requireFields []string) (columns []string, err error) {
+	tType := reflect.TypeOf(table)
 
-    if reflect.Struct != tType.Kind() {
-        return
-    }
+	if reflect.Struct != tType.Kind() {
+		return
+	}
 
-    for i := 0; i < tType.NumField(); i++ {
-        t := tType.Field(i)
+	for i := 0; i < tType.NumField(); i++ {
+		t := tType.Field(i)
 
-        col := t.Tag.Get(ColumnNameTag)
-        if len(requireFields) != 0 {
-            for _, f := range requireFields {
-                if f == t.Name {
-                    columns = append(columns, col)
-                }
-            }
+		col := t.Tag.Get(ColumnNameTag)
+		if len(requireFields) != 0 {
+			for _, f := range requireFields {
+				if f == t.Name {
+					columns = append(columns, col)
+				}
+			}
 
-            continue
-        }
+			continue
+		}
 
+		if forInsert {
+			ignoreForInsert := t.Tag.Get(IgnoreForInsertTag)
+			if ignoreForInsert == "true" {
+				continue
+			}
+		}
 
-        if forInsert {
-            ignoreForInsert := t.Tag.Get(IgnoreForInsertTag)
-            if ignoreForInsert == "true" {
-                continue
-            }
-        }
+		if "" == col {
+			continue
+		}
 
-        if "" == col {
-            continue
-        }
+		columns = append(columns, col)
+	}
 
-        columns = append(columns, col)
-    }
-
-    return
+	return
 }
 
-func FieldsFromLocalTable(table interface{}, forInsert bool) (fields [] string, err error){
-    tType := reflect.TypeOf(table)
+func FieldsFromLocalTable(table interface{}, forInsert bool) (fields []string, err error) {
+	tType := reflect.TypeOf(table)
 
-    if reflect.Struct != tType.Kind() {
-        return
-    }
+	if reflect.Struct != tType.Kind() {
+		return
+	}
 
-    for i := 0; i < tType.NumField(); i++ {
-        t := tType.Field(i)
+	for i := 0; i < tType.NumField(); i++ {
+		t := tType.Field(i)
 
-        if forInsert {
-            ignoreForInsert := t.Tag.Get(IgnoreForInsertTag)
-            if ignoreForInsert == "true" {
-                continue
-            }
-        }
+		if forInsert {
+			ignoreForInsert := t.Tag.Get(IgnoreForInsertTag)
+			if ignoreForInsert == "true" {
+				continue
+			}
+		}
 
-        f := t.Name
-        fields = append(fields, f)
-    }
+		f := t.Name
+		fields = append(fields, f)
+	}
 
-    return
+	return
 }
 
 func StringDataFromRow(row interface{}, requiredField []string) (data []interface{}) {
-    rType := reflect.TypeOf(row)
+	rType := reflect.TypeOf(row)
 
-    if reflect.Struct != rType.Kind() {
-        return
-    }
+	if reflect.Struct != rType.Kind() {
+		return
+	}
 
-    rValue := reflect.ValueOf(row)
+	rValue := reflect.ValueOf(row)
 
-    for _, f := range requiredField {
-        sf, exist := rType.FieldByName(f)
-        if !exist {
-            continue
-        }
-        v := rValue.FieldByName(f)
-        if reflect.String != v.Kind() {
-            continue
-        }
+	for _, f := range requiredField {
+		sf, exist := rType.FieldByName(f)
+		if !exist {
+			continue
+		}
+		v := rValue.FieldByName(f)
+		if reflect.String != v.Kind() {
+			continue
+		}
 
-        val := v.String()
-        if "" == val {
-            defaultVal := sf.Tag.Get(DefaultValueTag)
-            val = defaultVal
-        }
-        data = append(data, val)
-    }
+		val := v.String()
+		if "" == val {
+			defaultVal := sf.Tag.Get(DefaultValueTag)
+			val = defaultVal
+		}
+		data = append(data, val)
+	}
 
-    return
+	return
 }
 
-func isValidColumn(colInRow []string, field reflect.StructField) bool  {
-    valid := false
-    for _, col := range colInRow {
-        colName := field.Tag.Get(ColumnNameTag)
-        valid = (col == colName) || ("" == colName)
-        if valid {
-            break
-        }
-    }
+func isValidColumn(colInRow []string, field reflect.StructField) bool {
+	valid := false
+	for _, col := range colInRow {
+		colName := field.Tag.Get(ColumnNameTag)
+		valid = (col == colName) || ("" == colName)
+		if valid {
+			break
+		}
+	}
 
-    return valid
+	return valid
 }
 func SQLRowsToStructureRows(sqlRows *sql.Rows, targetRowType interface{}) (rows []interface{}, err error) {
-    tType := reflect.TypeOf(targetRowType)
-    if reflect.Struct != tType.Kind() {
-        return
-    }
+	tType := reflect.TypeOf(targetRowType)
+	if reflect.Struct != tType.Kind() {
+		return
+	}
 
-    colInRows, err := sqlRows.Columns()
-    if nil != err {
-        return
-    }
+	colInRows, err := sqlRows.Columns()
+	if nil != err {
+		return
+	}
 
-    for sqlRows.Next() {
-        newItem := reflect.New(tType).Elem()
+	for sqlRows.Next() {
+		newItem := reflect.New(tType).Elem()
 
-        var valList []interface{}
+		var valList []interface{}
 
-        for i :=0; i < newItem.NumField(); i++ {
-            colVal := newItem.Field(i)
-            if !colVal.CanAddr() {
-                continue
-            }
+		for i := 0; i < newItem.NumField(); i++ {
+			colVal := newItem.Field(i)
+			if !colVal.CanAddr() {
+				continue
+			}
 
-            if !isValidColumn(colInRows, tType.Field(i)) {
-                continue
-            }
+			if !isValidColumn(colInRows, tType.Field(i)) {
+				continue
+			}
 
-            valList = append(valList, colVal.Addr().Interface())
-        }
+			valList = append(valList, colVal.Addr().Interface())
+		}
 
-        err = sqlRows.Scan(valList...)
-        if nil != err {
-            break
-        }
-        rows = append(rows, newItem.Interface())
-    }
+		err = sqlRows.Scan(valList...)
+		if nil != err {
+			break
+		}
+		rows = append(rows, newItem.Interface())
+	}
 
-    return
+	return
 }
-
-

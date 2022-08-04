@@ -18,134 +18,131 @@
 package network
 
 import (
-    "github.com/SealSC/SealABC/log"
-    "github.com/SealSC/SealABC/metadata/message"
+	"github.com/SealSC/SealABC/log"
+	"github.com/SealSC/SealABC/metadata/message"
 )
 
 type StaticInformation struct {
-    Topology        string
-    ConnectedNode   []string
+	Topology      string
+	ConnectedNode []string
 }
 
 type IService interface {
-    Self() (node Node)
+	Self() (node Node)
 
-    Create(cfg Config) (err error)
-    ConnectTo(Node) (err error)
+	Create(cfg Config) (err error)
+	ConnectTo(Node) (err error)
 
-    Join(seeds []Node, cfg *Config) (err error)
-    Leave()
+	Join(seeds []Node, cfg *Config) (err error)
+	Leave()
 
-    GetAllLinkedNode() (nodes []Node)
+	GetAllLinkedNode() (nodes []Node)
 
-    SendTo(node Node, msg message.Message) (n int, err error)
-    Broadcast(msg message.Message) (err error)
+	SendTo(node Node, msg message.Message) (n int, err error)
+	Broadcast(msg message.Message) (err error)
 
-    RegisterMessageProcessor(msgFamily string, processor MessageProcessor)
+	RegisterMessageProcessor(msgFamily string, processor MessageProcessor)
 
-    StaticInformation() StaticInformation
+	StaticInformation() StaticInformation
 }
 
 type Service struct {
-    started bool
-    router  IRouter
+	started bool
+	router  IRouter
 }
 
 func NewNetworkNodeFromLink(link ILink) (node LinkNode) {
-    node.Protocol = link.RemoteAddr().Network()
-    node.Link = link
-    return node
+	node.Protocol = link.RemoteAddr().Network()
+	node.Link = link
+	return node
 }
 
 func (s *Service) StaticInformation() (info StaticInformation) {
-    info.Topology = s.router.TopologyName()
-    linkedNode := s.router.GetAllLinkedNode()
+	info.Topology = s.router.TopologyName()
+	linkedNode := s.router.GetAllLinkedNode()
 
-    nodes := []string {s.Self().ServeAddress}
-    for _, n := range linkedNode {
-        nodes = append(nodes, n.ServeAddress)
-    }
+	nodes := []string{s.Self().ServeAddress}
+	for _, n := range linkedNode {
+		nodes = append(nodes, n.ServeAddress)
+	}
 
-    info.ConnectedNode = nodes
+	info.ConnectedNode = nodes
 
-    return
+	return
 }
 
-func (s *Service)Self() (node Node) {
-    return s.router.Self()
+func (s *Service) Self() (node Node) {
+	return s.router.Self()
 }
 
 func (s *Service) ConnectTo(node Node) (err error) {
-    _, err = s.router.ConnectTo(node)
-    return
+	_, err = s.router.ConnectTo(node)
+	return
 }
 
 func (s *Service) Create(cfg Config) (err error) {
-    //create router
-    if cfg.Router != nil {
-        s.router = cfg.Router
-    } else {
-        s.router = &Router{}
-    }
+	//create router
+	if cfg.Router != nil {
+		s.router = cfg.Router
+	} else {
+		s.router = &Router{}
+	}
 
-    //start router
-    err = s.router.Start(cfg)
-    if err != nil {
-        log.Log.Println("create p2p network failed. ",  err)
-        return
-    }
-    s.started = true
-    return
+	//start router
+	err = s.router.Start(cfg)
+	if err != nil {
+		log.Log.Println("create p2p network failed. ", err)
+		return
+	}
+	s.started = true
+	return
 }
 
 func (s *Service) Join(seeds []Node, serviceCfg *Config) (err error) {
-    if !s.started && serviceCfg != nil{
-        err = s.Create(*serviceCfg)
-        if err != nil {
-            return
-        }
-    }
+	if !s.started && serviceCfg != nil {
+		err = s.Create(*serviceCfg)
+		if err != nil {
+			return
+		}
+	}
 
-    for _, node := range seeds {
-        err = s.router.JoinTopology(node)
-        if err == nil {
-            break
-        }
+	for _, node := range seeds {
+		err = s.router.JoinTopology(node)
+		if err == nil {
+			break
+		}
 
-        log.Log.Println("connect to seeds ", node, " failed.")
-    }
+		log.Log.Println("connect to seeds ", node, " failed.")
+	}
 
-    if err != nil {
-        log.Log.Println("connect to p2p network failed -> seeds : ", seeds)
-        return
-    }
+	if err != nil {
+		log.Log.Println("connect to p2p network failed -> seeds : ", seeds)
+		return
+	}
 
-    s.started = true
+	s.started = true
 
-    return
+	return
 }
 
 func (s *Service) Leave() {
-    s.router.LeaveTopology()
+	s.router.LeaveTopology()
 }
 
 func (s *Service) GetAllLinkedNode() (nodes []Node) {
-    return s.router.GetAllLinkedNode()
+	return s.router.GetAllLinkedNode()
 }
 
 func (s *Service) SendTo(node Node, msg message.Message) (sent int, err error) {
-    networkMsg := Message{}
-    networkMsg.Message = msg
-    return s.router.SendTo(node, networkMsg)
+	networkMsg := Message{}
+	networkMsg.Message = msg
+	return s.router.SendTo(node, networkMsg)
 }
 
 func (s *Service) Broadcast(msg message.Message) (err error) {
-    return s.router.Broadcast(msg)
+	return s.router.Broadcast(msg)
 }
 
 func (s *Service) RegisterMessageProcessor(msgFamily string, processor MessageProcessor) {
-    s.router.RegisterMessageProcessor(msgFamily, processor)
+	s.router.RegisterMessageProcessor(msgFamily, processor)
 }
-
-
-

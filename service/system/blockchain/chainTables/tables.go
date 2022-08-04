@@ -18,7 +18,7 @@
 package chainTables
 
 func Load() {
-    BlockList.load()
-    Requests.load()
-    AddressList.load()
+	BlockList.load()
+	Requests.load()
+	AddressList.load()
 }
